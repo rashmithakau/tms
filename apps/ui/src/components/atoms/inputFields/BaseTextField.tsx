@@ -1,0 +1,26 @@
+import { TextField } from '@mui/material';
+import React from 'react';
+import { IBaseTextFieldProps } from '../../../interfaces/IBaseTextFieldProps';
+
+// For password fields, use type='password'
+const BaseTextField: React.FC<IBaseTextFieldProps> = ({
+  variant = 'outlined',
+  maxLength = 255,
+  ...rest
+}) => {
+  return (
+    <TextField
+      variant={variant}
+      fullWidth
+      size="small"
+      slotProps={{
+        input: {
+          inputProps: { maxLength }, 
+        },
+      }}
+      {...rest}
+    />
+  );
+};
+
+export default BaseTextField;
