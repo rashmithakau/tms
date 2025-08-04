@@ -1,12 +1,28 @@
 import express from 'express';
 import connectDB from './config/db';
+import { NODE_ENV, PORT ,APP_ORIGIN} from './constants/env';
+import cors from 'cors';
+import cookieParser from "cookie-parser";
+import errorHandler from "./middleware/errorHandler";
+import authRoutes from "./routes/auth.route";
 
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const port = Number(PORT);
 
 const app = express();
 
-app.listen(port, host, () => {
-  connectDB();
-  console.log(`[ ready ] http://${host}:${port}`);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  cors({
+    origin: APP_ORIGIN,
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+app.use("/auth",authRoutes);
+app.use(errorHandler);
+
+app.listen(port,async () => {
+  await connectDB();
+  console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
 });
