@@ -3,6 +3,7 @@ import { ONE_DAY_MS } from '../utils/date';
 import SessionModel from '../models/session.model';
 import appAssert from '../utils/appAssert';
 import { CONFLICT, UNAUTHORIZED } from '../constants/http';
+import { sendEmail } from '../utils/sendEmail';
 import {
   RefreshTokenPayload,
   refreshTokenSignOptions,

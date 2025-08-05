@@ -14,3 +14,5 @@ export const NODE_ENV=getEnv("NODE_ENV","development");
 export const APP_ORIGIN=getEnv("APP_ORIGIN");
 export const JWT_SECRET=getEnv("JWT_SECRET");
 export const JWT_REFRESH_SECRET=getEnv("JWT_REFRESH_SECRET");
+export const GMAIL_USER=getEnv("GMAIL_USER");
+export const GMAIL_APP_PASSWORD=getEnv("GMAIL_APP_PASSWORD");
