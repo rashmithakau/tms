@@ -23,7 +23,7 @@ const LoginFormSection: React.FC = () => {
   });
 
   const onSubmit = (data: LoginData) => {
-    console.log('Sign in data:', data);
+   // Handle login logic here
   };
   return (
     <AuthFormContainer title="Login">

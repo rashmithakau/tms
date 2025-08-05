@@ -13,6 +13,8 @@ const StylePaper = styled(Paper)(() => ({
   boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
   border: '2px solid',
   borderColor: theme.palette.divider,
+  fontFamily: theme.typography.fontFamily,
+
 }));
 
 const AuthFormContainer: React.FC<IAuthFormContainer> = ({
@@ -29,9 +31,10 @@ const AuthFormContainer: React.FC<IAuthFormContainer> = ({
             alignItems: 'center',
             height: '100%',
             padding: '20px 16px',
+            mt: 2,
           }}
         >
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
             {icon &&
               (typeof icon === 'string' ? (
                 <img
