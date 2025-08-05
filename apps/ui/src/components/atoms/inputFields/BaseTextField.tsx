@@ -2,14 +2,15 @@ import { TextField } from '@mui/material';
 import React from 'react';
 import { IBaseTextFieldProps } from '../../../interfaces/IBaseTextFieldProps';
 
-// For password fields, use type='password'
-const BaseTextField: React.FC<IBaseTextFieldProps> = ({
+// Forward refs to make it compatible with react-hook-form
+const BaseTextField = React.forwardRef<HTMLInputElement, IBaseTextFieldProps>(({
   variant = 'outlined',
   maxLength = 255,
   ...rest
-}) => {
+}, ref) => {
   return (
     <TextField
+      ref={ref} // Forward the ref to TextField
       variant={variant}
       fullWidth
       size="small"
@@ -21,6 +22,7 @@ const BaseTextField: React.FC<IBaseTextFieldProps> = ({
       {...rest}
     />
   );
-};
+});
+
 
 export default BaseTextField;
