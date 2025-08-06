@@ -25,3 +25,5 @@ export const confirmPasswordField = (refKey = 'password') =>
     .string()
     .required('Please confirm your password')
     .oneOf([yup.ref(refKey)], 'Passwords must match with new password');
+    .required("password is required")
+    

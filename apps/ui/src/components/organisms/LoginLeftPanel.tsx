@@ -15,13 +15,23 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between', // Distributes space between top content and bottom image
         alignItems: 'center',
         padding: 4,
       }}
     >
-      {/* Top Content Section */}
-      <Box sx={{ textAlign: 'center', marginTop: '10%', flex: 1 }}>
+      {/* Top Half - Content aligned to bottom */}
+      <Box 
+        sx={{ 
+          height: '50vh',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end', // Aligns content to bottom of top half
+          alignItems: 'center',
+          textAlign: 'center',
+          paddingBottom: 2,
+        }}
+      >
         {/* Logo */}
         {icon && (
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
@@ -35,9 +45,7 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
             variant="h3"
             sx={{
               mb: 2,
-
               color: theme.palette.text.primary,
-
               fontFamily: theme.typography.fontFamily,
             }}
           >
@@ -62,28 +70,37 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
         )}
       </Box>
 
-      {/* Bottom Image Section */}
+      {/* Bottom Half - Image aligned to bottom */}
       <Box
         sx={{
+          height: '50vh',
           width: '100%',
-          maxWidth: 400, // Control image container width
-          height: 250, // Set specific height for image container
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 2,
+          alignItems: 'flex-end', // Aligns image to bottom of bottom half
+          paddingBottom: 2,
         }}
       >
-        <img
-          src={imageSrc}
-          alt="Login Background"
-          style={{
-            maxWidth: '100%',
-            maxHeight: '100%',
-            objectFit: 'contain', // Maintains aspect ratio
-            borderRadius: '8px', // Optional: adds rounded corners
+        <Box
+          sx={{
+            maxWidth: 400,
+            height: 250,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
-        />
+        >
+          <img
+            src={imageSrc}
+            alt="Login Background"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              borderRadius: '8px',
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   );
