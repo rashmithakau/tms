@@ -1,8 +1,8 @@
 import catchErrors  from "../utils/catchErrors";
-import { createAccount, refreshUserAccessToken } from "../services/auth.service";
-import { CREATED, OK } from "../constants/http";
+import { refreshUserAccessToken } from "../services/auth.service";
+import { OK } from "../constants/http";
 import {getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthCookies } from "../utils/cookies";
-import { registerSchema, loginSchema } from "./auth.schema";
+import { loginSchema } from "./../schemas/auth.schema";
 import { loginUser } from "../services/auth.service";
 import { verifyToken } from "../utils/jwt";
 import SessionModel from "../models/session.model";
@@ -10,26 +10,6 @@ import { clearAuthCookies } from "../utils/cookies";
 import appAssert from "../utils/appAssert";
 import { UNAUTHORIZED } from "../constants/http";
 
-
-
-export const registerHandler = catchErrors(
-    async (req, res) => {
-        //Validate the request
-        const request = registerSchema.parse({
-            ...req.body,
-            userAgent: req.headers["user-agent"],
-        })
-
-        //call the service
-        const {user,accessToken, refreshToken} = await createAccount(request);
-        
-
-        //return response
-        return setAuthCookies({res,accessToken, refreshToken})
-        .status(CREATED)
-        .json(user);
-    }
-);
 
 export const loginHandler=catchErrors(async (req,res)=>{
     const request=loginSchema.parse({...req.body,userAgent: req.headers["user-agent"]});

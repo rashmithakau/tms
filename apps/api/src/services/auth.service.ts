@@ -2,8 +2,7 @@ import UserModel from '../models/user.model';
 import { ONE_DAY_MS } from '../utils/date';
 import SessionModel from '../models/session.model';
 import appAssert from '../utils/appAssert';
-import { CONFLICT, UNAUTHORIZED } from '../constants/http';
-import { sendEmail } from '../utils/sendEmail';
+import { UNAUTHORIZED } from '../constants/http';
 import {
   RefreshTokenPayload,
   refreshTokenSignOptions,
@@ -11,53 +10,6 @@ import {
   verifyToken,
 } from '../utils/jwt';
 import { thirtyDaysFromNow } from '../utils/date';
-
-export type CreateUserParams = {
-  email: string;
-  password: string;
-  userAgent?: string;
-};
-
-export const createAccount = async (data: CreateUserParams) => {
-  //verify existing user does not exist
-  const existingUser = await UserModel.exists({
-    email: data.email,
-  });
-
-  appAssert(!existingUser, CONFLICT, 'Email already exists');
-
-  //create user
-  const user = await UserModel.create({
-    email: data.email,
-    password: data.password,
-  });
-
-  const userId = user._id;
-
-  //create session
-  const session = await SessionModel.create({
-    userId: user._id,
-    userAgent: data.userAgent,
-  });
-
-  //sign access token & refresh token
-  const refreshToken = signToken(
-    { sessionId: session._id },
-    refreshTokenSignOptions
-  );
-
-  const accessToken = signToken({
-    userId,
-    sessionId: session._id,
-  });
-
-  //return user & tokens
-  return {
-    user: user.omitPassword(),
-    accessToken,
-    refreshToken,
-  };
-};
 
 export type LoginParams = {
   email: string;
