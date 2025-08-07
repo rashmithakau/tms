@@ -29,7 +29,7 @@ const CreateEmployee: React.FC = () => {
     mode: 'onChange', // enables real-time validation
   });
   const onSubmit = (data: CreateEmployeeData) => {
-    console.log('Form Data:', data);
+    //logic to handle form submission
   };
 
   return (
