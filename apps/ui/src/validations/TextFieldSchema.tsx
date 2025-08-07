@@ -25,5 +25,10 @@ export const confirmPasswordField = (refKey = 'password') =>
     .string()
     .required('Please confirm your password')
     .oneOf([yup.ref(refKey)], 'Passwords must match with new password');
-    .required("password is required")
-    
+
+export const contactField = yup
+  .string()
+  .required("Contact number is required")
+  .matches(/^\d{10}$/, "Contact number must be exactly 10 digits")
+  .length(10, "Contact number must be exactly 10 digits");
+ 
