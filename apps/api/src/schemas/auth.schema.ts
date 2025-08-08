@@ -1,8 +1,5 @@
 import z from "zod"
-
-const emailSchema=z.string().email().min(1).max(255);
-const passwordSchema=z.string().min(8).max(128);
-const userAgentSchema= z.string().optional();
+import {emailSchema,passwordSchema,userAgentSchema } from "./main.schema"
 
 
 export const loginSchema = z.object({

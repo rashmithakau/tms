@@ -3,7 +3,7 @@ import React from 'react';
 import { IBaseTextFieldProps } from '../../../interfaces/IBaseTextFieldProps';
 
 // Forward refs to make it compatible with react-hook-form
-const BaseTextField = React.forwardRef<HTMLInputElement, IBaseTextFieldProps>(({
+const BaseTextField = React.forwardRef<HTMLDivElement, IBaseTextFieldProps>(({
   variant = 'outlined',
   maxLength = 255,
   ...rest

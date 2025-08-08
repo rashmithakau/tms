@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import BaseTextField from './BaseTextField';
-import { IBaseTextFieldProps } from '../../../interfaces/IBaseTextFieldProps';
+import { INumberFieldProps } from 'apps/ui/src/interfaces/INumberFieldProps';
 
-const NumberField: React.FC<IBaseTextFieldProps> = ({...rest}) => {
-  const [chars, setChars] = useState<string>('');
+const NumberField = React.forwardRef<HTMLInputElement, INumberFieldProps>(
+  ({ ...rest }, ref) => {
+    const { maxDigits = 10, ...otherProps } = rest;
+    const handleChange = (value: string) => {
+      value = value.replace(/[^0-9]/g, '');
+    };
 
-  const handleChange = (value: string) => {
-    value = value.replace(/[^0-9]/g, '');
-    setChars(value);
-  };
-
-  return (
-    <BaseTextField value={chars} onChange={(e) => handleChange(e.target.value)} {...rest}/>
-  );
-};
+    return (
+      <BaseTextField
+        onChange={(e) => handleChange(e.target.value)}
+        type="number"
+        slotProps={{
+        input: {
+        },
+      }}
+        {...rest}
+        ref={ref}
+      />
+    );
+  }
+);
 
 export default NumberField;
