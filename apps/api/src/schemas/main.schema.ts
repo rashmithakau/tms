@@ -7,3 +7,7 @@ export const firstNameSchema = z.string().min(1, "First name is required");
 export const lastNameSchema = z.string().min(1, "Last name is required");
 export const designationSchema = z.string().min(1, "Designation is required");
 export const contactNumberSchema = z.string().min(10, "Contact number must be at least 10 digits").max(10, "Contact number must be at most 10 digits");
+export const projectNameSchema = z.string().min(1, "Project name cannot be empty");
+export const billableSchema = z.boolean();
+export const timeSheetsSchema = z.boolean();
+export const isScrumProjectSchema = z.boolean();

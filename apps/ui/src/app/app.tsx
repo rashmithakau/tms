@@ -3,7 +3,7 @@ import theme from '../styles/theme';
 import { ThemeProvider } from '@emotion/react';
 
 
-export function App() {
+export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <div>
@@ -12,5 +12,4 @@ export function App() {
     </ThemeProvider>
   );
 
-
-export default App;
+}

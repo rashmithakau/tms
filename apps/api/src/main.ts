@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import errorHandler from "./middleware/errorHandler";
 import authRoutes from "./routes/auth.route";
 import userhRoutes from './routes/user.route';
+import projectRoutes from './routes/project.route';
 
 const port = Number(PORT);
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 
 app.use("/auth",authRoutes);
 app.use("/api/user",userhRoutes);//remove authenticate for development purposes
+app.use("/api/project",projectRoutes)
 
 app.use(errorHandler);
 
