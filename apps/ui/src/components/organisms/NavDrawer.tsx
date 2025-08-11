@@ -1,9 +1,9 @@
-import { Box, Drawer, Typography} from '@mui/material';
+import { Box, Divider, Drawer, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import DrawerList from './../molecules/DrawerList';
-import logo from '../../assets/images/WebSiteLogo.svg'
-import InboxIcon from '@mui/icons-material/Inbox';
-import MailIcon from '@mui/icons-material/Mail';
+import logo from '../../assets/images/WebSiteLogo2.png';
+import theme from '../../styles/theme';
+import INavItemProps from '../../interfaces/INavItemProps';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -37,25 +37,29 @@ const StyledDrawer = styled(Drawer)(({ theme, open }) => ({
   },
 }));
 
+interface NavDrawerProps {
+  open: boolean;
+  handleDrawer: (open: boolean) => void;
+  items: INavItemProps[][];
+}
 
-
-export default function NavDrawer({ open, handleDrawer }: any) {
-  const items = [
-    [
-      { text: 'Inbox', icon: <InboxIcon /> },
-      { text: 'Drafts', icon: <MailIcon /> },
-    ],
-    [
-      { text: 'Trash', icon: <InboxIcon /> },
-      { text: 'Spam', icon: <MailIcon /> },
-    ],
-  ];
+export default function NavDrawer({
+  open,
+  handleDrawer,
+  items,
+}: NavDrawerProps) {
   return (
     <StyledDrawer
       variant="permanent"
       open={open}
       onMouseEnter={() => handleDrawer(true)}
       onMouseLeave={() => handleDrawer(false)}
+      sx={{
+        '& .MuiDrawer-paper': {
+          backgroundColor: 'primary.dark', // Use primary color for the drawer background
+          color: 'primary.contrastText', // Use contrast text color for better readability
+        },
+      }}
     >
       <DrawerHeader>
         <Box
@@ -66,8 +70,8 @@ export default function NavDrawer({ open, handleDrawer }: any) {
             height: '100%',
             width: '100%',
             gap: 2,
-            paddingTop: 2,
-            paddingBottom: 2
+            paddingTop: 1,
+            paddingBottom: 1,
           }}
         >
           <img
@@ -77,14 +81,19 @@ export default function NavDrawer({ open, handleDrawer }: any) {
               width: 47,
               height: 47,
             }}
-        
           />
-          {open && ( 
-            <Typography fontSize={30}>TimeSync</Typography>
-          )}
+          {open && <Typography fontSize={30}>TimeSync</Typography>}
         </Box>
       </DrawerHeader>
-      <DrawerList items={items} />
+      <Divider
+        sx={{
+          backgroundColor: theme.palette.secondary.light,
+          marginX: 1,
+          marginY: 0,
+          padding: 0,
+        }}
+      />
+      <DrawerList items={items}/>
     </StyledDrawer>
   );
 }
