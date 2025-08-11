@@ -3,6 +3,7 @@ import LoginPage from '../pages/LoginPage';
 import './app.css';
 import theme from '../styles/theme';
 import { ThemeProvider } from '@emotion/react';
+import SuperAdminPage from '../pages/SuperAdminPage';
 
 
 export default function App() {
@@ -10,14 +11,10 @@ export default function App() {
 
     <ThemeProvider theme={theme}>
       <div>
-
+        <SuperAdminPage/>
       </div>
     </ThemeProvider>
   );
-
-
 }
 
 
-
-export default App;

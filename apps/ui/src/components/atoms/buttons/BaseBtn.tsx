@@ -11,9 +11,9 @@ const BaseBtn: React.FC<IBaseBtnProps> = ({
       <Button
         variant={variant}
         fullWidth
-        size="small"
         sx={{
-          fontFamily: 'lora',
+          textTransform: 'none',
+
         }}
         {...props}
       >
@@ -24,3 +24,4 @@ const BaseBtn: React.FC<IBaseBtnProps> = ({
 };
 
 export default BaseBtn;
+
