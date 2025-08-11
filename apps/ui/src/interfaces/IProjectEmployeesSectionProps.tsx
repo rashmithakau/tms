@@ -5,7 +5,6 @@ export interface IProjectEmployeesSectionProps {
   onAddEmployeesClick: () => void;
   onRemoveEmployee: (employeeId: number) => void;
   title?: string;
-  addButtonText?: string;
   emptyMessage?: string;
   height?: string | number;
 }

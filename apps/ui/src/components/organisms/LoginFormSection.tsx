@@ -2,7 +2,7 @@ import { Grid, Link, Box, Typography, Divider } from '@mui/material';
 import AuthFormContainer from '../../styles/AuthFormContainer';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
 import BaseBtn from '../atoms/buttons/BaseBtn';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 import LoginSchema from '../../validations/LoginSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -25,6 +25,7 @@ const LoginFormSection: React.FC = () => {
   const onSubmit = (data: LoginData) => {
    // Handle login logic here
   };
+  const theme = useTheme();
   return (
     <AuthFormContainer title="Login">
       <Grid sx={{ padding: 4 }}>
@@ -83,7 +84,7 @@ const LoginFormSection: React.FC = () => {
               sx={{
                 float: 'right',
                 mt: 1,
-                fontFamily: theme.typography.fontFamily,
+                
               }}
             >
               Forgot Password?

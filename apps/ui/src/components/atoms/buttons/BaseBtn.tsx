@@ -1,4 +1,4 @@
-import { Button, ButtonProps } from '@mui/material';
+import { Button } from '@mui/material';
 import { IBaseBtnProps } from '../../../interfaces/IBaseBtnProps';
 
 const BaseBtn: React.FC<IBaseBtnProps> = ({
@@ -8,15 +8,7 @@ const BaseBtn: React.FC<IBaseBtnProps> = ({
 }) => {
   return (
     <div>
-      <Button
-        variant={variant}
-        fullWidth
-        size="small"
-        sx={{
-          fontFamily: 'lora',
-        }}
-        {...props}
-      >
+      <Button variant={variant} fullWidth size="small" {...props}>
         {children}
       </Button>
     </div>

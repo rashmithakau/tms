@@ -1,19 +1,26 @@
 import { createTheme } from '@mui/material';
+import { grey } from '@mui/material/colors';
 const fonts = {
   primary: 'Lora',
 };
 const theme = createTheme({
   palette: {
-    mode: 'light',
-    primary: { main: '#0B0B45' },
-    secondary: { main: '#1000FF' },
-    background: { default: '#EBEFF4', paper: '#FDFDFF' },
-    text: { primary: '#2C2C2C', secondary: '#9A9A9A' },
-    divider: '#E5E7EB',
-    success: { main: '#10B981' },
-    error: { main: '#EF4444' },
-    warning: { main: '#F59E0B' },
-  
+    primary: {
+      main: '#013282', 
+    },
+    secondary: {
+      main: grey[300], 
+    },
+    background: {
+      default: '#ffffff',
+      paper: '#EBEFF4', 
+    },
+    text:{
+      primary:'#2C2C2C',
+      secondary:'#9A9A9A',
+      
+    },
+     error: { main: '#EF4444' },
   },
   typography: {
     fontFamily: fonts.primary,

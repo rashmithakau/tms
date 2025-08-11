@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { ILoginLeftPanelProps } from '../../interfaces/ILoginLeftPanelProps';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 
 const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
   icon,
@@ -8,6 +8,7 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
   description,
   imageSrc,
 }) => {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -46,7 +47,7 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
             sx={{
               mb: 2,
               color: theme.palette.text.primary,
-              fontFamily: theme.typography.fontFamily,
+             
             }}
           >
             {title}
@@ -62,7 +63,6 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
               color: theme.palette.text.secondary,
               fontSize: { xs: '0.9rem', md: '1rem' },
               lineHeight: 1.5,
-              fontFamily: theme.typography.fontFamily,
             }}
           >
             {description}

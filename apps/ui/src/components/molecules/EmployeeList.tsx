@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import EmployeeListItem from './EmployeeListItem';
 import { IEmployeeListProps } from '../../interfaces/IEmployeeListProps';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 
 const EmployeeList: React.FC<IEmployeeListProps> = ({
   employees,
@@ -17,15 +17,16 @@ const EmployeeList: React.FC<IEmployeeListProps> = ({
   searchTerm,
   maxHeight = 300,
 }) => {
+  const theme = useTheme();
   return (
     <>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" >
         {title}
       </Typography>
       <Box
         sx={{
           maxHeight,
-          border: `0.5px  ${theme.palette.divider}`,
+          
         }}
       >
         <List>

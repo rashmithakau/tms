@@ -1,11 +1,7 @@
 import React from 'react';
-import {
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Checkbox,
-} from '@mui/material';
+import { ListItem, ListItemText, ListItemIcon, Checkbox } from '@mui/material';
 import { IEmployeeListItemProps } from '../../interfaces/IEmployeeListItemProps';
+import theme from '../../styles/theme';
 
 const EmployeeListItem: React.FC<IEmployeeListItemProps> = ({
   employee,
@@ -17,17 +13,18 @@ const EmployeeListItem: React.FC<IEmployeeListItemProps> = ({
       component="button"
       onClick={() => onToggle(employee)}
       sx={{
-        backgroundColor: isSelected ? 'action.selected' : 'transparent',
+        mb: 1,
+        border: '1px solid',
+        borderRadius: 3,
+        backgroundColor: isSelected ? theme.palette.background.paper : theme.palette.background.default,
         '&:hover': {
-          backgroundColor: isSelected ? 'action.selected' : 'action.hover',
+          backgroundColor: isSelected ? theme.palette.background.paper : theme.palette.action.hover,
+          borderColor: theme.palette.primary.main,
         },
       }}
     >
       <ListItemIcon>
-        <Checkbox
-          checked={isSelected}
-          onChange={() => onToggle(employee)}
-        />
+        <Checkbox checked={isSelected} onChange={() => onToggle(employee)} />
       </ListItemIcon>
       <ListItemText
         primary={employee.name}
