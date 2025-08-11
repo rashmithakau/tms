@@ -8,7 +8,15 @@ const BaseBtn: React.FC<IBaseBtnProps> = ({
 }) => {
   return (
     <div>
-      <Button variant={variant} fullWidth size="small" {...props}>
+      <Button
+        variant={variant}
+        fullWidth
+        sx={{
+          textTransform: 'none',
+
+        }}
+        {...props}
+      >
         {children}
       </Button>
     </div>
@@ -16,3 +24,4 @@ const BaseBtn: React.FC<IBaseBtnProps> = ({
 };
 
 export default BaseBtn;
+

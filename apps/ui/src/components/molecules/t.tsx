@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import CustomListItemButton from '../atoms/buttons/ListItemButton';
@@ -8,12 +8,18 @@ import { ListItem } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import INavItemProps from '../../interfaces/INavItemProps';
 
-export default function DrawerList({ items}: { items: INavItemProps[][],selected?: string }) {
-  const [activeButton, setActiveButton] = useState<string | null>(null);
+interface DrawerListProps {
+  items: INavItemProps[][];
+  selected: string;
+  onSelectionChange: (selected: string) => void; // Callback to notify parent
+}
 
-  const handleButtonClick = (buttonId: string) => {
-    setActiveButton(buttonId);
-    
+export default function DrawerList({ items, selected, onSelectionChange }: DrawerListProps) {
+  const [activeButton, setActiveButton] = useState<string>(selected);
+
+  const handleButtonClick = (buttonText: string) => {
+    setActiveButton(buttonText);
+    onSelectionChange(buttonText); // Notify parent of the change
   };
 
   const theme = useTheme();
@@ -24,17 +30,17 @@ export default function DrawerList({ items}: { items: INavItemProps[][],selected
         <div key={`group-${groupIndex}`}>
           <List>
             {group.map((item, index) => {
-              const buttonId = `item-${groupIndex}-${index}`;
-              const isActive = activeButton === buttonId;
+              const isActive = activeButton === item.text;
 
               return (
-                <ListItem key={buttonId} disablePadding sx={{ paddingY: 1 }}>
+                <ListItem key={`item-${groupIndex}-${index}`} disablePadding sx={{ paddingY: 1 }}>
                   <CustomListItemButton
-                    onClick={() => handleButtonClick(buttonId)}
+                    onClick={() => handleButtonClick(item.text)}
                     sx={{
                       backgroundColor: isActive ? theme.palette.primary.main : 'transparent',
-                      '&:hover': { backgroundColor: theme.palette.primary.light,color: theme.palette.secondary.light },
-                      color: isActive ? theme.palette.secondary.main : theme.palette.secondary.dark,
+                      '&:hover': {
+                        backgroundColor: theme.palette.action.hover,
+                      },
                     }}
                   >
                     <CustomListItemIcon>{item.icon}</CustomListItemIcon>
@@ -44,7 +50,7 @@ export default function DrawerList({ items}: { items: INavItemProps[][],selected
               );
             })}
           </List>
-          {groupIndex < items.length - 1 && <Divider sx={{backgroundColor:theme.palette.secondary.dark,marginX:1}}/>} 
+          {groupIndex < items.length - 1 && <Divider />}
         </div>
       ))}
     </>
