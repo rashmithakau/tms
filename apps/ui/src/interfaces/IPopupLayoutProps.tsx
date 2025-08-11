@@ -6,7 +6,7 @@ export interface IPopupLayoutProps {
   children: React.ReactNode;
   actions?: React.ReactNode;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  fullWidth?: boolean;
+  
   showCloseButton?: boolean;
   disableBackdropClick?: boolean;
   minHeight?: string | number;

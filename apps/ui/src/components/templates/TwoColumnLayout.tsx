@@ -1,18 +1,19 @@
 import { Grid } from '@mui/material';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 import { ITwoColumnLayoutProps } from '../../interfaces/ITwoColumnLayoutProps';
 
 const TwoColumnLayout: React.FC<ITwoColumnLayoutProps> = ({
   leftContent,
   rightContent,
 }) => {
+  const theme = useTheme();
   return (
     <Grid container sx={{ height: '100vh', overflow: 'hidden' }}>
       {/* left side section */}
       <Grid
         size={6}
         sx={{
-          backgroundColor: theme.palette.background.paper,
+          backgroundColor: theme.palette.background.default,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -25,7 +26,7 @@ const TwoColumnLayout: React.FC<ITwoColumnLayoutProps> = ({
       <Grid
         size={6}
         sx={{
-          backgroundColor: theme.palette.background.default,
+          backgroundColor: theme.palette.background.paper,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

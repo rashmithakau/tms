@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Chip } from '@mui/material';
-import BaseBtn from '../atoms/buttons/BaseBtn';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
+import RemoveButton from '../atoms/buttons/RemoveButton';
 
 import { IProjectEmployeesSectionProps } from '../../interfaces/IProjectEmployeesSectionProps';
 
@@ -10,10 +10,10 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
   onAddEmployeesClick,
   onRemoveEmployee,
   title = 'Project Employees',
-  addButtonText = 'Add Employees',
-  emptyMessage = 'No employees assigned to this project yet.',
+  emptyMessage = 'Click here to add employees',
   height = '120px',
 }) => {
+  const theme = useTheme();
   return (
     <Box sx={{ mb: 1 }}>
       {/* Header Section */}
@@ -24,13 +24,10 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
         >
           {title}
         </Typography>
-        <BaseBtn variant="outlined"  onClick={onAddEmployeesClick}>
-          {addButtonText}
-        </BaseBtn>
       </Box>
 
       {/* Scrollable Employee List Container */}
-      <Box
+      <Box onClick={onAddEmployeesClick}
         sx={{
           height,
           overflow: 'auto',
@@ -106,7 +103,6 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
                     </Typography>
                     <Typography
                       variant="caption"
-                    
                       sx={{
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -120,18 +116,11 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
 
                   {/* Remove Button */}
                   <Box sx={{ ml: 1 }}>
-                    <Chip
+                    <RemoveButton 
+                      onRemove={() => onRemoveEmployee(employee.id)}
                       label="Remove"
-                      onDelete={() => onRemoveEmployee(employee.id)}
+                      labelColor={theme.palette.error.main}
                       size="small"
-                      variant="outlined"
-                      color="secondary"
-                      sx={{
-                        height: '24px',
-                        '& .MuiChip-deleteIcon': {
-                          fontSize: '16px',
-                        },
-                      }}
                     />
                   </Box>
                 </Box>
@@ -139,24 +128,28 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
             </Box>
           </Box>
         ) : (
-          /* Empty State */
-          <Box
-            sx={{
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          //  Clickable Box
+          <Box >
             <Typography
-              variant="body2"
+              variant="h4"
               sx={{
-                color: theme.palette.text.secondary,
-                textAlign: 'center',
-                fontStyle: 'italic',
+                color: theme.palette.primary.main,
+                fontWeight: 300,
+                lineHeight: 1,
               }}
             >
-              {emptyMessage}
+              {/*Message */}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  textAlign: 'center',
+                  opacity: 0.8,
+                  mt: 5,
+                }}
+              >
+                {emptyMessage}
+              </Typography>
             </Typography>
           </Box>
         )}

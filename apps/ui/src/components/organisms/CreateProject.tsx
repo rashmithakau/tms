@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  FormControl,
-  FormLabel,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-} from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import FormLayout from '../templates/FormLayout';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
 import { Box } from '@mui/material';
@@ -21,35 +15,8 @@ import { FormHelperText } from '@mui/material';
 type CreateProjectFormData = {
   projectName: string;
   billable: 'yes' | 'no';
-  timeSheets: 'yes' | 'no';
-  isScrum: 'yes' | 'no';
 };
-const radioGroups = [
-  {
-    label: 'Billable',
-    name: 'billable',
-    options: [
-      { value: 'yes', label: 'Yes', id: 'billable-yes' },
-      { value: 'no', label: 'No', id: 'billable-no' },
-    ],
-  },
-  {
-    label: 'Time Sheets',
-    name: 'timeSheets',
-    options: [
-      { value: 'yes', label: 'Yes', id: 'timeSheets-yes' },
-      { value: 'no', label: 'No', id: 'timeSheets-no' },
-    ],
-  },
-  {
-    label: 'Is Scrum Project',
-    name: 'isScrum',
-    options: [
-      { value: 'yes', label: 'Yes', id: 'scrum-yes' },
-      { value: 'no', label: 'No', id: 'scrum-no' },
-    ],
-  },
-];
+
 const CreateProject: React.FC = () => {
   const [openEmployeeDialog, setOpenEmployeeDialog] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
@@ -59,15 +26,13 @@ const CreateProject: React.FC = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting ,isValid},
+    formState: { errors, isSubmitting, isValid },
     reset,
   } = useForm<CreateProjectFormData>({
     resolver: yupResolver(CreateProjectFormSchema),
     defaultValues: {
       projectName: '',
       billable: undefined,
-      timeSheets: undefined,
-      isScrum: undefined,
     },
   });
 
@@ -75,14 +40,8 @@ const CreateProject: React.FC = () => {
   const onSubmit = async (data: CreateProjectFormData) => {
     try {
       // Add selected employees to form data
-      const formDataWithEmployees = {
-        ...data,
-        employees: selectedEmployees,
-      };
-
       // TODO: Call your API here
       // await createProject(formDataWithEmployees);
-
       // Success handling
     } catch (error) {
       //error handling
@@ -110,69 +69,72 @@ const CreateProject: React.FC = () => {
       <FormLayout
         title="Create New Project"
         formContent={
-          <Box
-            component="form"
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{ mt: 4 }}
-          >
+          <Box  sx={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 4,
+          maxWidth: 600,
+          width: '100%',
+          overflow: 'hidden',
+        }} component="form" onSubmit={handleSubmit(onSubmit)}>
             {/* Project Name Field */}
             <Controller
               name="projectName"
               control={control}
               render={({ field }) => (
-                
-                  <BaseTextField
-                    {...field}
-                    label="Project Name"
-                    placeholder="Enter Project Name"
-                    variant="standard"
-                    id="project-name"
-                    error={!!errors.projectName}
-                    helperText={errors.projectName?.message || ' '}
-                  />
-               
+                <BaseTextField
+                  {...field}
+                  label="Project Name"
+                  placeholder="Enter Project Name"
+                  variant="standard"
+                  id="project-name"
+                  error={!!errors.projectName}
+                  helperText={errors.projectName?.message || ' '}
+                />
               )}
             />
 
-            {/* Radio Groups */}
-            <FormControl component="fieldset" >
-              {radioGroups.map((group) => (
-                <Box key={group.name} >
-                  <FormLabel
-                    component="legend"
-                    error={!!errors[group.name as keyof CreateProjectFormData]}
-                    required
+            {/* Billable Dropdown */}
+            <Box sx={{ mb: 3 }}>
+              <Controller
+                name="billable"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    variant="standard"
+                    error={!!errors.billable}
                   >
-                    {group.label}
-                  </FormLabel>
-                  <Controller
-                    name={group.name as keyof CreateProjectFormData}
-                    control={control}
-                    render={({ field }) => (
-                      <RadioGroup {...field} row value={field.value || ''}>
-                        {group.options.map((option) => (
-                          <FormControlLabel
-                            key={option.id}
-                            value={option.value}
-                            control={<Radio />}
-                            label={option.label}
-                            id={option.id}
-                          />
-                        ))}
-                      </RadioGroup>
+                    <InputLabel required>Billable</InputLabel>
+                    <Select
+                      {...field}
+                      value={field.value || ''}
+                      label="Billable"
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 200,
+                          },
+                        },
+                      }}
+                    >
+                      <MenuItem value="">
+                        <em>Select an option</em>
+                      </MenuItem>
+                      <MenuItem value="yes" id="yes-option">
+                        Yes
+                      </MenuItem>
+                      <MenuItem value="no" id="no-option">
+                        No
+                      </MenuItem>
+                    </Select>
+                    {errors.billable && (
+                      <FormHelperText>{errors.billable.message}</FormHelperText>
                     )}
-                  />
-                  {errors[group.name as keyof CreateProjectFormData] && (
-                    <FormHelperText error >
-                      {
-                        errors[group.name as keyof CreateProjectFormData]
-                          ?.message
-                      }
-                    </FormHelperText>
-                  )}
-                </Box>
-              ))}
-            </FormControl>
+                  </FormControl>
+                )}
+              />
+            </Box>
 
             {/* Employee Section */}
             <ProjectEmployeesSection
@@ -182,7 +144,11 @@ const CreateProject: React.FC = () => {
             />
 
             {/* Submit Button */}
-            <BaseBtn type="submit" sx={{ mt: 2 }} disabled={!isValid || isSubmitting}>
+            <BaseBtn
+              type="submit"
+              sx={{ mt: 2 }}
+              disabled={!isValid || isSubmitting}
+            >
               Create Project
             </BaseBtn>
           </Box>

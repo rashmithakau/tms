@@ -15,6 +15,12 @@ const theme = createTheme({
       default: '#ffffff',
       paper: '#EBEFF4', 
     },
+    text:{
+      primary:'#2C2C2C',
+      secondary:'#9A9A9A',
+      
+    },
+     error: { main: '#EF4444' },
   },
   typography: {
     fontFamily: fonts.primary,

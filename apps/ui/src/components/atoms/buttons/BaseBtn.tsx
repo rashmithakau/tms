@@ -1,4 +1,4 @@
-import { Button, ButtonProps } from '@mui/material';
+import { Button } from '@mui/material';
 import { IBaseBtnProps } from '../../../interfaces/IBaseBtnProps';
 
 const BaseBtn: React.FC<IBaseBtnProps> = ({

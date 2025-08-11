@@ -36,73 +36,80 @@ const CreateEmployee: React.FC = () => {
     <FormLayout
       title="Create Employee"
       formContent={
-        <Box sx={{ padding: 4 , maxWidth: 600, width: '100%' }}>
-          {/*  input field */}
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-           
-              <BaseTextField
-                variant={fieldVariants.primary}
-                sx={{ mb: 2 }}
-                label="First Name"
-                placeholder="Enter First Name"
-                {...register('firstName')}
-                error={!!errors.firstName}
-                helperText={errors.firstName?.message}
-              />
-              <BaseTextField
-                variant={fieldVariants.primary}
-                sx={{ mb: 2 }}
-                label="Last Name"
-                placeholder="Enter Last Name"
-                {...register('lastName')}
-                error={!!errors.lastName}
-                helperText={errors.lastName?.message}
-              />
-        
+        <Box
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 4,
+            maxWidth: 600,
+            width: '100%',
+            overflow: 'hidden',
+          }}
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          {/* input fields */}
+          <BaseTextField
+            variant={fieldVariants.primary}
+            label="First Name"
+            placeholder="Enter First Name"
+            {...register('firstName')}
+            error={!!errors.firstName}
+            helperText={errors.firstName?.message || ' '}
+            fullWidth
+          />
+          <BaseTextField
+            variant={fieldVariants.primary}
+            label="Last Name"
+            placeholder="Enter Last Name"
+            {...register('lastName')}
+            error={!!errors.lastName}
+            helperText={errors.lastName?.message || ' '}
+            fullWidth
+          />
 
-            <BaseTextField
-              variant={fieldVariants.primary}
-              sx={{ mb: 2 }}
-              label="Employee ID"
-              placeholder="Enter Employee ID"
-              {...register('employeeId')}
-              error={!!errors.employeeId}
-              helperText={errors.employeeId?.message}
-            />
-            <BaseTextField
-              variant={fieldVariants.primary}
-              sx={{ mb: 2 }}
-              label="Email"
-              placeholder="Enter Email"
-              type="email"
-              {...register('email')}
-              error={!!errors.email}
-              helperText={errors.email?.message}
-            />
+          <BaseTextField
+            variant={fieldVariants.primary}
+            label="Employee ID"
+            placeholder="Enter Employee ID"
+            {...register('employeeId')}
+            error={!!errors.employeeId}
+            helperText={errors.employeeId?.message || ' '}
+            fullWidth
+          />
+          <BaseTextField
+            variant={fieldVariants.primary}
+            label="Email"
+            placeholder="Enter Email"
+            type="email"
+            {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message || ' '}
+            fullWidth
+          />
 
-            <NumberField
-              variant={fieldVariants.primary}
-              sx={{ mb: 2 }}
-              label="Contact Number"
-              placeholder="Enter Contact Number"
-              {...register('contactNumber')}
-              error={!!errors.contactNumber}
-              helperText={errors.contactNumber?.message}
-            />
-            <BaseTextField
-              variant={fieldVariants.primary}
-              sx={{ mb: 2 }}
-              label="Designation"
-              placeholder="Enter Designation"
-              {...register('designation')}
-              error={!!errors.designation}
-              helperText={errors.designation?.message}
-            />
+          <NumberField
+            variant={fieldVariants.primary}
+            label="Contact Number"
+            placeholder="Enter Contact Number"
+            {...register('contactNumber')}
+            error={!!errors.contactNumber}
+            helperText={errors.contactNumber?.message || ' '}
+            fullWidth
+          />
+          <BaseTextField
+            variant={fieldVariants.primary}
+            label="Designation"
+            placeholder="Enter Designation"
+            {...register('designation')}
+            error={!!errors.designation}
+            helperText={errors.designation?.message || ' '}
+            fullWidth
+          />
 
-            <BaseBtn type="submit" disabled={!isValid || isSubmitting}>
-              Create Employee
-            </BaseBtn>
-          </form>
+          <BaseBtn type="submit" disabled={!isValid || isSubmitting}>
+            Create Employee
+          </BaseBtn>
         </Box>
       }
     />

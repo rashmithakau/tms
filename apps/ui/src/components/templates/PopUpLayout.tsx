@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { IPopupLayoutProps } from '../../interfaces/IPopupLayoutProps';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 
 const PopupLayout: React.FC<IPopupLayoutProps> = ({
   open,
@@ -21,10 +21,8 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   children,
   actions,
   maxWidth = 'md',
-  fullWidth = true,
   showCloseButton = true,
   disableBackdropClick = false,
-  minHeight = '400px',
   contentPadding = 3,
   titleProps = {},
   contentProps = {},
@@ -39,15 +37,16 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
     }
     onClose();
   };
+  const theme = useTheme();
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
       maxWidth={maxWidth}
-      fullWidth={fullWidth}
       PaperProps={{
-        sx: { minHeight },
+        sx: { maxHeight: '80vh', height: 'auto', minHeight: '400px', width: '80%', margin: 2, backgroundColor: theme.palette.background.default },
+
       }}
       {...(disableBackdropClick && { disableEscapeKeyDown: true })}
     >

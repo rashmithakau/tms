@@ -4,20 +4,21 @@ import theme from '../../styles/theme';
 
 const FormLayout: React.FC<IFormLayoutProps> = ({ title, formContent }) => {
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+      }}
+    >
       {/* Title */}
       <Box>
         <Typography
-          variant="h3"
+          variant="h4"
           sx={{
-            fontFamily: theme.typography.fontFamily,
-            color: theme.palette.text.secondary,
+            color: theme.palette.text.primary,
             textAlign: 'center',
             mt: 7,
           }}
@@ -27,7 +28,15 @@ const FormLayout: React.FC<IFormLayoutProps> = ({ title, formContent }) => {
       </Box>
       {/* Form Content */}
       <Box
-        sx={{ alignItems: 'center', display: 'flex', justifyContent: 'center'  }}
+        sx={{
+          alignItems: 'center',
+          display: 'flex',
+          justifyContent: 'center',
+          padding: 4,
+          maxWidth: 600,
+          width: '100%',
+          overflow: 'hidden',
+        }}
       >
         {formContent}
       </Box>

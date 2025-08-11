@@ -45,6 +45,12 @@ const allEmployees = [
     email: 'emily@company.com',
     designation: 'Associate Software Engineer',
   },
+  {
+    id: 7,
+    name: 'Chris Martin',
+    email: 'chris@company.com',
+    designation: 'Data Scientist',
+  },
 ];
 
 const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
@@ -124,7 +130,6 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
       title="Add Employees"
       subtitle="Search and select employees to add to your project"
       maxWidth="md"
-      fullWidth
       minHeight="600px"
       actions={dialogActions}
     >
