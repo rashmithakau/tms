@@ -2,10 +2,12 @@ import { Grid, Link, Box, Typography, Divider } from '@mui/material';
 import AuthFormContainer from '../../styles/AuthFormContainer';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
 import BaseBtn from '../atoms/buttons/BaseBtn';
-import { useTheme } from '@mui/material/styles';
 import LoginSchema from '../../validations/LoginSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import type {  AppDispatch, RootState } from "../../store/store"; 
+import { fetchUser } from "../../store/slices/userSlice";
+import {  useDispatch,useSelector } from "react-redux";
 
 type LoginData = {
   email: string;
@@ -13,19 +15,23 @@ type LoginData = {
 };
 
 const LoginFormSection: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>(); 
+  const user = useSelector((state: RootState) => state.user.user);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isValid, isSubmitting },
   } = useForm<LoginData>({
     resolver: yupResolver(LoginSchema),
-    mode: 'onChange', // enables real-time validation
+    mode: "onChange", // enables real-time validation
   });
 
   const onSubmit = (data: LoginData) => {
-   // Handle login logic here
+    dispatch(fetchUser({ email: "rashmithakaushalya00@gmail.com", password: "mW.I}:dUCHN^"})); // Use dispatch here
+    console.log("Login Data:", data);
+    
   };
-  const theme = useTheme();
   return (
     <AuthFormContainer title="Login">
       <Grid sx={{ padding: 4 }}>

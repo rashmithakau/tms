@@ -7,12 +7,18 @@ import CustomListItemText from '../atoms/text/ListItemText';
 import { ListItem } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import INavItemProps from '../../interfaces/INavItemProps';
+import { useDispatch } from 'react-redux'
+import {select_btn} from '../../store/slices/dashboardNavSlice'
 
 export default function DrawerList({ items}: { items: INavItemProps[][],selected?: string }) {
+
+  const dispatch=useDispatch();
+
   const [activeButton, setActiveButton] = useState<string | null>(null);
 
-  const handleButtonClick = (buttonId: string) => {
+  const handleButtonClick = (buttonId: string,text:string) => {
     setActiveButton(buttonId);
+    dispatch(select_btn(text));
     
   };
 
@@ -30,7 +36,7 @@ export default function DrawerList({ items}: { items: INavItemProps[][],selected
               return (
                 <ListItem key={buttonId} disablePadding sx={{ paddingY: 1 }}>
                   <CustomListItemButton
-                    onClick={() => handleButtonClick(buttonId)}
+                    onClick={() => handleButtonClick(buttonId,item.text)}
                     sx={{
                       backgroundColor: isActive ? theme.palette.primary.main : 'transparent',
                       '&:hover': { backgroundColor: theme.palette.primary.light,color: theme.palette.secondary.light },
