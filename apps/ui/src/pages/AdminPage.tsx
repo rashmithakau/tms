@@ -5,8 +5,6 @@ import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import { useSelector } from 'react-redux'
 import CreateProject from '../components/organisms/CreateProject';
-import CreateEmployee from '../components/organisms/CreateEmployee';
-
 
 const AdminPage = () => {
   const selectedBtn=useSelector((state:any)=>state.dashboardNav.selectedBtn)

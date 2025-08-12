@@ -12,6 +12,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import CreateProjectFormSchema from '../../validations/CreateProjectFormSchema';
 import { Controller } from 'react-hook-form';
 import { FormHelperText } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 type CreateProjectFormData = {
   projectName: string;
   billable: 'yes' | 'no';
@@ -63,20 +64,25 @@ const CreateProject: React.FC = () => {
   const handleRemoveEmployee = (employeeId: number) => {
     setSelectedEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
   };
-
+  const theme = useTheme();
   return (
     <>
       <FormLayout
         title="Create New Project"
         formContent={
-          <Box  sx={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 4,
-          maxWidth: 600,
-          width: '100%',
-          overflow: 'hidden',
-        }} component="form" onSubmit={handleSubmit(onSubmit)}>
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: '500px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              padding: 2,
+              overflow: 'hidden',
+            }}
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             {/* Project Name Field */}
             <Controller
               name="projectName"
@@ -86,7 +92,7 @@ const CreateProject: React.FC = () => {
                   {...field}
                   label="Project Name"
                   placeholder="Enter Project Name"
-                  variant="standard"
+                  variant="outlined"
                   id="project-name"
                   error={!!errors.projectName}
                   helperText={errors.projectName?.message || ' '}
@@ -95,14 +101,14 @@ const CreateProject: React.FC = () => {
             />
 
             {/* Billable Dropdown */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 1 }}>
               <Controller
                 name="billable"
                 control={control}
                 render={({ field }) => (
                   <FormControl
                     fullWidth
-                    variant="standard"
+                    variant="outlined"
                     error={!!errors.billable}
                   >
                     <InputLabel required>Billable</InputLabel>
@@ -114,17 +120,33 @@ const CreateProject: React.FC = () => {
                         PaperProps: {
                           style: {
                             maxHeight: 200,
+                            backgroundColor: theme.palette.background.default,
                           },
                         },
                       }}
                     >
-                      <MenuItem value="">
-                        <em>Select an option</em>
-                      </MenuItem>
-                      <MenuItem value="yes" id="yes-option">
+                      <MenuItem
+                        value="yes"
+                        id="yes-option"
+                        sx={{
+                          backgroundColor: theme.palette.background.default,
+                          '&:hover': {
+                            backgroundColor: theme.palette.background.paper,
+                          },
+                        }}
+                      >
                         Yes
                       </MenuItem>
-                      <MenuItem value="no" id="no-option">
+                      <MenuItem
+                        value="no"
+                        id="no-option"
+                        sx={{
+                          backgroundColor: theme.palette.background.default,
+                          '&:hover': {
+                            backgroundColor: theme.palette.background.paper,
+                          },
+                        }}
+                      >
                         No
                       </MenuItem>
                     </Select>
@@ -148,6 +170,7 @@ const CreateProject: React.FC = () => {
               type="submit"
               sx={{ mt: 2 }}
               disabled={!isValid || isSubmitting}
+              fullWidth={true}
             >
               Create Project
             </BaseBtn>

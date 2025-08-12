@@ -1,25 +1,26 @@
-import { Button } from '@mui/material';
+import { Button,Box } from '@mui/material';
 import { IBaseBtnProps } from '../../../interfaces/IBaseBtnProps';
 
 const BaseBtn: React.FC<IBaseBtnProps> = ({
   children,
   variant = 'contained',
+  fullWidth = false, // Default to false
   ...props
 }) => {
   return (
-    <div>
-      <Button
-        variant={variant}
-        fullWidth
-        sx={{
-          textTransform: 'none',
+    <Box sx={{ width: fullWidth ? '100%' : 'auto' }}>
+    <Button
+      variant={variant}
+      fullWidth={fullWidth}
+      sx={{
+        textTransform: 'none',
 
         }}
         {...props}
       >
         {children}
       </Button>
-    </div>
+    </Box>
   );
 };
 

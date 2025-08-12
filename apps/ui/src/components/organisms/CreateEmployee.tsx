@@ -16,7 +16,7 @@ type CreateEmployeeData = {
   designation: string;
 };
 const fieldVariants = {
-  primary: 'standard' as const,
+  primary: 'outlined' as const,
 };
 
 const CreateEmployee: React.FC = () => {
@@ -38,12 +38,15 @@ const CreateEmployee: React.FC = () => {
       formContent={
         <Box
           sx={{
+            display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: 4,
-            maxWidth: 600,
+            justifyContent: 'flex-start',
+            maxWidth: 500,
             width: '100%',
+            padding: 2,
             overflow: 'hidden',
+            height: '100%',
           }}
           component="form"
           onSubmit={handleSubmit(onSubmit)}
@@ -107,7 +110,11 @@ const CreateEmployee: React.FC = () => {
             fullWidth
           />
 
-          <BaseBtn type="submit" disabled={!isValid || isSubmitting}>
+          <BaseBtn
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            fullWidth={true}
+          >
             Create Employee
           </BaseBtn>
         </Box>

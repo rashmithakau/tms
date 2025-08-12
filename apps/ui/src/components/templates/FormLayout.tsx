@@ -1,8 +1,9 @@
 import { IFormLayoutProps } from '../../interfaces/IFormLayoutProps';
 import { Box, Typography } from '@mui/material';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 
 const FormLayout: React.FC<IFormLayoutProps> = ({ title, formContent }) => {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -10,7 +11,9 @@ const FormLayout: React.FC<IFormLayoutProps> = ({ title, formContent }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
+        height: '100vh',
+        overflow: 'hidden',
+        backgroundColor: theme.palette.background.default,
       }}
     >
       {/* Title */}
@@ -20,7 +23,7 @@ const FormLayout: React.FC<IFormLayoutProps> = ({ title, formContent }) => {
           sx={{
             color: theme.palette.text.primary,
             textAlign: 'center',
-            mt: 7,
+            mt: 3,
           }}
         >
           {title}
@@ -30,12 +33,13 @@ const FormLayout: React.FC<IFormLayoutProps> = ({ title, formContent }) => {
       <Box
         sx={{
           alignItems: 'center',
-          display: 'flex',
+
           justifyContent: 'center',
-          padding: 4,
+          padding: 1,
           maxWidth: 600,
           width: '100%',
           overflow: 'hidden',
+          flex: 1,
         }}
       >
         {formContent}
