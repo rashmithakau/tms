@@ -1,16 +1,16 @@
 import './app.css';
 import theme from '../styles/theme';
 import { ThemeProvider } from '@emotion/react';
-import SuperAdminPage from '../pages/SuperAdminPage';
-
-import LoginPage from '../pages/LoginPage';
-import CreateProject from '../components/organisms/CreateProject';
+import AdminPage from '../pages/AdminPage';
+import { Login } from '@mui/icons-material';
+import LoginPage from '../pages/LoginPage'
 
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <div>
-        <SuperAdminPage/>
+        {/* <AdminPage/> */}
+        <LoginPage/>
       </div>
     </ThemeProvider>
   );

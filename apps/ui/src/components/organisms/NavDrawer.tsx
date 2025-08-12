@@ -14,7 +14,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 const StyledDrawer = styled(Drawer)(({ theme, open }) => ({
-  width: open ? 240 : 60,
+  width: open ? 200 : 60,
   flexShrink: 0,
   whiteSpace: 'nowrap',
   transition: theme.transitions.create('width', {
@@ -25,7 +25,7 @@ const StyledDrawer = styled(Drawer)(({ theme, open }) => ({
   }),
   overflowX: 'hidden',
   '& .MuiDrawer-paper': {
-    width: open ? 350 : 60,
+    width: open ? 200 : 60,
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: open
@@ -65,7 +65,7 @@ export default function NavDrawer({
         <Box
           sx={{
             display: 'flex',
-            justifyContent: open ? 'center' : 'flex-start', // Changed "left" to "flex-start" for consistency
+            justifyContent: 'left',
             alignItems: 'center',
             height: '100%',
             width: '100%',
@@ -82,7 +82,7 @@ export default function NavDrawer({
               height: 47,
             }}
           />
-          {open && <Typography fontSize={30}>TimeSync</Typography>}
+          {open && <Typography fontSize={25}>TimeSync</Typography>}
         </Box>
       </DrawerHeader>
       <Divider
