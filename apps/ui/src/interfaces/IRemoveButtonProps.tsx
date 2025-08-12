@@ -8,5 +8,5 @@ export interface RemoveButtonProps extends Omit<ChipProps, 'onDelete'> {
   color?: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   disabled?: boolean;
   showIcon?: boolean;
-    labelColor?: string;
+  labelColor?: string;
 }
