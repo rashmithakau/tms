@@ -67,6 +67,7 @@ const LoginFormSection: React.FC = () => {
             type="submit"
             sx={{ mb: 2 }}
             disabled={!isValid || isSubmitting}
+            fullWidth={true}
           >
             Login
           </BaseBtn>
