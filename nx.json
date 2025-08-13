@@ -62,5 +62,16 @@
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
     }
+  },
+  "projects": {
+    "api": {
+      "root": "apps/api"
+    },
+    "ui": {
+      "root": "apps/ui"
+    },
+    "shared": {
+      "root": "libs/shared"
+    }
   }
 }
