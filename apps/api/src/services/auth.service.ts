@@ -48,6 +48,7 @@ export const loginUser = async ({
   const accessToken = signToken({
     ...sessionInfo,
     userId: user._id,
+    role:user.role,
   });
 
   //return user & tokens

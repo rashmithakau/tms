@@ -5,9 +5,9 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import LoginSchema from '../../validations/LoginSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import type {  AppDispatch, RootState } from "../../store/store"; 
+import type {  AppDispatch } from "../../store/store"; 
 import { fetchUser } from "../../store/slices/userSlice";
-import {  useDispatch,useSelector } from "react-redux";
+import {  useDispatch } from "react-redux";
 
 type LoginData = {
   email: string;
@@ -16,7 +16,7 @@ type LoginData = {
 
 const LoginFormSection: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>(); 
-  const user = useSelector((state: RootState) => state.user.user);
+  
 
   const {
     register,
@@ -28,9 +28,8 @@ const LoginFormSection: React.FC = () => {
   });
 
   const onSubmit = (data: LoginData) => {
-    dispatch(fetchUser({ email: "rashmithakaushalya00@gmail.com", password: "mW.I}:dUCHN^"})); // Use dispatch here
-    console.log("Login Data:", data);
-    
+    dispatch(fetchUser({ email: data.email, password: data.password})); 
+      
   };
   return (
     <AuthFormContainer title="Login">
@@ -99,6 +98,8 @@ const LoginFormSection: React.FC = () => {
           </Grid>
         </form>
       </Grid>
+      
+      
     </AuthFormContainer>
   );
 };

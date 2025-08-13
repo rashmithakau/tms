@@ -6,7 +6,9 @@ import AppRoute from '../Routes/AppRoute';
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
+
       <AppRoute />
+
     </ThemeProvider>
   );
 }
