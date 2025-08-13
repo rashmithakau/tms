@@ -2,22 +2,25 @@ import catchErrors  from "../utils/catchErrors";
 import { refreshUserAccessToken } from "../services/auth.service";
 import { OK } from "../constants/http";
 import {getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthCookies } from "../utils/cookies";
-import { loginSchema } from "./../schemas/auth.schema";
+import { loginSchema,changePasswordSchema } from "./../schemas/auth.schema";
 import { loginUser } from "../services/auth.service";
 import { verifyToken } from "../utils/jwt";
 import SessionModel from "../models/session.model";
 import { clearAuthCookies } from "../utils/cookies";
 import appAssert from "../utils/appAssert";
 import { UNAUTHORIZED } from "../constants/http";
+import { changePassword } from "../services/user.service";
+import UserModel from "../models/user.model";
 
 
 export const loginHandler=catchErrors(async (req,res)=>{
     const request=loginSchema.parse({...req.body,userAgent: req.headers["user-agent"]});
-    const {accessToken,refreshToken,user} =await loginUser(request);
+    const {accessToken,refreshToken,user,isChangedPwd} =await loginUser(request);
 
     return setAuthCookies({res,accessToken,refreshToken}).status(OK).json({
         message: "Login successful",
-        user
+        user,
+        isChangedPwd
     });
 
 });
@@ -51,3 +54,26 @@ export const refreshHandler=catchErrors(async (req,res)=>{
         message:"Access token refreshed",
     });
 })
+
+
+
+export const changePasswordHandler = catchErrors(async (req, res) => {
+  const request = changePasswordSchema.parse(req.body);
+  
+  // Get user ID from the authenticated request (set by authenticate middleware)
+  const userId = req.userId as string;
+  appAssert(userId, UNAUTHORIZED, "User not authenticated");
+  
+  const result = await changePassword({
+    userId,
+    currentPassword: request.currentPassword,
+    newPassword: request.newPassword,
+    confirmNewPassword: request.confirmNewPassword,
+  });
+
+  return res.status(OK).json({
+    message: result.message,
+    user: result.user,
+  });
+});
+
