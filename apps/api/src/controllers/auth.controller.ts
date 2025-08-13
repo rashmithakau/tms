@@ -13,10 +13,11 @@ import { UNAUTHORIZED } from "../constants/http";
 
 export const loginHandler=catchErrors(async (req,res)=>{
     const request=loginSchema.parse({...req.body,userAgent: req.headers["user-agent"]});
-    const {accessToken,refreshToken} =await loginUser(request);
+    const {accessToken,refreshToken,user} =await loginUser(request);
 
     return setAuthCookies({res,accessToken,refreshToken}).status(OK).json({
         message: "Login successful",
+        user
     });
 
 });

@@ -11,8 +11,9 @@ const NumberField = React.forwardRef<HTMLInputElement, INumberFieldProps>(
 
     return (
       <BaseTextField
+      type='number'
+        maxLength={10}
         onChange={(e) => handleChange(e.target.value)}
-        type="number"
         slotProps={{
         input: {
         },

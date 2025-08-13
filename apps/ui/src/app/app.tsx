@@ -5,13 +5,14 @@ import AdminPage from '../pages/AdminPage';
 
 
 import LoginPage from '../pages/LoginPage';
+import SuperAdminPage from '../pages/SuperAdminPage';
 
 
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <div>
-       <LoginPage />
+       <SuperAdminPage/>
       </div>
     </ThemeProvider>
   );

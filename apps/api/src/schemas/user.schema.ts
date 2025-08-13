@@ -4,7 +4,6 @@ import { UserRole } from "@tms/shared";
 
 export const registerSchema = z.object({
     email: emailSchema,
-    password: passwordSchema,
     userAgent: userAgentSchema,
     firstName: firstNameSchema,
     lastName: lastNameSchema,
