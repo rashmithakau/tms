@@ -1,21 +1,13 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // Use localStorage as the default storage
-import dashboardNavReducer from "./slices/dashboardNavSlice";
-import userReducer from "./slices/userSlice";
+import { configureStore } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage'; // Default storage (localStorage)
+import rootReducer from './rootReducer'; // Your combined reducers
 
-// Configuration for redux-persist
+// Persist configuration
 const persistConfig = {
-  key: "root",
+  key: 'root',
   storage,
-  whitelist: ["user"], // Only persist the `user` slice
 };
-
-// Combine reducers
-const rootReducer = combineReducers({
-  dashboardNav: dashboardNavReducer, // Non-persistent slice
-  user: userReducer, // Persistent slice
-});
 
 // Create a persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
