@@ -51,11 +51,12 @@ export const loginUser = async ({
     role:user.role,
   });
 
-  //return user & tokens
+ //return user & tokens with isChangedPwd status
   return {
     user: user.omitPassword(),
     accessToken,
     refreshToken,
+    isChangedPwd: user.isChangedPwd,
   };
 };
 

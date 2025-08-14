@@ -1,4 +1,4 @@
-import { CONFLICT, INTERNAL_SERVER_ERROR } from '../constants/http';
+import { CONFLICT, INTERNAL_SERVER_ERROR,UNAUTHORIZED } from '../constants/http';
 import UserModel from '../models/user.model';
 import appAssert from '../utils/appAssert';
 import { UserRole } from '@tms/shared';
@@ -16,6 +16,13 @@ export type CreateUserParams = {
   role:UserRole;
   userAgent?: string;
 };
+
+export type ChangePasswordParams = {
+  userId:string;
+  currentPassword:string;
+  newPassword:string;
+  confirmNewPassword:string;
+}
 
 export const createUser = async (data: CreateUserParams) => {
   const existingUser = await UserModel.exists({
@@ -46,5 +53,31 @@ export const createUser = async (data: CreateUserParams) => {
 
   return {
     user: user.omitPassword(),
+  };
+};
+
+export const changePassword = async (data: ChangePasswordParams) => {
+  const user = await UserModel.findById(data.userId);
+  appAssert(user, UNAUTHORIZED, 'User not found');
+
+  // Verify current password
+  const isValidCurrentPassword = await user.comparePassword(data.currentPassword);
+  appAssert(isValidCurrentPassword, UNAUTHORIZED, 'Current password is incorrect');
+
+  // Validate that new password and confirm password match
+  appAssert(data.newPassword === data.confirmNewPassword, UNAUTHORIZED, 'New password and confirm password do not match');
+
+  // Validate that new password is different from current password
+  appAssert(data.newPassword !== data.currentPassword, UNAUTHORIZED, 'New password must be different from current password');
+
+  // Update password and set isChangedPwd to true
+  user.password = data.newPassword;
+  user.isChangedPwd = true;
+  
+  await user.save();
+
+  return {
+    user: user.omitPassword(),
+    message: 'Password changed successfully',
   };
 };
