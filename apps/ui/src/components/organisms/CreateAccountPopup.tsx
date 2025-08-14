@@ -1,10 +1,41 @@
-import React, { useState } from 'react';
+
 import PopupLayout from '../templates/PopUpLayout';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
 import NumberField from '../atoms/inputFields/NumberField';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { registerUser } from '../../api/user';
 import { UserRole } from '@tms/shared';
+import { useEffect } from 'react';
+import CreateAccountFormSchema from '../../validations/CreateAccountFormSchema';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Box } from '@mui/material';
+type CreateAccountData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  contactNumber: string;
+  designation: string;
+};  
+function CreateAccountPopup({
+  open,
+  role,
+  onClose,
+}: {
+  open: boolean;
+  role: UserRole;
+  onClose: () => void;
+}) {
+  const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid, isSubmitting },
+  } = useForm<CreateAccountData>({
+    resolver: yupResolver(CreateAccountFormSchema),
+    mode: 'onChange',
 
 function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClose: () => void }) {
   const [formData, setFormData] = useState({
@@ -13,22 +44,28 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
     lastName: '',
     designation: '',
     contactNumber: '',
+
   });
 
-  const title=`${role === 'admin' ? 'Add Admin' : 'Add Employee'}`;
+  // Reset form when popup closes
+  useEffect(() => {
+    if (!open) {
+      reset();
+    }
+  }, [open, reset]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
+  const onSubmit = (data: CreateAccountData) => {
     registerUser({
+
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      designation: data.designation,
+      contactNumber: data.contactNumber,
+      role: { role },
+    });
+    onClose(); // Close popup after submit
+
       "email": formData.email,
       "firstName": formData.firstName,
       "lastName": formData.lastName,
@@ -36,77 +73,85 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
       "contactNumber": formData.contactNumber
     },role);
 
+
   };
 
   const handleCancel = () => {
- 
+    onClose();
   };
 
- 
   return (
-    <PopupLayout
-      open={open}
-      onClose={handleCancel}
-      title={title}
-      maxWidth="sm"
-      minHeight="300px"
-    >
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px',padding:5}}>
+   <PopupLayout
+    open={open}
+    title={title}
+    maxWidth="sm"
+    minHeight="350px"
+    maxHeight="600px"
+    onClose={onClose}
+    actions={
+      <>
+        <BaseBtn type="button" onClick={handleCancel} variant="outlined">
+          Cancel
+        </BaseBtn>
+        <BaseBtn type="submit"> {title}</BaseBtn>
+      </>
+    }
+  >
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Box
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 5,
+            gap: 5,
+          }}
+        >
           <BaseTextField
-            variant='outlined'
+            variant="outlined"
             label="Email"
-            name="email"
             placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
+            {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message || ' '}
+            fullWidth
           />
           <BaseTextField
-            variant='outlined'
+            variant="outlined"
             label="First Name"
-            name="firstName"
             placeholder="First Name"
-            value={formData.firstName}
-            onChange={handleChange}
-            required
+            {...register('firstName')}
+            error={!!errors.firstName}
+            helperText={errors.firstName?.message || ' '}
+            fullWidth
           />
           <BaseTextField
-            variant='outlined'
+            variant="outlined"
             label="Last Name"
-            type="text"
-            name="lastName"
             placeholder="Last Name"
-            value={formData.lastName}
-            onChange={handleChange}
-            required
+            {...register('lastName')}
+            error={!!errors.lastName}
+            helperText={errors.lastName?.message || ' '}
+            fullWidth
           />
           <BaseTextField
-            variant='outlined'
+            variant="outlined"
             label="Designation"
-            type="text"
-            name="designation"
             placeholder="Designation"
-            value={formData.designation}
-            onChange={handleChange}
-            required
+            {...register('designation')}
+            error={!!errors.designation}
+            helperText={errors.designation?.message || ' '}
+            fullWidth
           />
           <NumberField
-            variant='outlined'
+            variant="outlined"
             label="Contact Number"
-            name="contactNumber"
             placeholder="Contact Number"
-            value={formData.contactNumber}
-            onChange={handleChange}
-            required
+            {...register('contactNumber')}
+            error={!!errors.contactNumber}
+            helperText={errors.contactNumber?.message || ' '}
+            fullWidth
           />
-        </div>
-        <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-        <BaseBtn type="button" onClick={handleCancel} variant='outlined'>
-            Cancel
-          </BaseBtn>
-          <BaseBtn type="submit">Submit</BaseBtn>
-        </div>
+        </Box>
       </form>
     </PopupLayout>
   );

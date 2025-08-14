@@ -6,10 +6,10 @@ export interface IPopupLayoutProps {
   children: React.ReactNode;
   actions?: React.ReactNode;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  
+  minHeight?: string | number;
+  maxHeight?: string | number;
   showCloseButton?: boolean;
   disableBackdropClick?: boolean;
-  minHeight?: string | number;
   contentPadding?: number | string;
   titleProps?: Record<string, any>;
   contentProps?: { sx?: object } & Record<string, any>;

@@ -15,43 +15,43 @@ import { useTheme } from '@mui/material/styles';
 
 const PopupLayout: React.FC<IPopupLayoutProps> = ({
   open,
-  onClose,
   title,
   subtitle,
   children,
   actions,
   maxWidth = 'md',
+  minHeight,
+  maxHeight,
   showCloseButton = true,
   disableBackdropClick = false,
   contentPadding = 3,
   titleProps = {},
   contentProps = {},
   actionsProps = {},
+  onClose,
 }) => {
-  const handleClose = (
-    event: object,
-    reason: 'backdropClick' | 'escapeKeyDown'
-  ) => {
-    if (disableBackdropClick && reason === 'backdropClick') {
-      return;
-    }
-    onClose();
-  };
   const theme = useTheme();
 
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
       maxWidth={maxWidth}
       PaperProps={{
-        sx: { maxHeight: '80vh', height: 'auto', minHeight: '400px', width: '80%', margin: 2, backgroundColor: theme.palette.background.default },
-
+        sx: {
+          minHeight: minHeight, // Use minHeight from props
+          maxHeight: maxHeight, // Use maxHeight from props
+          width: '80%',
+          margin: 2,
+          backgroundColor: theme.palette.background.default,
+          display: 'flex',
+          flexDirection: 'column',
+        },
       }}
+      onClose={onClose}
       {...(disableBackdropClick && { disableEscapeKeyDown: true })}
     >
       {/* Dialog Title */}
-      <DialogTitle {...titleProps}>
+      <DialogTitle {...titleProps} sx={{ position: 'relative' }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -59,7 +59,11 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
           sx={{ pr: showCloseButton ? 5 : 0 }}
         >
           <Box>
-            <Typography variant="h5" color={theme.palette.text.primary} gutterBottom={!!subtitle}>
+            <Typography
+              variant="h5"
+              color={theme.palette.text.primary}
+              gutterBottom={!!subtitle}
+            >
               {title}
             </Typography>
             {subtitle && (
@@ -88,7 +92,12 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
 
       {/* Dialog Content */}
       <DialogContent
-        sx={{ p: contentPadding, ...contentProps.sx }}
+        sx={{
+          p: contentPadding,
+          flex: 1, 
+          overflow: 'auto', 
+          ...contentProps.sx,
+        }}
         {...contentProps}
       >
         {children}

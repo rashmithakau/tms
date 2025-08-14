@@ -1,58 +1,69 @@
 import styled from '@emotion/styled';
 import { Grid, Paper, Box, Typography } from '@mui/material';
 import { IAuthFormContainer } from '../interfaces/IAuthFormContainer';
-import { useTheme } from '@mui/material/styles';
+import theme from '../styles/theme';
 
 const StylePaper = styled(Paper)(() => ({
-  minHeight: 400,
+ minHeight: 400,
   minWidth: 300,
   maxWidth: 460,
   borderRadius: 16,
-  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-  border: '2px solid',
-  borderColor: 'rgba(29, 27, 27, 0.1)',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+  overflow: 'hidden',
+  
+
 }));
 
 const AuthFormContainer: React.FC<IAuthFormContainer> = ({
   icon,
   title,
   children,
+  description,
 }) => {
-  const theme = useTheme();
   return (
-    <StylePaper>
-      <Box
-        sx={{
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRadius: 'inherit', 
-          minHeight: 'inherit',
-          padding: '20px 16px',
-          backgroundColor: theme.palette.background.default,
-        }}
-      >
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
-          {icon &&
-            (typeof icon === 'string' ? (
-              <img
-                src={icon}
-                style={{ width: '60px', height: '60px' }}
-                alt="icon"
-              />
-            ) : (
-              icon
-            ))}
-        </Box>
-        {/* Title */}
-        <Typography variant="h4" sx={{ mb: 2 }} textAlign="center">
-          {title}
-        </Typography>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          {children}
-        </Box>
-      </Box>
-    </StylePaper>
+   
+      <StylePaper>
+        <Grid
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px 16px',
+            bgcolor: theme.palette.background.default
+          }}
+        >
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            {icon &&
+              (typeof icon === 'string' ? (
+                <img
+                  src={icon}
+                  style={{ width: '60px', height: '60px' }}
+                  alt="icon"
+                />
+              ) : (
+                icon
+              ))}
+          </Box>
+          {/* Title */}
+          <Typography
+            variant="h4"
+            sx={{ mb: 2 }}
+            textAlign="center"
+          >
+            {title}
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ mb: 2 ,color: theme.palette.text.secondary}}
+            textAlign="center"
+          >
+            {description}
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            {children}
+          </Box>
+        </Grid>
+      </StylePaper>
+    
   );
 };
 
