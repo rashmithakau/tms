@@ -35,10 +35,11 @@ const SuperAdminPage = () => {
       <CreateAccountPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} role={UserRole.Admin} />
 
            
-      <CreateAccountPopup open={isPopupOpen} onClose={()=>{}} role={UserRole.Admin}/>
+      <CreateAccountPopup open={isPopupOpen} onClose={()=>{setIsPopupOpen(false)}} role={UserRole.Admin}/>
 
     </MainLayout>
   );
 };
 
 export default SuperAdminPage;
+

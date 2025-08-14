@@ -7,11 +7,11 @@ import ProtectedRoute from './ProtectedRoute';
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
 import PasswordResetChangePasswordPage from '../pages/PasswordResetChangePasswordPage';
 import PasswordResetPage from '../pages/PasswordResetPage';
+import { UserRole } from '@tms/shared';
 
 const AppRoute: React.FC = () => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  const userRole = localStorage.getItem('userRole');
-  // Remove: localStorage.setItem('allowPasswordReset', 'true');
+  const userRole = localStorage.getItem('role');
 
   return (
     <Routes>
@@ -31,7 +31,7 @@ const AppRoute: React.FC = () => {
         path="/superadmin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && userRole === 'superAdmin'}
+            isAllowed={userRole == UserRole.SuperAdmin}
             redirectPath="/"
           >
             <SuperAdminPage />
@@ -68,7 +68,7 @@ const AppRoute: React.FC = () => {
               isAuthenticated &&
               (
                 userRole === 'admin' ||
-                userRole === 'superadmin' ||
+                userRole === 'superAdmin' ||
                 userRole === 'emp' ||
                 userRole === 'supervisor'
               )

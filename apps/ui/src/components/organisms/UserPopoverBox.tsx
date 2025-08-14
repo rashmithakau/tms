@@ -10,18 +10,22 @@ interface UserPopoverBoxProps {
   onLogoutClick: () => void;
 }
 
+const firstName = localStorage.getItem('firstName');
+const lastName = localStorage.getItem('lastName');
+const designation = localStorage.getItem('designation');
+
 const UserPopoverBox: React.FC<UserPopoverBoxProps> = ({ onProfileClick, onLogoutClick }) => {
   // Correctly retrieve the user object from Redux state
-  const user = useSelector((state: any) => state.user?.user);
+
 
   return (
     <Box sx={{ p: 2, width: 250 }}>
       <Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-          {user?.firstName || 'Guest'} {user?.lastName || ''}
+          {firstName}&nbsp;{lastName}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {user?.designation || 'No designation available'}
+          {designation}
         </Typography>
         <Divider sx={{ mb: 2 }} />
       </Box>

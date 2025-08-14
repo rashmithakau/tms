@@ -4,7 +4,6 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from './UserPopoverBox'; // Import the new component
 import { logout } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 
 export default function CustomAppBar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -16,8 +15,10 @@ export default function CustomAppBar() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  
+  const userName= localStorage.getItem('firstName');
 
-  const dispatch = useDispatch();
+
 
   const navigate = useNavigate();
 
@@ -27,7 +28,6 @@ export default function CustomAppBar() {
 
   const handleLogoutClick = () => {
     logout();
-    dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userRole');
     localStorage.removeItem('_id');
@@ -36,7 +36,6 @@ export default function CustomAppBar() {
 
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
-  const user = useSelector((state: any) => state.user?.user);
 
   return (
     <AppBar
@@ -67,7 +66,7 @@ export default function CustomAppBar() {
             }}
             onClick={handleClick}
           >
-            Hi,&nbsp;{user?.firstName || 'Guest'}
+            Hi,&nbsp;{userName}
           </Button>
         </Box>
       </Toolbar>
