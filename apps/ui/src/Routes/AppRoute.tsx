@@ -7,10 +7,16 @@ import LoginPage from '../pages/LoginPage';
 import SuperAdminPage from '../pages/SuperAdminPage';
 import ProtectedRoute from './ProtectedRoute';
 
+import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
+
+import PasswordResetChangePasswordPage from '../pages/PasswordResetChangePasswordPage';
+import PasswordResetPage from '../pages/PasswordResetPage';
+
 const AppRoute: React.FC = () => {
   //  get auth and role from localStorage
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const userRole = localStorage.getItem('userRole');
+  localStorage.setItem('allowPasswordReset', 'true');
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
@@ -33,6 +39,40 @@ const AppRoute: React.FC = () => {
             redirectPath="/"
           >
             <SuperAdminPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/forgotpassword"
+        element={
+          <ProtectedRoute
+            isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
+            redirectPath="/"
+          >
+            <PasswordResetPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resetpasswordfirstlogin"
+        element={
+          <ProtectedRoute
+            isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
+            redirectPath="/"
+          >
+            <ResetPasswordFirstLogin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resetpasswordchange"
+        element={
+          <ProtectedRoute
+            isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
+            redirectPath="/"
+          >
+            <PasswordResetChangePasswordPage />
           </ProtectedRoute>
         }
       />

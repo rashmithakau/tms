@@ -1,29 +1,39 @@
 import React, { useState } from 'react';
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import FormLayout from '../templates/FormLayout';
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  FormHelperText,
+} from '@mui/material';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
-import { Box } from '@mui/material';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
 import ProjectEmployeesSection from './ProjectEmployeesSection';
 import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import CreateProjectFormSchema from '../../validations/CreateProjectFormSchema';
-import { Controller } from 'react-hook-form';
-import { FormHelperText } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import PopupLayout from '../templates/PopUpLayout';
+
 type CreateProjectFormData = {
   projectName: string;
   billable: 'yes' | 'no';
 };
 
-const CreateProject: React.FC = () => {
+const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
+  open,
+  onClose,
+}) => {
   const [openEmployeeDialog, setOpenEmployeeDialog] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
     []
   );
-  // Initialize React Hook Form
+  const theme = useTheme();
+
+  // React Hook Form
   const {
     control,
     handleSubmit,
@@ -40,13 +50,17 @@ const CreateProject: React.FC = () => {
   // Form submission handler
   const onSubmit = async (data: CreateProjectFormData) => {
     try {
-      // Add selected employees to form data
       // TODO: Call your API here
-      // await createProject(formDataWithEmployees);
-      // Success handling
+      onClose(); // Close popup after submit
+      reset();
     } catch (error) {
-      //error handling
+      // error handling
     }
+  };
+
+  const handleCancel = () => {
+    onClose();
+    reset();
   };
 
   const handleOpenEmployeeDialog = () => {
@@ -59,30 +73,33 @@ const CreateProject: React.FC = () => {
 
   const handleSaveEmployees = (employees: IEmployeeProps[]) => {
     setSelectedEmployees(employees);
+    setOpenEmployeeDialog(false);
   };
 
   const handleRemoveEmployee = (employeeId: number) => {
     setSelectedEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
   };
-  const theme = useTheme();
+
   return (
     <>
-      <FormLayout
-        title="Create New Project"
-        formContent={
-          <Box
-            sx={{
-              width: '100%',
-              maxWidth: '500px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-              padding: 2,
-              overflow: 'hidden',
-            }}
-            component="form"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+      <PopupLayout
+        open={open}
+        title="Create Project"
+        maxWidth="sm"
+        minHeight="350px"
+        maxHeight="600px"
+        onClose={handleCancel}
+        actions={null} // Submit button is inside the form
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+           <Box
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 5,
+            gap: 5,
+          }}
+        >
             {/* Project Name Field */}
             <Controller
               name="projectName"
@@ -174,9 +191,18 @@ const CreateProject: React.FC = () => {
             >
               Create Project
             </BaseBtn>
+            <BaseBtn
+              type="button"
+              sx={{ mt: 1 }}
+              variant="outlined"
+              onClick={handleCancel}
+              fullWidth={true}
+            >
+              Cancel
+            </BaseBtn>
           </Box>
-        }
-      />
+        </form>
+      </PopupLayout>
 
       {/* Add Employee Popup */}
       <AddEmployeePopup
@@ -189,4 +215,4 @@ const CreateProject: React.FC = () => {
   );
 };
 
-export default CreateProject;
+export default CreateProjectPopUp;

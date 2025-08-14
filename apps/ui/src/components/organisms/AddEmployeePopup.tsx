@@ -3,9 +3,10 @@ import PopupLayout from '../templates/PopUpLayout';
 import SearchField from '../molecules/SearchField';
 import SelectedEmployeeChips from '../molecules/SelectedEmployeeChips';
 import EmployeeList from '../molecules/EmployeeList';
-import DialogActions from '../molecules/DialogActions';
 import { IAddEmployeePopupProps } from '../../interfaces/IAddEmployeePopupProps';
 import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
+import BaseBtn from '../atoms/buttons/BaseBtn';
+import { Box } from '@mui/material';
 
 // Mock employee data
 const allEmployees = [
@@ -103,25 +104,11 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
     );
   };
 
-  const handleSave = () => {
-    onSave(selectedEmployees);
-    onClose();
-  };
-
   const handleCancel = () => {
     setSelectedEmployees(initialSelectedEmployees);
     setSearchTerm('');
     onClose();
   };
-
-  const dialogActions = (
-    <DialogActions
-      onCancel={handleCancel}
-      onSave={handleSave}
-      saveDisabled={selectedEmployees.length === 0}
-      selectedCount={selectedEmployees.length}
-    />
-  );
 
   return (
     <PopupLayout
@@ -129,10 +116,26 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
       onClose={handleCancel}
       title="Add Employees"
       subtitle="Search and select employees to add to your project"
-      maxWidth="md"
+      maxHeight="sm"
       minHeight="600px"
-      actions={dialogActions}
+      actions={
+        <>
+          <BaseBtn onClick={handleCancel} variant="outlined">
+            Cancel
+          </BaseBtn>
+          <BaseBtn
+            onClick={() => {
+              onSave(selectedEmployees);
+              onClose(); // Close the popup after saving
+            }}
+            variant="contained"
+          >
+            Add Employees
+          </BaseBtn>
+        </>
+      }
     >
+      <Box></Box>
       {/* Search Field */}
       <SearchField
         value={searchTerm}

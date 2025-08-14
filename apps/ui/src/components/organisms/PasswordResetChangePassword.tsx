@@ -5,38 +5,31 @@ import WebSiteLogo from '../../assets/images/WebSiteLogo.png';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import ResetPasswordFirstLoginSchema from '../../validations/ResetPasswordFirstLoginSchema';
-
+import PasswordResetChangePasswordPageSchema from '../../validations/PasswordResetChangePasswordPageSchema';
+import { useNavigate } from 'react-router-dom';
 type SetPasswordData = {
-  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 };
-const ResetPasswordFirstLoginForm: React.FC = () => {
+const PasswordResetChangePassword: React.FC = () => {
+    const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors, isValid, isSubmitting },
   } = useForm<SetPasswordData>({
-    resolver: yupResolver(ResetPasswordFirstLoginSchema),
+    resolver: yupResolver(PasswordResetChangePasswordPageSchema),
     mode: 'onChange',
   });
   const onSubmit = (data: SetPasswordData) => {
-    // Handle login logic here
+    navigate('/');
   };
   return (
-    <AuthFormContainer title="Set Password" icon={WebSiteLogo}>
-      <Grid sx={{ padding: 3, mt: -2 }}>
+    <AuthFormContainer title="Change Password" icon={WebSiteLogo}>
+      <Grid sx={{ padding: 3 }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Form fields for setting a new password */}
-          <BaseTextField
-            label="Current Password"
-            type="password"
-            sx={{ mb: 2 }}
-            {...register('currentPassword')}
-            error={!!errors.currentPassword}
-            helperText={errors.currentPassword?.message}
-          />
+       
           <BaseTextField
             label="New Password"
             type="password"
@@ -67,4 +60,4 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
   );
 };
 
-export default ResetPasswordFirstLoginForm;
+export default PasswordResetChangePassword;
