@@ -1,30 +1,59 @@
 import { RequestHandler } from "express";
 import appAssert from "../utils/appAssert";
 import AppErrorCode from "../constants/appErrorCode";
-import { UNAUTHORIZED } from "../constants/http";
+import { UNAUTHORIZED, FORBIDDEN } from "../constants/http";
 import { verifyToken } from "../utils/jwt";
+import { UserRole } from "@tms/shared"; // Assuming you have a UserRole type defined
 
-const authenticate: RequestHandler = (req, res, next) => {
-  const accessToken = req.cookies.accessToken as string | undefined;
-  appAssert(
-    accessToken,
-    UNAUTHORIZED,
-    "Not authorized",
-    AppErrorCode.InvalidAccessToken
-  );
+const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
+  return (req, res, next) => {
+    const accessToken = req.cookies?.accessToken as string | undefined;
 
-  const { error, payload } = verifyToken(accessToken);
-  appAssert(
-    payload,
-    UNAUTHORIZED,
-    error === "jwt expired" ? "Token expired" : "Invalid token",
-    AppErrorCode.InvalidAccessToken
-  );
+    // Ensure the access token exists
+    appAssert(
+      accessToken,
+      UNAUTHORIZED,
+      "Not authorized",
+      AppErrorCode.InvalidAccessToken
+    );
 
-  req.userId = payload.userId;
-  req.sessionId = payload.sessionId;
-  
-  next();
+    const { error, payload } = verifyToken(accessToken);
+
+    // Ensure the token is valid
+    appAssert(
+      payload,
+      UNAUTHORIZED,
+      error === "jwt expired" ? "Token expired" : "Invalid token",
+      AppErrorCode.InvalidAccessToken
+    );
+
+    // Ensure the payload contains required fields
+    appAssert(
+      payload.userId && payload.sessionId && payload.role,
+      UNAUTHORIZED,
+      "Invalid token payload",
+      AppErrorCode.InvalidAccessToken
+    );
+
+    // Attach user details to the request object
+    req.userId = payload.userId;
+    req.sessionId = payload.sessionId;
+
+    const userRole = payload.role as UserRole;
+
+    // If roles are required, check if the user's role is allowed
+    if (requiredRoles && !requiredRoles.includes(userRole)) {
+      console.log("Required roles:", requiredRoles);
+      console.log("User role:", userRole);
+      appAssert(
+        false,
+        FORBIDDEN,
+        "Access denied: insufficient permissions"
+      );
+    }
+
+    next();
+  };
 };
 
 export default authenticate;

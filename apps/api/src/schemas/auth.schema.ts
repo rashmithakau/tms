@@ -17,3 +17,19 @@ export const registerSchema =loginSchema.extend({
     }
 )
 
+export const changePasswordSchema = z.object({
+  currentPassword: passwordSchema,
+  newPassword: passwordSchema,
+  confirmNewPassword: z.string().min(8).max(12),
+}).refine(
+  (data) => data.newPassword === data.confirmNewPassword, {
+    message: "New password and confirm password do not match",
+    path: ["confirmNewPassword"],
+  }
+).refine(
+  (data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
+  }
+);
+

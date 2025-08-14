@@ -36,6 +36,15 @@ function CreateAccountPopup({
   } = useForm<CreateAccountData>({
     resolver: yupResolver(CreateAccountFormSchema),
     mode: 'onChange',
+
+function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClose: () => void }) {
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    designation: '',
+    contactNumber: '',
+
   });
 
   // Reset form when popup closes
@@ -47,6 +56,7 @@ function CreateAccountPopup({
 
   const onSubmit = (data: CreateAccountData) => {
     registerUser({
+
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -55,6 +65,15 @@ function CreateAccountPopup({
       role: { role },
     });
     onClose(); // Close popup after submit
+
+      "email": formData.email,
+      "firstName": formData.firstName,
+      "lastName": formData.lastName,
+      "designation": formData.designation,
+      "contactNumber": formData.contactNumber
+    },role);
+
+
   };
 
   const handleCancel = () => {

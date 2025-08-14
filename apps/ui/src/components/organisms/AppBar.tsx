@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { AppBar, Toolbar, Divider, Box, Button, Popover } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from './UserPopoverBox'; // Import the new component
+import { logout } from '../../api/auth';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 export default function CustomAppBar() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -14,16 +17,23 @@ export default function CustomAppBar() {
     setAnchorEl(null);
   };
 
+  const navigate = useNavigate();
+
   const handleProfileClick = () => {
     // Handle profile click logic here
   };
 
   const handleLogoutClick = () => {
-    // Handle logout click logic here
+    logout();
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('_id');
+    navigate('/');
   };
 
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
+  const user = useSelector((state: any) => state.user?.user);
 
   return (
     <AppBar
@@ -54,7 +64,7 @@ export default function CustomAppBar() {
             }}
             onClick={handleClick}
           >
-            Hi, Rashmitha
+            Hi,&nbsp;{user?.firstName || 'Guest'}
           </Button>
         </Box>
       </Toolbar>

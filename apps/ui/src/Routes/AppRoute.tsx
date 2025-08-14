@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-
 import AdminPage from '../pages/AdminPage';
-
 import LoginPage from '../pages/LoginPage';
 import SuperAdminPage from '../pages/SuperAdminPage';
 import ProtectedRoute from './ProtectedRoute';
+import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
+import { Box } from '@mui/material';
 
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
 
@@ -13,7 +13,6 @@ import PasswordResetChangePasswordPage from '../pages/PasswordResetChangePasswor
 import PasswordResetPage from '../pages/PasswordResetPage';
 
 const AppRoute: React.FC = () => {
-  //  get auth and role from localStorage
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const userRole = localStorage.getItem('userRole');
   localStorage.setItem('allowPasswordReset', 'true');
@@ -35,13 +34,14 @@ const AppRoute: React.FC = () => {
         path="/superadmin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && userRole === 'superadmin'}
+            isAllowed={isAuthenticated && userRole === 'superAdmin'}
             redirectPath="/"
           >
             <SuperAdminPage />
           </ProtectedRoute>
         }
       />
+
 
       <Route
         path="/forgotpassword"
@@ -59,12 +59,26 @@ const AppRoute: React.FC = () => {
         element={
           <ProtectedRoute
             isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
+
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute
+            isAllowed={
+              (isAuthenticated && userRole === 'admin'||
+              userRole === 'superadmin' ||
+              userRole === 'emp'||
+              userRole === 'supervisor' 
+            )
+            }
+
             redirectPath="/"
           >
             <ResetPasswordFirstLogin />
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/resetpasswordchange"
         element={
@@ -76,6 +90,8 @@ const AppRoute: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+
     </Routes>
   );
 };

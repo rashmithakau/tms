@@ -31,7 +31,12 @@ const SuperAdminPage = () => {
       <BaseBtn onClick={handleOpenPopup} variant='contained'>Create Admin</BaseBtn>
       </Box>
 
+
       <CreateAccountPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} role={UserRole.Admin} />
+
+           
+      <CreateAccountPopup open={isPopupOpen} onClose={()=>{}} role={UserRole.Admin}/>
+
     </MainLayout>
   );
 };
