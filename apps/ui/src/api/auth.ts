@@ -10,11 +10,13 @@ export const login = async (data: ILoginDetails) => {
     }
   };
   
-  export const registerUser = async (data: any) => {
+
+
+export const logout = async () => {
     try {
-      return await API.post("/api/user", data);
+      return await API.get("/auth/logout");
     } catch (error) {
-      console.error("User registration failed:", error);
+      console.error("Logout failed:", error);
       throw error; // Re-throw the error for the caller to handle
     }
-  };
+  }

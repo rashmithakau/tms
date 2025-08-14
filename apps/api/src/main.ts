@@ -5,9 +5,8 @@ import cors from 'cors';
 import cookieParser from "cookie-parser";
 import errorHandler from "./middleware/errorHandler";
 import authRoutes from "./routes/auth.route";
-import userhRoutes from './routes/user.route';
+import userRoutes from './routes/user.route';
 import projectRoutes from './routes/project.route';
-import authenticate from './middleware/authenticate';
 
 const port = Number(PORT);
 
@@ -25,7 +24,7 @@ app.use(
 app.use(cookieParser());
 
 app.use("/auth",authRoutes);
-app.use("/api/user",userhRoutes);//remove authenticate for development purposes
+app.use("/api/user",userRoutes);
 app.use("/api/project",projectRoutes)
 
 app.use(errorHandler);

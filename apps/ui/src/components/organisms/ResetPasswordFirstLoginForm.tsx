@@ -1,7 +1,7 @@
 import AuthFormContainer from '../../styles/AuthFormContainer';
 import { Grid } from '@mui/material';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
-import WebSiteLogo from '../../assets/images/WebSiteLogo.svg';
+import WebSiteLogo from '../../assets/images/WebSiteLogo.png';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';

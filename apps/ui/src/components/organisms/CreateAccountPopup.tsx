@@ -12,7 +12,6 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
     firstName: '',
     lastName: '',
     designation: '',
-    role: role,
     contactNumber: '',
   });
 
@@ -34,9 +33,8 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
       "firstName": formData.firstName,
       "lastName": formData.lastName,
       "designation": formData.designation,
-      "contactNumber": formData.contactNumber,
-      "role": {role}
-    });
+      "contactNumber": formData.contactNumber
+    },role);
 
   };
 

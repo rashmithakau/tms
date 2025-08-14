@@ -48,7 +48,7 @@ export const createUser = async (data: CreateUserParams) => {
 
   sendEmail({
     to: user.email,
-    ...getWelcomeTmsTemplate(APP_ORIGIN+"/auth/login",user.email,genertatedPassword),
+    ...getWelcomeTmsTemplate(APP_ORIGIN,user.email,genertatedPassword),
   });
 
   return {

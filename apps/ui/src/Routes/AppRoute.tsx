@@ -1,14 +1,13 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-
 import AdminPage from '../pages/AdminPage';
-
 import LoginPage from '../pages/LoginPage';
 import SuperAdminPage from '../pages/SuperAdminPage';
 import ProtectedRoute from './ProtectedRoute';
+import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
+import { Box } from '@mui/material';
 
 const AppRoute: React.FC = () => {
-  //  get auth and role from localStorage
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const userRole = localStorage.getItem('userRole');
   return (
@@ -29,10 +28,27 @@ const AppRoute: React.FC = () => {
         path="/superadmin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && userRole === 'superadmin'}
+            isAllowed={isAuthenticated && userRole === 'superAdmin'}
             redirectPath="/"
           >
             <SuperAdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute
+            isAllowed={
+              (isAuthenticated && userRole === 'admin'||
+              userRole === 'superadmin' ||
+              userRole === 'emp'||
+              userRole === 'supervisor' 
+            )
+            }
+            redirectPath="/"
+          >
+            <ResetPasswordFirstLogin />
           </ProtectedRoute>
         }
       />
