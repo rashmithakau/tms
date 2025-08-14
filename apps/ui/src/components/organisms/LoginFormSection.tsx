@@ -5,9 +5,10 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import LoginSchema from '../../validations/LoginSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import type {  AppDispatch } from "../../store/store"; 
-import { fetchUser } from "../../store/slices/userSlice";
-import {  useDispatch } from "react-redux";
+import type { AppDispatch } from '../../store/store';
+import { fetchUser } from '../../store/slices/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 type LoginData = {
   email: string;
@@ -15,8 +16,9 @@ type LoginData = {
 };
 
 const LoginFormSection: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>(); 
-  
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const user = useSelector((state: any) => state.user.user); // Adjusted selector
 
   const {
     register,
@@ -24,12 +26,49 @@ const LoginFormSection: React.FC = () => {
     formState: { errors, isValid, isSubmitting },
   } = useForm<LoginData>({
     resolver: yupResolver(LoginSchema),
-    mode: "onChange", // enables real-time validation
+    mode: 'onChange',
   });
 
-  const onSubmit = (data: LoginData) => {
-    dispatch(fetchUser({ email: data.email, password: data.password})); 
-      
+  const onSubmit = async (data: LoginData) => {
+    try {
+      // Clear local storage
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('_id');
+  
+      // Dispatch fetchUser action
+      await dispatch(fetchUser({ email: data.email, password: data.password }));
+  
+      // Retrieve authentication status and user role from local storage
+      const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+      const userRole = localStorage.getItem('userRole');
+  
+      console.log('Login from section:', isAuthenticated, userRole);
+      console.log('Redux user state:', user); // Debugging user state
+  
+      // Check if the user is authenticated
+      if (isAuthenticated) {
+        // Ensure user object exists and check isChangedPwd
+        if (user && typeof user.isChangedPwd === 'boolean') {
+          if (!user.isChangedPwd) {
+            // Navigate to change password page if password is not changed
+            navigate('/change-password');
+          } else {
+            // Navigate to the dashboard or appropriate page
+            if( userRole === 'admin') {
+            navigate('/admin');
+            }else if(userRole === 'superAdmin') {
+              navigate('/superAdmin');
+            }
+
+          }
+        } else {
+          console.error("User is undefined or isChangedPwd is missing");
+        }
+      }
+    } catch (error) {
+      console.error("An error occurred during login:", error);
+    }
   };
   return (
     <AuthFormContainer title="Login">
@@ -90,7 +129,6 @@ const LoginFormSection: React.FC = () => {
               sx={{
                 float: 'right',
                 mt: 1,
-                
               }}
             >
               Forgot Password?
@@ -98,8 +136,6 @@ const LoginFormSection: React.FC = () => {
           </Grid>
         </form>
       </Grid>
-      
-      
     </AuthFormContainer>
   );
 };
