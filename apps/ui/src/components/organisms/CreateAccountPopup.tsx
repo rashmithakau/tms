@@ -1,4 +1,3 @@
-
 import PopupLayout from '../templates/PopUpLayout';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
 import NumberField from '../atoms/inputFields/NumberField';
@@ -10,13 +9,15 @@ import CreateAccountFormSchema from '../../validations/CreateAccountFormSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box } from '@mui/material';
+
 type CreateAccountData = {
   firstName: string;
   lastName: string;
   email: string;
   contactNumber: string;
   designation: string;
-};  
+};
+
 function CreateAccountPopup({
   open,
   role,
@@ -26,7 +27,7 @@ function CreateAccountPopup({
   role: UserRole;
   onClose: () => void;
 }) {
-  const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
+  const title = role === 'admin' ? 'Create Admin' : 'Create Employee';
 
   const {
     register,
@@ -36,15 +37,6 @@ function CreateAccountPopup({
   } = useForm<CreateAccountData>({
     resolver: yupResolver(CreateAccountFormSchema),
     mode: 'onChange',
-
-function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClose: () => void }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    designation: '',
-    contactNumber: '',
-
   });
 
   // Reset form when popup closes
@@ -56,24 +48,13 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
 
   const onSubmit = (data: CreateAccountData) => {
     registerUser({
-
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
       designation: data.designation,
       contactNumber: data.contactNumber,
-      role: { role },
-    });
+    }, role);
     onClose(); // Close popup after submit
-
-      "email": formData.email,
-      "firstName": formData.firstName,
-      "lastName": formData.lastName,
-      "designation": formData.designation,
-      "contactNumber": formData.contactNumber
-    },role);
-
-
   };
 
   const handleCancel = () => {
@@ -81,29 +62,29 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
   };
 
   return (
-   <PopupLayout
-    open={open}
-    title={title}
-    maxWidth="sm"
-    minHeight="350px"
-    maxHeight="600px"
-    onClose={onClose}
-    actions={
-      <>
-        <BaseBtn type="button" onClick={handleCancel} variant="outlined">
-          Cancel
-        </BaseBtn>
-        <BaseBtn type="submit"> {title}</BaseBtn>
-      </>
-    }
-  >
+    <PopupLayout
+      open={open}
+      title={title}
+      maxWidth="sm"
+      minHeight="350px"
+      maxHeight="600px"
+      onClose={onClose}
+      actions={
+        <>
+          <BaseBtn type="button" onClick={handleCancel} variant="outlined">
+            Cancel
+          </BaseBtn>
+          {/* Submit button should be inside the form, so remove from actions */}
+        </>
+      }
+    >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box
-          style={{
+          sx={{
             display: 'flex',
             flexDirection: 'column',
-            padding: 5,
-            gap: 5,
+            padding: 2,
+            gap: 2,
           }}
         >
           <BaseTextField
@@ -151,6 +132,13 @@ function CreateAccountPopup({ open ,role}: { open: boolean;role:UserRole ;onClos
             helperText={errors.contactNumber?.message || ' '}
             fullWidth
           />
+          <BaseBtn
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            fullWidth
+          >
+            {title}
+          </BaseBtn>
         </Box>
       </form>
     </PopupLayout>

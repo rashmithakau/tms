@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { loginHandler,refreshHandler,logoutHandler} from "../controllers/auth.controller";
 
-import { loginHandler,refreshHandler,changePasswordHandler} from "../controllers/auth.controller";
+
+import { loginHandler,refreshHandler,changePasswordHandler,logoutHandler} from "../controllers/auth.controller";
 
 import authenticate from "../middleware/authenticate";
 
