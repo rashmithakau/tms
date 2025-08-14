@@ -5,10 +5,9 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import LoginSchema from '../../validations/LoginSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import type { AppDispatch } from '../../store/store';
-import { fetchUser } from '../../store/slices/userSlice';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../../api/auth';
+import { UserRole } from '@tms/shared';
 
 type LoginData = {
   email: string;
@@ -16,9 +15,7 @@ type LoginData = {
 };
 
 const LoginFormSection: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const user = useSelector((state: any) => state.user.user); // Adjusted selector
 
   const {
     register,
@@ -31,43 +28,66 @@ const LoginFormSection: React.FC = () => {
 
   const onSubmit = async (data: LoginData) => {
     try {
+      let isAuthenticated = false;
       // Clear local storage
       localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('userRole');
+      localStorage.removeItem('firstName');
+      localStorage.removeItem('lastName');
       localStorage.removeItem('_id');
-  
-      // Dispatch fetchUser action
-      await dispatch(fetchUser({ email: data.email, password: data.password }));
-  
-      // Retrieve authentication status and user role from local storage
-      const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-      const userRole = localStorage.getItem('userRole');
-  
-      console.log('Login from section:', isAuthenticated, userRole);
-      console.log('Redux user state:', user); // Debugging user state
-  
-      // Check if the user is authenticated
-      if (isAuthenticated) {
-        // Ensure user object exists and check isChangedPwd
-        if (user && typeof user.isChangedPwd === 'boolean') {
-          if (!user.isChangedPwd) {
-            // Navigate to change password page if password is not changed
-            navigate('/change-password');
-          } else {
-            // Navigate to the dashboard or appropriate page
-            if( userRole === 'admin') {
-            navigate('/admin');
-            }else if(userRole === 'superAdmin') {
-              navigate('/superAdmin');
-            }
+      localStorage.removeItem('isChangedPwd');
+      localStorage.removeItem('role');
+      localStorage.removeItem('designation');
 
-          }
-        } else {
-          console.error("User is undefined or isChangedPwd is missing");
+
+      const response = await login({
+        email: data.email,
+        password: data.password,
+      });
+      const user = response.data.user;
+
+      const firstName = user.firstName;
+      const lastName = user.lastName;
+      const _id = user._id;
+      const isChangedPwd = user.isChangedPwd;
+      const role = user.role;
+      const designation = user.designation;
+
+      if (user.exists) {
+        isAuthenticated = true;
+      }
+
+      localStorage.setItem('isAuthenticated', isAuthenticated.toString());
+      localStorage.setItem('firstName', firstName);
+      localStorage.setItem('lastName', lastName);
+      localStorage.setItem('_id', _id);
+      localStorage.setItem('role', role);
+      localStorage.setItem('designation', designation);
+
+      console.log('Login successful:', user);
+
+      console.log('User Role:', role);
+
+      if (!isChangedPwd) {
+        navigate('/change-password');
+      } else {
+        switch (role) {
+          case UserRole.Admin:
+            navigate('/admin');
+            break;
+          case UserRole.SuperAdmin:
+            console.log('Navigating to SuperAdmin');
+            navigate('/superadmin');
+            break;
+          case UserRole.Emp:
+            navigate('/employee');
+            break;
+          case UserRole.Supervisor:
+            navigate('/supervisor');
+            break;
         }
       }
     } catch (error) {
-      console.error("An error occurred during login:", error);
+      console.error('An error occurred during login:', error);
     }
   };
   return (

@@ -9,6 +9,8 @@ import CreateAccountFormSchema from '../../validations/CreateAccountFormSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box } from '@mui/material';
+import { alignContent } from '@mui/system';
+import { right } from '@popperjs/core';
 
 type CreateAccountData = {
   firstName: string;
@@ -27,7 +29,7 @@ function CreateAccountPopup({
   role: UserRole;
   onClose: () => void;
 }) {
-  const title = role === 'admin' ? 'Create Admin' : 'Create Employee';
+  const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
 
   const {
     register,
@@ -46,14 +48,17 @@ function CreateAccountPopup({
     }
   }, [open, reset]);
 
-  const onSubmit = (data: CreateAccountData) => {
-    registerUser({
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      designation: data.designation,
-      contactNumber: data.contactNumber,
-    }, role);
+  const onSubmit = async (data: CreateAccountData) => {
+    registerUser(
+      {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        designation: data.designation,
+        contactNumber: data.contactNumber,
+      },
+      role
+    );
     onClose(); // Close popup after submit
   };
 
@@ -69,22 +74,14 @@ function CreateAccountPopup({
       minHeight="350px"
       maxHeight="600px"
       onClose={onClose}
-      actions={
-        <>
-          <BaseBtn type="button" onClick={handleCancel} variant="outlined">
-            Cancel
-          </BaseBtn>
-          {/* Submit button should be inside the form, so remove from actions */}
-        </>
-      }
     >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box
-          sx={{
+          style={{
             display: 'flex',
             flexDirection: 'column',
-            padding: 2,
-            gap: 2,
+            padding: 5,
+            gap: 5,
           }}
         >
           <BaseTextField
@@ -132,17 +129,18 @@ function CreateAccountPopup({
             helperText={errors.contactNumber?.message || ' '}
             fullWidth
           />
-          <BaseBtn
-            type="submit"
-            disabled={!isValid || isSubmitting}
-            fullWidth
-          >
-            {title}
-          </BaseBtn>
+
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 ,justifyContent:right}}>
+            <BaseBtn type="button" onClick={handleCancel} variant="outlined">
+              Cancel
+            </BaseBtn>
+            <BaseBtn type="submit" disabled={!isValid}>
+              {title}
+            </BaseBtn>
+          </Box>
         </Box>
       </form>
     </PopupLayout>
   );
 }
-
 export default CreateAccountPopup;
