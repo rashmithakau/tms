@@ -5,17 +5,14 @@ import LoginPage from '../pages/LoginPage';
 import SuperAdminPage from '../pages/SuperAdminPage';
 import ProtectedRoute from './ProtectedRoute';
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
-import { Box } from '@mui/material';
-
-import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
-
 import PasswordResetChangePasswordPage from '../pages/PasswordResetChangePasswordPage';
 import PasswordResetPage from '../pages/PasswordResetPage';
 
 const AppRoute: React.FC = () => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const userRole = localStorage.getItem('userRole');
-  localStorage.setItem('allowPasswordReset', 'true');
+  // Remove: localStorage.setItem('allowPasswordReset', 'true');
+
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
@@ -34,15 +31,13 @@ const AppRoute: React.FC = () => {
         path="/superadmin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && userRole === 'superAdmin'}
+            isAllowed={isAuthenticated && userRole === 'superadmin'}
             redirectPath="/"
           >
             <SuperAdminPage />
           </ProtectedRoute>
         }
       />
-
-
       <Route
         path="/forgotpassword"
         element={
@@ -59,26 +54,31 @@ const AppRoute: React.FC = () => {
         element={
           <ProtectedRoute
             isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
-
-      <Route
-        path="/change-password"
-        element={
-          <ProtectedRoute
-            isAllowed={
-              (isAuthenticated && userRole === 'admin'||
-              userRole === 'superadmin' ||
-              userRole === 'emp'||
-              userRole === 'supervisor' 
-            )
-            }
-
             redirectPath="/"
           >
             <ResetPasswordFirstLogin />
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute
+            isAllowed={
+              isAuthenticated &&
+              (
+                userRole === 'admin' ||
+                userRole === 'superadmin' ||
+                userRole === 'emp' ||
+                userRole === 'supervisor'
+              )
+            }
+            redirectPath="/"
+          >
+            <ResetPasswordFirstLogin />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/resetpasswordchange"
         element={
@@ -90,8 +90,6 @@ const AppRoute: React.FC = () => {
           </ProtectedRoute>
         }
       />
-
-
     </Routes>
   );
 };
