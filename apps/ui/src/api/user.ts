@@ -12,3 +12,15 @@ import { UserRole } from "@tms/shared";
       throw error; 
     }
   };
+
+  export const getUsers = async (role:UserRole) => {
+    try {
+      switch(role){
+        case UserRole.Admin:return await API.get("/api/user/admin");
+        case UserRole.Emp:return await API.get("/api/user/emp");
+      }
+    } catch (error) {
+      console.error("Users fetching failed:", error);
+      throw error; 
+    }
+  };

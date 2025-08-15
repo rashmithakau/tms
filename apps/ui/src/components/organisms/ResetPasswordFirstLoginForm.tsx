@@ -6,6 +6,9 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import ResetPasswordFirstLoginSchema from '../../validations/ResetPasswordFirstLoginSchema';
+import { changePwdFirstLogin } from '../../api/auth';
+import { useNavigate } from 'react-router-dom';
+import { UserRole } from '@tms/shared';
 
 type SetPasswordData = {
   currentPassword: string;
@@ -13,6 +16,7 @@ type SetPasswordData = {
   confirmPassword: string;
 };
 const ResetPasswordFirstLoginForm: React.FC = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -21,8 +25,32 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
     resolver: yupResolver(ResetPasswordFirstLoginSchema),
     mode: 'onChange',
   });
-  const onSubmit = (data: SetPasswordData) => {
-    // Handle login logic here
+  const onSubmit = async(data: SetPasswordData) => {
+    const role= localStorage.getItem('role');
+    console.log('Form submitted with data:', data);
+    const userId = localStorage.getItem('_id');
+    if (!userId) {
+      console.error('User ID not found in local storage');
+      return;
+    }
+    const response=await changePwdFirstLogin({userId , currentPassword: data.currentPassword, newPassword: data.newPassword});
+    console.log(response);
+
+    switch (role) {
+      case UserRole.Admin:
+        navigate('/admin');
+        break;
+      case UserRole.SuperAdmin:
+        console.log('Navigating to SuperAdmin');
+        navigate('/superadmin');
+        break;
+      case UserRole.Emp:
+        navigate('/employee');
+        break;
+      case UserRole.Supervisor:
+        navigate('/supervisor');
+        break;
+    }
   };
   return (
     <AuthFormContainer title="Set Password" icon={WebSiteLogo}>

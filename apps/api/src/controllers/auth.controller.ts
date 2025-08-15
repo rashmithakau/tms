@@ -1,79 +1,82 @@
-import catchErrors  from "../utils/catchErrors";
-import { refreshUserAccessToken,resetPassword, sendPasswordResetEmail, verifyEmail  } from "../services/auth.service";
-import { OK } from "../constants/http";
-import {getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthCookies } from "../utils/cookies";
-import { loginSchema,changePasswordSchema } from "./../schemas/auth.schema";
-import { loginUser } from "../services/auth.service";
-import { verifyToken } from "../utils/jwt";
-import SessionModel from "../models/session.model";
-import { clearAuthCookies } from "../utils/cookies";
-import appAssert from "../utils/appAssert";
-import { UNAUTHORIZED, NOT_FOUND } from "../constants/http";
-import { changePassword } from "../services/user.service";
-import { emailSchema } from "../schemas/main.schema";
-import { resetPasswordSchema } from "./../schemas/auth.schema";
-import VerificationCodeModel from "../models/verificationCode.model";
-import VerificationCodeType from "../constants/verificationCodeType";
-import UserModel from "../models/user.model";
-import mongoose from "mongoose";
+import catchErrors from '../utils/catchErrors';
+import { refreshUserAccessToken } from '../services/auth.service';
+import { OK } from '../constants/http';
+import {
+  getAccessTokenCookieOptions,
+  getRefreshTokenCookieOptions,
+  setAuthCookies,
+} from '../utils/cookies';
+import { loginSchema, changePasswordSchema } from './../schemas/auth.schema';
+import { loginUser } from '../services/auth.service';
+import { verifyToken } from '../utils/jwt';
+import SessionModel from '../models/session.model';
+import { clearAuthCookies } from '../utils/cookies';
+import appAssert from '../utils/appAssert';
+import { UNAUTHORIZED } from '../constants/http';
+import { changePassword } from '../services/user.service';
 
+export const loginHandler = catchErrors(async (req, res) => {
+  const request = loginSchema.parse({
+    ...req.body,
+    userAgent: req.headers['user-agent'],
+  });
+  const { accessToken, refreshToken, user, isChangedPwd } = await loginUser(
+    request
+  );
 
-export const loginHandler=catchErrors(async (req,res)=>{
-    const request=loginSchema.parse({...req.body,userAgent: req.headers["user-agent"]});
-    const {accessToken,refreshToken,user,isChangedPwd} =await loginUser(request);
-
-    return setAuthCookies({res,accessToken,refreshToken}).status(OK).json({
-        message: "Login successful",
-        user,
-        isChangedPwd
-    });
-
-});
-
-export const logoutHandler = catchErrors(async (req,res)=>{
-    const accessToken = req.cookies.accessToken as string | undefined;
-    const {payload} = verifyToken(accessToken || "");
-
-    if(payload){
-        await SessionModel.findByIdAndDelete(payload.sessionId);
-    }
-
-    return clearAuthCookies(res).status(OK).json({
-        message: "Logout successful",
-    });
-
+  return setAuthCookies({ res, accessToken, refreshToken }).status(OK).json({
+    message: 'Login successful',
+    user,
+    isChangedPwd,
+  });
 
 });
 
-export const refreshHandler=catchErrors(async (req,res)=>{
-    const refreshToken = req.cookies.refreshToken as string| undefined;
-    appAssert(refreshToken, UNAUTHORIZED, "Missing refresh token");
+export const logoutHandler = catchErrors(async (req, res) => {
+  const accessToken = req.cookies.accessToken as string | undefined;
+  const { payload } = verifyToken(accessToken || '');
 
-    const {accessToken,newRefreshToken} = await refreshUserAccessToken(refreshToken);
+  if (payload) {
+    await SessionModel.findByIdAndDelete(payload.sessionId);
+  }
 
-    if(newRefreshToken){
-        res.cookie("refreshToken", newRefreshToken,getRefreshTokenCookieOptions());
-    }
+  return clearAuthCookies(res).status(OK).json({
+    message: 'Logout successful',
+  });
+});
 
-    return res.status(OK).cookie("accessToken", accessToken,getAccessTokenCookieOptions()).json({
-        message:"Access token refreshed",
+export const refreshHandler = catchErrors(async (req, res) => {
+  const refreshToken = req.cookies.refreshToken as string | undefined;
+  appAssert(refreshToken, UNAUTHORIZED, 'Missing refresh token');
+
+  const { accessToken, newRefreshToken } = await refreshUserAccessToken(
+    refreshToken
+  );
+
+  if (newRefreshToken) {
+    res.cookie('refreshToken', newRefreshToken, getRefreshTokenCookieOptions());
+  }
+
+  return res
+    .status(OK)
+    .cookie('accessToken', accessToken, getAccessTokenCookieOptions())
+    .json({
+      message: 'Access token refreshed',
     });
-})
-
-
+});
 
 export const changePasswordHandler = catchErrors(async (req, res) => {
   const request = changePasswordSchema.parse(req.body);
-  
+  console.log('Change password request:', request);
+
   // Get user ID from the authenticated request (set by authenticate middleware)
   const userId = req.userId as string;
-  appAssert(userId, UNAUTHORIZED, "User not authenticated");
-  
+  appAssert(userId, UNAUTHORIZED, 'User not authenticated');
+
   const result = await changePassword({
     userId,
     currentPassword: request.currentPassword,
     newPassword: request.newPassword,
-    confirmNewPassword: request.confirmNewPassword,
   });
 
   return res.status(OK).json({
@@ -81,7 +84,6 @@ export const changePasswordHandler = catchErrors(async (req, res) => {
     user: result.user,
   });
 });
-
 
 //change password flow
 export const sendPasswordResetHandler = catchErrors(async (req, res) => {
