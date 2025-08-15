@@ -13,6 +13,7 @@ import TableWindowLayout, {
   EmpRow,
 } from '../components/templates/TableWindowLayout'; // Assuming TimeSheetPage is in the same directory
 import { getUsers } from '../api/user';
+import { red } from '@mui/material/colors';
 
 const SuperAdminPage = () => {
   const [users, setUsers] = useState<EmpRow[]>([]); // Ensure the state is typed correctly
@@ -73,7 +74,7 @@ const SuperAdminPage = () => {
   return (
     <MainLayout items={items}>
       {selectedBtn === 'Accounts' && (
-        <div>
+        <Box>
           <TableWindowLayout
             rows={rows}
             title="Admin Account"
@@ -90,7 +91,7 @@ const SuperAdminPage = () => {
             onClose={() => setIsPopupOpen(false)}
             role={UserRole.Admin}
           />
-        </div>
+        </Box>
       )}
     </MainLayout>
   );

@@ -23,13 +23,15 @@ const TableWindowLayout: React.FC<TimeSheetPageProps> = ({ rows, title, buttons 
 
   return (
     <Box
+      height={'100%'}
       sx={{
         padding: theme.spacing(3),
-        backgroundColor: '#ffffff',
-        height: '90%',
+        backgroundColor: theme.palette.background.default,
         margin: theme.spacing(2),
         borderRadius: theme.shape.borderRadius,
-      }}
+      }
+      
+    }
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="h6" color={theme.palette.primary.main}>
