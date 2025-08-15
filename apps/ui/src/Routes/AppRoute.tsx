@@ -7,11 +7,25 @@ import ProtectedRoute from './ProtectedRoute';
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
 import PasswordResetChangePasswordPage from '../pages/PasswordResetChangePasswordPage';
 import PasswordResetPage from '../pages/PasswordResetPage';
+import { useAuth } from '../components/contexts/AuthContext';
 import { UserRole } from '@tms/shared';
+import PageLoading from '../components/molecules/PageLoading';
+import EmployeePage from '../pages/EmployeePage';
 
 const AppRoute: React.FC = () => {
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  const userRole = localStorage.getItem('role');
+  const { authState } = useAuth();
+  const { isAuthenticated, user, isLoading } = authState;
+
+  // Show loading while initializing auth state
+  if (isLoading) {
+    return (
+      <PageLoading
+        message="Initializing..."
+        variant="fullscreen"
+        size="medium"
+      />
+    );
+  }
 
   return (
     <Routes>
@@ -20,7 +34,7 @@ const AppRoute: React.FC = () => {
         path="/admin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && userRole === 'admin'}
+            isAllowed={isAuthenticated && user?.role === UserRole.Admin}
             redirectPath="/"
           >
             <AdminPage />
@@ -31,10 +45,32 @@ const AppRoute: React.FC = () => {
         path="/superadmin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && userRole === 'superAdmin'}
+            isAllowed={isAuthenticated && user?.role === UserRole.SuperAdmin}
             redirectPath="/"
           >
             <SuperAdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee"
+        element={
+          <ProtectedRoute
+            isAllowed={isAuthenticated && user?.role === UserRole.Emp}
+            redirectPath="/"
+          >
+            <EmployeePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/supervisor"
+        element={
+          <ProtectedRoute
+            isAllowed={isAuthenticated && user?.role === UserRole.Supervisor}
+            redirectPath="/"
+          >
+            <AdminPage /> {/* You might want to create a separate SupervisorPage */}
           </ProtectedRoute>
         }
       />
@@ -59,10 +95,10 @@ const AppRoute: React.FC = () => {
           <ProtectedRoute
             isAllowed={
               isAuthenticated &&
-              (userRole === 'admin' ||
-                userRole === 'superAdmin' ||
-                userRole === 'emp' ||
-                userRole === 'supervisor')
+              (user?.role === UserRole.Admin ||
+                user?.role === UserRole.SuperAdmin ||
+                user?.role === UserRole.Emp ||
+                user?.role === UserRole.Supervisor)
             }
             redirectPath="/"
           >

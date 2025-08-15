@@ -8,7 +8,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
 import { UserRole } from '@tms/shared';
-import is from 'zod/v4/locales/is.cjs';
+import { useApiCall } from '../../hooks/useApiCall';
+import { useAuth } from '../contexts/AuthContext';
+import { useEffect } from 'react';
 
 type LoginData = {
   email: string;
@@ -17,11 +19,74 @@ type LoginData = {
 
 const LoginFormSection: React.FC = () => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
+  
+  const { execute, isLoading, error, resetError } = useApiCall({
+    loadingMessage: 'Logging in...',
+    loadingVariant: 'overlay',
+    successMessage: 'Login successful!',
+    errorMessage: 'Login failed. Please check your credentials.',
+    onSuccess: async (response) => {
+      try {
+        console.log('onSuccess callback started');
+        const user = response.data.user;
+        
+        // Use the auth context to handle login
+        authLogin({
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          designation: user.designation,
+          isChangedPwd: user.isChangedPwd,
+        });
+
+        console.log('Login successful:', user);
+        console.log('User Role:', user.role);
+        console.log('Is Changed Password:', user.isChangedPwd);
+
+        // Add a small delay to ensure state is updated
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (!user.isChangedPwd) {
+          console.log('Navigating to change-password');
+          navigate('/change-password', { replace: true });
+        } else {
+          console.log('Navigating based on role:', user.role);
+          switch (user.role) {
+            case UserRole.Admin:
+              console.log('Navigating to Admin dashboard');
+              navigate('/admin', { replace: true });
+              break;
+            case UserRole.SuperAdmin:
+              console.log('Navigating to SuperAdmin dashboard');
+              navigate('/superadmin', { replace: true });
+              break;
+            case UserRole.Emp:
+              console.log('Navigating to Employee dashboard');
+              navigate('/employee', { replace: true });
+              break;
+            case UserRole.Supervisor:
+              console.log('Navigating to Supervisor dashboard');
+              navigate('/supervisor', { replace: true });
+              break;
+            default:
+              console.error('Unknown role:', user.role);
+              break;
+          }
+        }
+        console.log('Navigation completed');
+      } catch (error) {
+        console.error('Error in onSuccess callback:', error);
+      }
+    },
+  });
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid, isSubmitting },
+    formState: { errors, isValid },
   } = useForm<LoginData>({
     resolver: yupResolver(LoginSchema),
     mode: 'onChange',
@@ -29,69 +94,24 @@ const LoginFormSection: React.FC = () => {
 
   const onSubmit = async (data: LoginData) => {
     try {
-      let isAuthenticated = false;
-      // Clear local storage
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('firstName');
-      localStorage.removeItem('lastName');
-      localStorage.removeItem('_id');
-      localStorage.removeItem('isChangedPwd');
-      localStorage.removeItem('role');
-      localStorage.removeItem('designation');
-
-
-      const response = await login({
-        email: data.email,
-        password: data.password,
-      });
-      const user = response.data.user;
-
-      const firstName = user.firstName;
-      const lastName = user.lastName;
-      const _id = user._id;
-      const isChangedPwd = user.isChangedPwd;
-      const role = user.role;
-      const designation = user.designation;
-
-      if (user) {
-        isAuthenticated = true;
-      }
-
-      localStorage.setItem('isAuthenticated', isAuthenticated.toString());
-      localStorage.setItem('firstName', firstName);
-      localStorage.setItem('lastName', lastName);
-      localStorage.setItem('_id', _id);
-      localStorage.setItem('role', role);
-      localStorage.setItem('designation', designation);
-
-      console.log('Login successful:', user);
-
-      console.log('User Role:', role);
-      console.log('Is Authnanticated :', isAuthenticated);
-
-      if (!isChangedPwd) {
-        navigate('/change-password');
-      } else {
-        switch (role) {
-          case UserRole.Admin:
-            navigate('/admin');
-            break;
-          case UserRole.SuperAdmin:
-            console.log('Navigating to SuperAdmin');
-            navigate('/superadmin');
-            break;
-          case UserRole.Emp:
-            navigate('/employee');
-            break;
-          case UserRole.Supervisor:
-            navigate('/supervisor');
-            break;
-        }
-      }
+      console.log('Form submission started');
+      await execute(() =>
+        login({
+          email: data.email,
+          password: data.password,
+        })
+      );
+      console.log('Form submission completed');
     } catch (error) {
-      console.error('An error occurred during login:', error);
+      console.error('Form submission error:', error);
     }
   };
+
+  // Debug effect to log current state
+  useEffect(() => {
+    console.log('LoginFormSection mounted');
+  }, []);
+
   return (
     <AuthFormContainer title="Login">
       <Grid sx={{ padding: 4 }}>
@@ -105,6 +125,7 @@ const LoginFormSection: React.FC = () => {
             error={!!errors.email}
             helperText={errors.email?.message}
             sx={{ mb: 2 }}
+            disabled={isLoading}
           />
 
           <BaseTextField
@@ -115,6 +136,7 @@ const LoginFormSection: React.FC = () => {
             error={!!errors.password}
             helperText={errors.password?.message}
             sx={{ mb: 3 }}
+            disabled={isLoading}
             // Correct way to set maxLength in Material-UI
             slotProps={{
               input: {
@@ -126,10 +148,10 @@ const LoginFormSection: React.FC = () => {
           <BaseBtn
             type="submit"
             sx={{ mb: 2 }}
-            disabled={!isValid || isSubmitting}
+            disabled={!isValid || isLoading}
             fullWidth={true}
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </BaseBtn>
           <Box
             sx={{
@@ -160,6 +182,7 @@ const LoginFormSection: React.FC = () => {
                   color: 'primary.dark',
                 },
               }}
+              disabled={isLoading}
             >
               Forgot Password?
             </Link>
@@ -169,5 +192,4 @@ const LoginFormSection: React.FC = () => {
     </AuthFormContainer>
   );
 };
-
 export default LoginFormSection;

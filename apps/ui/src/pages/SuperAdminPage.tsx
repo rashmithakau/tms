@@ -4,39 +4,18 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import CreateAccountPopup from '../components/organisms/CreateAccountPopup';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import BaseBtn from '../components/atoms/buttons/BaseBtn';
-import { Box } from '@mui/material';
+import { Box, Alert, CircularProgress } from '@mui/material';
 import { UserRole } from '@tms/shared';
 import { useSelector } from 'react-redux';
 import TableWindowLayout, {
   EmpRow,
 } from '../components/templates/TableWindowLayout'; // Assuming TimeSheetPage is in the same directory
-import { getUsers } from '../api/user';
-import { red } from '@mui/material/colors';
+import { useUsers } from '../hooks/useUsers';
 
 const SuperAdminPage = () => {
-  const [users, setUsers] = useState<EmpRow[]>([]); // Ensure the state is typed correctly
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await getUsers(UserRole.Admin);
-        if (response && response.data.users) {
-          setUsers(response.data.users);
-        } else {
-          setUsers([]);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        setUsers([]);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  console.log(users);
+  const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Admin);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
@@ -62,6 +41,15 @@ const SuperAdminPage = () => {
     setIsPopupOpen(true);
   };
 
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const handleAccountCreated = () => {
+    // Refresh the table data after account creation
+    refreshUsers();
+  };
+
   const items = [
     [
       { text: 'Dashboard', icon: <DashboardOutlinedIcon /> },
@@ -75,21 +63,37 @@ const SuperAdminPage = () => {
     <MainLayout items={items}>
       {selectedBtn === 'Accounts' && (
         <Box>
-          <TableWindowLayout
-            rows={rows}
-            title="Admin Account"
-            buttons={[
-              <Box sx={{ mt: 2, ml: 2 }}>
-                <BaseBtn onClick={handleOpenPopup} variant="contained">
-                  Create Admin
-                </BaseBtn>
-              </Box>,
-            ]}
-          />
+          {error && (
+            <Box sx={{ m: 2 }}>
+              <Alert severity="error" onClose={() => {}}>
+                {error}
+              </Alert>
+            </Box>
+          )}
+          
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableWindowLayout
+              rows={rows}
+              title="Admin Account"
+              buttons={[
+                <Box sx={{ mt: 2, ml: 2 }}>
+                  <BaseBtn onClick={handleOpenPopup} variant="contained">
+                    Create Admin
+                  </BaseBtn>
+                </Box>,
+              ]}
+            />
+          )}
+          
           <CreateAccountPopup
             open={isPopupOpen}
-            onClose={() => setIsPopupOpen(false)}
+            onClose={handleClosePopup}
             role={UserRole.Admin}
+            onSuccess={handleAccountCreated}
           />
         </Box>
       )}
