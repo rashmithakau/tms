@@ -43,8 +43,6 @@ const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
 
     // If roles are required, check if the user's role is allowed
     if (requiredRoles && !requiredRoles.includes(userRole)) {
-      console.log("Required roles:", requiredRoles);
-      console.log("User role:", userRole);
       appAssert(
         false,
         FORBIDDEN,

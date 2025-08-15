@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useToast } from '../components/contexts/ToastContext';
 import { useLoading } from '../components/contexts/LoadingContext';
 
@@ -87,9 +87,9 @@ export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn =>
     }
   };
 
-  const resetError = () => {
+  const resetError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
   return {
     execute,

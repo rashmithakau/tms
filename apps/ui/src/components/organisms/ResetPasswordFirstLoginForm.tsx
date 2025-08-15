@@ -27,21 +27,18 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
   });
   const onSubmit = async(data: SetPasswordData) => {
     const role= localStorage.getItem('role');
-    console.log('Form submitted with data:', data);
     const userId = localStorage.getItem('_id');
     if (!userId) {
       console.error('User ID not found in local storage');
       return;
     }
     const response=await changePwdFirstLogin({userId , currentPassword: data.currentPassword, newPassword: data.newPassword});
-    console.log(response);
 
     switch (role) {
       case UserRole.Admin:
         navigate('/admin');
         break;
       case UserRole.SuperAdmin:
-        console.log('Navigating to SuperAdmin');
         navigate('/superadmin');
         break;
       case UserRole.Emp:

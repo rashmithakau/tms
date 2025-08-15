@@ -31,5 +31,5 @@ app.use(errorHandler);
 
 app.listen(port,async () => {
   await connectDB();
-  console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
+   console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
 });

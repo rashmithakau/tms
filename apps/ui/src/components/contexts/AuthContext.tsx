@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        console.log('AuthContext: Initializing auth state from localStorage');
+        
         const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
         const user = isAuthenticated ? {
           _id: localStorage.getItem('_id') || '',
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isChangedPwd: localStorage.getItem('isChangedPwd') === 'true',
         } : null;
 
-        console.log('AuthContext: Initial state:', { isAuthenticated, user });
+        
         setAuthState({
           isAuthenticated,
           user,
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = (user: User) => {
     try {
-      console.log('AuthContext: Login called with user:', user);
+      
       
       // Set localStorage
       localStorage.setItem('isAuthenticated', 'true');
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
       });
       
-      console.log('AuthContext: Login completed, new state:', { isAuthenticated: true, user });
+      
     } catch (error) {
       console.error('AuthContext: Error during login:', error);
     }
@@ -109,7 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     try {
-      console.log('AuthContext: Logout called');
+      
       
       // Clear localStorage
       localStorage.removeItem('isAuthenticated');
@@ -128,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
       });
       
-      console.log('AuthContext: Logout completed, new state:', { isAuthenticated: false, user: null });
+      
     } catch (error) {
       console.error('AuthContext: Error during logout:', error);
     }
@@ -136,7 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateUser = (updates: Partial<User>) => {
     if (authState.user) {
-      console.log('AuthContext: Updating user with:', updates);
+      
       
       const updatedUser = { ...authState.user, ...updates };
       
@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: updatedUser,
       }));
       
-      console.log('AuthContext: User updated, new user:', updatedUser);
+      
     }
   };
 

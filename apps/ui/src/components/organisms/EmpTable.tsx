@@ -53,8 +53,8 @@ const EmpTable: React.FC<TimeSheetTableProps> = ({ rows }) => {
               </TableCell>
               <TableCell>
                 <ActionButtons
-                  onEdit={() => console.log('Edit', index)}
-                  onDelete={() => console.log('Delete', index)}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
                 />
               </TableCell>
             </TableRow>

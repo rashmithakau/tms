@@ -10,7 +10,7 @@ import { login } from '../../api/auth';
 import { UserRole } from '@tms/shared';
 import { useApiCall } from '../../hooks/useApiCall';
 import { useAuth } from '../contexts/AuthContext';
-import { useEffect } from 'react';
+ 
 
 type LoginData = {
   email: string;
@@ -28,7 +28,6 @@ const LoginFormSection: React.FC = () => {
     errorMessage: 'Login failed. Please check your credentials.',
     onSuccess: async (response) => {
       try {
-        console.log('onSuccess callback started');
         const user = response.data.user;
         
         // Use the auth context to handle login
@@ -42,33 +41,25 @@ const LoginFormSection: React.FC = () => {
           isChangedPwd: user.isChangedPwd,
         });
 
-        console.log('Login successful:', user);
-        console.log('User Role:', user.role);
-        console.log('Is Changed Password:', user.isChangedPwd);
+        
 
         // Add a small delay to ensure state is updated
         await new Promise(resolve => setTimeout(resolve, 100));
 
         if (!user.isChangedPwd) {
-          console.log('Navigating to change-password');
           navigate('/change-password', { replace: true });
         } else {
-          console.log('Navigating based on role:', user.role);
           switch (user.role) {
             case UserRole.Admin:
-              console.log('Navigating to Admin dashboard');
               navigate('/admin', { replace: true });
               break;
             case UserRole.SuperAdmin:
-              console.log('Navigating to SuperAdmin dashboard');
               navigate('/superadmin', { replace: true });
               break;
             case UserRole.Emp:
-              console.log('Navigating to Employee dashboard');
               navigate('/employee', { replace: true });
               break;
             case UserRole.Supervisor:
-              console.log('Navigating to Supervisor dashboard');
               navigate('/supervisor', { replace: true });
               break;
             default:
@@ -76,7 +67,6 @@ const LoginFormSection: React.FC = () => {
               break;
           }
         }
-        console.log('Navigation completed');
       } catch (error) {
         console.error('Error in onSuccess callback:', error);
       }
@@ -94,23 +84,18 @@ const LoginFormSection: React.FC = () => {
 
   const onSubmit = async (data: LoginData) => {
     try {
-      console.log('Form submission started');
       await execute(() =>
         login({
           email: data.email,
           password: data.password,
         })
       );
-      console.log('Form submission completed');
     } catch (error) {
       console.error('Form submission error:', error);
     }
   };
 
-  // Debug effect to log current state
-  useEffect(() => {
-    console.log('LoginFormSection mounted');
-  }, []);
+  
 
   return (
     <AuthFormContainer title="Login">

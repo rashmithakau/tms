@@ -24,7 +24,6 @@ const SuperAdminPage = () => {
   );
 
   const rows: EmpRow[] = [];
-  console.log(users);
 
   users.forEach((user) => {
     rows.push({
