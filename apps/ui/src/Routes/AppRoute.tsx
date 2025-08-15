@@ -40,14 +40,7 @@ const AppRoute: React.FC = () => {
       />
       <Route
         path="/forgotpassword"
-        element={
-          <ProtectedRoute
-            isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
-            redirectPath="/"
-          >
-            <PasswordResetPage />
-          </ProtectedRoute>
-        }
+        element={<PasswordResetPage />}
       />
       <Route
         path="/resetpasswordfirstlogin"
@@ -89,6 +82,10 @@ const AppRoute: React.FC = () => {
             <PasswordResetChangePasswordPage />
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/password/reset"
+        element={<PasswordResetChangePasswordPage />}
       />
     </Routes>
   );

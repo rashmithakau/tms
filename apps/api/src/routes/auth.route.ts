@@ -2,7 +2,7 @@ import { Router } from "express";
 
 
 
-import { loginHandler,refreshHandler,changePasswordHandler,logoutHandler} from "../controllers/auth.controller";
+import { loginHandler,refreshHandler,changePasswordHandler,logoutHandler,sendPasswordResetHandler,resetPasswordHandler,verifyEmailHandler,verifyPasswordResetTokenHandler,verifyPasswordResetLinkHandler} from "../controllers/auth.controller";
 
 import authenticate from "../middleware/authenticate";
 
@@ -14,6 +14,11 @@ authRoutes.get("/refresh", refreshHandler);
 authRoutes.get("/logout", logoutHandler)
 
 authRoutes.post("/change-password", authenticate,changePasswordHandler);
+authRoutes.post('/password/forgot',sendPasswordResetHandler);
+authRoutes.post('/password/reset',resetPasswordHandler);
+authRoutes.get('/password/reset', verifyPasswordResetLinkHandler);
+authRoutes.get("/email/verify/:code", verifyEmailHandler);
+authRoutes.post("/password/reset/verify-token", verifyPasswordResetTokenHandler);
 
 
 

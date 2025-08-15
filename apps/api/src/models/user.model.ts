@@ -13,6 +13,7 @@ export interface UserDocument extends mongoose.Document {
   password: string;
   role: string;
   isChangedPwd: boolean;
+  isVerified?: boolean; // Optional field for email verification
   createdAt: Date;
   updatedAt: Date;
   __v?: number;
@@ -26,6 +27,7 @@ export interface UserDocument extends mongoose.Document {
     | 'email'
     | 'role'
     | 'isChangedPwd'
+    | 'isVerified'
     | 'createdAt'
     | 'updatedAt'
     | '__v'
@@ -43,6 +45,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
     password: { type: String, required: true },
     role: { type: String, required: true, enum: UserRole },
     isChangedPwd: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
   },
   {
     timestamps: true,

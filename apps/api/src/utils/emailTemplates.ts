@@ -69,3 +69,15 @@ export const getWelcomeTmsTemplate = (url: string, username: string, password: s
       url
     ),
   });
+
+
+   export const getEmailVerificationTemplate = (url: string) => ({
+    subject: "Email Verification",
+    text: `Please verify your email by clicking on the following link: ${url}`,
+    html: generateEmailTemplate(
+      "Email Verification",
+      "Please verify your email by clicking on the following link:",
+      "Verify Email",
+      url
+    ),
+  });
