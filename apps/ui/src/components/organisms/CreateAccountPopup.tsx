@@ -66,7 +66,9 @@ function CreateAccountPopup({
       reset();
       resetError();
     }
-  }, [open, reset, resetError]);
+  // We only want this to run when the popup visibility changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const onSubmit = async (data: CreateAccountData) => {
     await execute(() =>

@@ -72,7 +72,7 @@ export const refreshHandler = catchErrors(async (req, res) => {
 
 export const changePasswordHandler = catchErrors(async (req, res) => {
   const request = changePasswordSchema.parse(req.body);
-  console.log('Change password request:', request);
+  
 
   // Get user ID from the authenticated request (set by authenticate middleware)
   const userId = req.userId as string;

@@ -67,3 +67,4 @@ export const useUsers = (role: UserRole): UseUsersReturn => {
     clearError,
   };
 };
+

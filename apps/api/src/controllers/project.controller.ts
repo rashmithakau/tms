@@ -8,7 +8,7 @@ export const createHandler=catchErrors(async (req,res)=>{
         ...req.body
     });
 
-    console.log("Request body:", request);
+    
 
     const project=await createProject(request);
 

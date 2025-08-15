@@ -19,3 +19,4 @@ const GlobalLoading: React.FC = () => {
 };
 
 export default GlobalLoading;
+
