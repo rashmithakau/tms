@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { hashValue } from '../utils/bcrypt';
 import { compareValue } from '../utils/bcrypt';
 import { UserRole } from '@tms/shared';
@@ -13,6 +13,7 @@ export interface UserDocument extends mongoose.Document {
   password: string;
   role: string;
   isChangedPwd: boolean;
+  status?:boolean;
   createdAt: Date;
   updatedAt: Date;
   __v?: number;
@@ -32,16 +33,21 @@ export interface UserDocument extends mongoose.Document {
   >;
 }
 
+interface UserModel extends Model<UserDocument> {
+  findAllByRole(role: UserRole): Promise<UserDocument[]>;
+}
+
 const userSchema = new mongoose.Schema<UserDocument>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     designation: { type: String, required: true },
     contactNumber: { type: String, required: true },
-    teams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }], // Reference to Team collection
-    email: { type: String, unique: true, required: true },
+    teams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }],
+    email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, required: true, enum: UserRole },
+    role: { type: String, enum: Object.values(UserRole), required: true },
+    status: { type: Boolean, default: true }, 
     isChangedPwd: { type: Boolean, default: false },
   },
   {
@@ -49,6 +55,11 @@ const userSchema = new mongoose.Schema<UserDocument>(
   }
 );
 
+userSchema.statics.findAllByRole = function (role: UserRole) {
+  return this.find({ role });
+};
+
+// Middleware to hash the password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
@@ -57,6 +68,7 @@ userSchema.pre('save', async function (next) {
   this.password = await hashValue(this.password);
   next();
 });
+
 
 userSchema.methods.comparePassword = async function (val: string) {
   return compareValue(val, this.password);
@@ -68,5 +80,6 @@ userSchema.methods.omitPassword = function () {
   return user;
 };
 
-const UserModel = mongoose.model<UserDocument>('User', userSchema);
-export default UserModel;
+const User = mongoose.model<UserDocument, UserModel>('User', userSchema);
+
+export default User;

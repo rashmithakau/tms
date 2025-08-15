@@ -8,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
 import { UserRole } from '@tms/shared';
+import is from 'zod/v4/locales/is.cjs';
 
 type LoginData = {
   email: string;
@@ -52,7 +53,7 @@ const LoginFormSection: React.FC = () => {
       const role = user.role;
       const designation = user.designation;
 
-      if (user.exists) {
+      if (user) {
         isAuthenticated = true;
       }
 
@@ -66,6 +67,7 @@ const LoginFormSection: React.FC = () => {
       console.log('Login successful:', user);
 
       console.log('User Role:', role);
+      console.log('Is Authnanticated :', isAuthenticated);
 
       if (!isChangedPwd) {
         navigate('/change-password');

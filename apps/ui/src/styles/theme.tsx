@@ -20,7 +20,8 @@ const theme = createTheme({
       secondary:'#9A9A9A',
       
     },
-     error: { main: '#EF4444' },
+     error: { main: '#FF7081' },
+     success: { main: '#CCFFCC' },
   },
   typography: {
     fontFamily: fonts.primary,

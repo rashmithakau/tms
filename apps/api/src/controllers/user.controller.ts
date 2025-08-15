@@ -1,7 +1,7 @@
 import { CREATED } from '../constants/http';
 import { registerSchema } from '../schemas/user.schema';
 import catchErrors from '../utils/catchErrors';
-import { createUser } from '../services/user.service';
+import { createUser,getUsersByRole } from '../services/user.service';
 import { UserRole } from '@tms/shared';
 import { Request, Response } from 'express';
 
@@ -25,3 +25,12 @@ export const registerHandler = (role: UserRole) =>
     // Return the created user with a 201 status
     return res.status(CREATED).json(user);
   });
+
+  export const getUserHandler = (role: UserRole) =>
+    catchErrors(async (req: Request, res: Response) => {
+
+      const user = await getUsersByRole(role);
+  
+      // Return the created user with a 201 status
+      return res.status(CREATED).json(user);
+    });

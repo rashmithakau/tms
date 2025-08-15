@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { Box, Typography, Divider } from '@mui/material';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
@@ -14,12 +13,14 @@ const firstName = localStorage.getItem('firstName');
 const lastName = localStorage.getItem('lastName');
 const designation = localStorage.getItem('designation');
 
-const UserPopoverBox: React.FC<UserPopoverBoxProps> = ({ onProfileClick, onLogoutClick }) => {
+const UserPopoverBox: React.FC<UserPopoverBoxProps> = ({
+  onProfileClick,
+  onLogoutClick,
+}) => {
   // Correctly retrieve the user object from Redux state
 
-
   return (
-    <Box sx={{ p: 2, width: 250 }}>
+    <Box sx={{ p: 2, minWidth: 150 }}>
       <Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
           {firstName}&nbsp;{lastName}
@@ -29,23 +30,24 @@ const UserPopoverBox: React.FC<UserPopoverBoxProps> = ({ onProfileClick, onLogou
         </Typography>
         <Divider sx={{ mb: 2 }} />
       </Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <BaseBtn
           fullWidth
-          variant="outlined"
+          variant="text"
           onClick={onProfileClick}
           startIcon={<AccountCircleOutlinedIcon />}
-          aria-label="View Profile"
+          sx={{ justifyContent: 'flex-start',textTransform: 'none' }} 
         >
           Profile
         </BaseBtn>
+
         <BaseBtn
           fullWidth
-          variant="contained"
+          variant="text"
           color="primary"
           onClick={onLogoutClick}
           startIcon={<LogoutOutlinedIcon />}
-          aria-label="Logout"
+          sx={{ justifyContent: 'flex-start',textTransform: 'none' }}
         >
           Logout
         </BaseBtn>
