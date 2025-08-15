@@ -7,14 +7,17 @@ import CustomListItemText from '../atoms/text/ListItemText';
 import { ListItem } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import INavItemProps from '../../interfaces/INavItemProps';
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import {select_btn} from '../../store/slices/dashboardNavSlice'
 
 export default function DrawerList({ items}: { items: INavItemProps[][],selected?: string }) {
 
   const dispatch=useDispatch();
+  const selectedBtn = useSelector(
+    (state: any) => state.dashboardNav.selectedBtn
+  );
 
-  const [activeButton, setActiveButton] = useState<string | null>(null);
+  const [activeButton, setActiveButton] = useState<string | null>(selectedBtn || null);
 
   const handleButtonClick = (buttonId: string,text:string) => {
     setActiveButton(buttonId);

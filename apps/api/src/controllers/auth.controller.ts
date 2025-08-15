@@ -1,12 +1,12 @@
 import catchErrors from '../utils/catchErrors';
-import { refreshUserAccessToken } from '../services/auth.service';
-import { OK } from '../constants/http';
+import { refreshUserAccessToken, resetPassword, sendPasswordResetEmail, verifyEmail } from '../services/auth.service';
+import { NOT_FOUND, OK } from '../constants/http';
 import {
   getAccessTokenCookieOptions,
   getRefreshTokenCookieOptions,
   setAuthCookies,
 } from '../utils/cookies';
-import { loginSchema, changePasswordSchema } from './../schemas/auth.schema';
+import { loginSchema, changePasswordSchema, resetPasswordSchema } from './../schemas/auth.schema';
 import { loginUser } from '../services/auth.service';
 import { verifyToken } from '../utils/jwt';
 import SessionModel from '../models/session.model';
@@ -14,6 +14,11 @@ import { clearAuthCookies } from '../utils/cookies';
 import appAssert from '../utils/appAssert';
 import { UNAUTHORIZED } from '../constants/http';
 import { changePassword } from '../services/user.service';
+import { emailSchema } from '../schemas/main.schema';
+import VerificationCodeModel from '../models/verificationCode.model';
+import VerificationCodeType from '../constants/verificationCodeType';
+import mongoose from 'mongoose';
+import UserModel  from '../models/user.model';
 
 export const loginHandler = catchErrors(async (req, res) => {
   const request = loginSchema.parse({
