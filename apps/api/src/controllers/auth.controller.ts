@@ -29,6 +29,7 @@ export const loginHandler = catchErrors(async (req, res) => {
     user,
     isChangedPwd,
   });
+
 });
 
 export const logoutHandler = catchErrors(async (req, res) => {
@@ -83,3 +84,135 @@ export const changePasswordHandler = catchErrors(async (req, res) => {
     user: result.user,
   });
 });
+
+//change password flow
+export const sendPasswordResetHandler = catchErrors(async (req, res) => {
+    const email = emailSchema.parse(req.body.email);
+    await sendPasswordResetEmail(email);
+
+    return res.status(OK).json({
+        message: "Password reset email sent. Check your email for the reset link."
+    });
+})
+
+export const resetPasswordHandler = catchErrors(async (req, res) => {
+    const { newPassword, verificationCodeId, confirmNewPassword } = resetPasswordSchema.parse(req.body);
+
+    // Find the verification code and validate it
+    const validCode = await VerificationCodeModel.findOne({
+      _id: verificationCodeId,
+      type: VerificationCodeType.PasswordReset,
+      expiresAt: { $gte: new Date() },
+    });
+    appAssert(validCode, NOT_FOUND, 'Invalid or expired verification code');
+
+    const request = {
+      newPassword,
+      verificationCode: verificationCodeId,
+      userId: validCode.userId.toString(),
+    };
+
+    const result = await resetPassword(request);
+
+    return clearAuthCookies(res).status(OK).json({
+        message: "Password reset successful",
+        user: result.user,
+    });
+})
+
+export const verifyEmailHandler = catchErrors(async (req, res) => {
+  const { code } = req.params;
+  appAssert(code, NOT_FOUND, 'Verification code is required');
+
+  const result = await verifyEmail(code);
+
+  return res.status(OK).json({
+    message: "Email verified successfully",
+    user: result.user,
+  });
+});
+
+export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
+  const authHeader = req.headers.authorization;
+  appAssert(authHeader, NOT_FOUND, 'Authorization header is required');
+  
+  // Extract token from "Bearer TOKEN" format
+  const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
+  appAssert(token, NOT_FOUND, 'Reset token is required');
+
+  // Verify the token and extract user info
+  const { payload } = verifyToken(token);
+  appAssert(payload, UNAUTHORIZED, 'Invalid or expired reset token');
+  
+  // Check if it's a password reset token
+  appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
+
+  const userId = (payload as any).userId;
+  const verificationCodeId = (payload as any).verificationCodeId;
+
+  // Verify the verification code still exists and is valid
+  const validCode = await VerificationCodeModel.findOne({
+    _id: verificationCodeId,
+    userId: new mongoose.Types.ObjectId(userId),
+    type: VerificationCodeType.PasswordReset,
+    expiresAt: { $gte: new Date() },
+  });
+  appAssert(validCode, NOT_FOUND, 'Reset token has expired or is invalid');
+
+  // Get user information (without sensitive data)
+  const user = await UserModel.findById(userId).select('-password');
+  appAssert(user, NOT_FOUND, 'User not found');
+
+  return res.status(OK).json({
+    message: "Reset token is valid",
+    user: {
+      id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    },
+    verificationCodeId,
+  });
+});
+
+// New handler for GET request with query parameters
+export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
+  const { token, verificationCode } = req.query;
+  appAssert(token, NOT_FOUND, 'Reset token is required');
+  appAssert(verificationCode, NOT_FOUND, 'Verification code is required');
+
+  // Verify the token and extract user info
+  const { payload } = verifyToken(token as string);
+  appAssert(payload, UNAUTHORIZED, 'Invalid or expired reset token');
+  
+  // Check if it's a password reset token
+  appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
+
+  const userId = (payload as any).userId;
+  const verificationCodeId = (payload as any).verificationCodeId;
+
+  // Verify the verification code still exists and is valid
+  const validCode = await VerificationCodeModel.findOne({
+    _id: verificationCode,
+    userId: new mongoose.Types.ObjectId(userId),
+    type: VerificationCodeType.PasswordReset,
+    expiresAt: { $gte: new Date() },
+  });
+  appAssert(validCode, NOT_FOUND, 'Reset token has expired or is invalid');
+
+  // Get user information (without sensitive data)
+  const user = await UserModel.findById(userId).select('-password');
+  appAssert(user, NOT_FOUND, 'User not found');
+
+  return res.status(OK).json({
+    message: "Reset token is valid",
+    user: {
+      id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    },
+    verificationCodeId: verificationCode,
+  });
+});
+

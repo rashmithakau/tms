@@ -6,6 +6,9 @@ import { sendEmail } from '../utils/sendEmail';
 import {getWelcomeTmsTemplate}  from '../utils/emailTemplates';
 import {generateRandomPassword} from '../utils/passwordUtils';
 import { APP_ORIGIN } from '../constants/env';
+import VerificationCodeModel from '../models/verificationCode.model';
+import VerificationCodeType from '../constants/verificationCodeType';
+import { oneYearFromNow } from '../utils/date';
 
 export type CreateUserParams = {
   email: string;
@@ -44,7 +47,12 @@ export const createUser = async (data: CreateUserParams) => {
   });
 
   appAssert(user, INTERNAL_SERVER_ERROR, 'User creation failed');
-
+ //create verification code
+  const verificationCode = await VerificationCodeModel.create({
+    userId: user._id,
+    type: VerificationCodeType.EmailVerification,
+    expiresAt: oneYearFromNow(),
+  });
   sendEmail({
     to: user.email,
     ...getWelcomeTmsTemplate(APP_ORIGIN,user.email,genertatedPassword),
@@ -59,13 +67,22 @@ export const changePassword = async (data: ChangePasswordParams) => {
   const user = await UserModel.findById(data.userId);
   appAssert(user, UNAUTHORIZED, 'User not found');
 
-  // Verify current password
-  const isValidCurrentPassword = await user.comparePassword(data.currentPassword);
-  appAssert(isValidCurrentPassword, UNAUTHORIZED, 'Current password is incorrect');
+   // Verify current password
+  const isValidCurrentPassword = await user.comparePassword(
+    data.currentPassword
+  );
+  appAssert(
+    isValidCurrentPassword,
+    UNAUTHORIZED,
+    'Current password is incorrect'
+  );
 
   // Validate that new password is different from current password
-  appAssert(data.newPassword !== data.currentPassword, UNAUTHORIZED, 'New password must be different from current password');
-
+  appAssert(
+    data.newPassword !== data.currentPassword,
+    UNAUTHORIZED,
+    'New password must be different from current password'
+  );
   // Update password and set isChangedPwd to true
   user.password = data.newPassword;
   user.isChangedPwd = true;

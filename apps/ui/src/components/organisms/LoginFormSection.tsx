@@ -146,11 +146,19 @@ const LoginFormSection: React.FC = () => {
           {/* Forget Password */}
           <Grid sx={{ display: 'flex', justifyContent: 'center' }}>
             <Link
-              href="ForgotPassword"
+              component="button"
+              onClick={() => navigate('/forgotpassword')}
               underline="hover"
               sx={{
                 float: 'right',
                 mt: 1,
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                color: 'primary.main',
+                '&:hover': {
+                  color: 'primary.dark',
+                },
               }}
             >
               Forgot Password?

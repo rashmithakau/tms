@@ -8,6 +8,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import ResetPasswordFormSchema from '../../validations/ResetPasswordFormSchema';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { sendPasswordResetEmail } from '../../api/auth';
+import { useState } from 'react';
 
 type SetPasswordData = {
   email: string;
@@ -15,19 +17,34 @@ type SetPasswordData = {
 
 const PasswordReset: React.FC = () => {
     const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid, isSubmitting },
-  } = useForm<SetPasswordData>({
-    resolver: yupResolver(ResetPasswordFormSchema),
-    mode: 'onChange',
-  });
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    
+    const {
+      register,
+      handleSubmit,
+      formState: { errors, isValid, isSubmitting },
+    } = useForm<SetPasswordData>({
+      resolver: yupResolver(ResetPasswordFormSchema),
+      mode: 'onChange',
+    });
 
-  const onSubmit = (data: SetPasswordData) => {
-    // Handle password reset logic here
-    navigate('/resetpasswordchange');
-  };
+    const onSubmit = async (data: SetPasswordData) => {
+      setIsLoading(true);
+      setError('');
+      setMessage('');
+      
+      try {
+        await sendPasswordResetEmail(data.email);
+        setMessage('Password reset email sent successfully! Check your email for the reset link.');
+        // Don't navigate immediately, let user see the success message
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to send password reset email. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   return (
     <AuthFormContainer
@@ -49,12 +66,38 @@ const PasswordReset: React.FC = () => {
           <BaseBtn
             type="submit"
             sx={{ mb: 2 }}
-            disabled={!isValid || isSubmitting}
+            disabled={!isValid || isSubmitting || isLoading}
             fullWidth
             
           >
-            Confirm
+            {isLoading ? 'Sending...' : 'Confirm'}
           </BaseBtn>
+          
+          {message && (
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              bgcolor: 'success.light', 
+              color: 'success.contrastText',
+              borderRadius: 1,
+              textAlign: 'center'
+            }}>
+              {message}
+            </Box>
+          )}
+          
+          {error && (
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              bgcolor: 'error.light', 
+              color: 'error.contrastText',
+              borderRadius: 1,
+              textAlign: 'center'
+            }}>
+              {error}
+            </Box>
+          )}
         </form>
         <Box sx={{textAlign: 'center', display: 'block', mt: 2}}>
           <Link to="/">Back to Login</Link>
