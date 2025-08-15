@@ -124,6 +124,7 @@ function CreateAccountPopup({
             variant="outlined"
             label="Contact Number"
             placeholder="Contact Number"
+            maxDigits={10}
             {...register('contactNumber')}
             error={!!errors.contactNumber}
             helperText={errors.contactNumber?.message || ' '}
