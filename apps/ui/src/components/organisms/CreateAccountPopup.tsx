@@ -9,8 +9,8 @@ import CreateAccountFormSchema from '../../validations/CreateAccountFormSchema';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box } from '@mui/material';
-import { alignContent } from '@mui/system';
-import { right } from '@popperjs/core';
+import { useApiCall } from '../../hooks/useApiCall';
+import PageLoading from '../molecules/PageLoading';
 
 type CreateAccountData = {
   firstName: string;
@@ -20,22 +20,41 @@ type CreateAccountData = {
   designation: string;
 };
 
+interface CreateAccountPopupProps {
+  open: boolean;
+  role: UserRole;
+  onClose: () => void;
+  onSuccess?: () => void; // Callback to refresh table data
+}
+
 function CreateAccountPopup({
   open,
   role,
   onClose,
-}: {
-  open: boolean;
-  role: UserRole;
-  onClose: () => void;
-}) {
+  onSuccess,
+}: CreateAccountPopupProps) {
   const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
+  
+  const { execute, isLoading, error, resetError } = useApiCall({
+    loadingMessage: 'Creating account...',
+    loadingVariant: 'overlay',
+    successMessage: `${title} created successfully!`,
+    errorMessage: 'Failed to create account. Please try again.',
+    onSuccess: () => {
+      // Call the onSuccess callback to refresh table data
+      if (onSuccess) {
+        onSuccess();
+      }
+      // Close the popup
+      onClose();
+    },
+  });
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isValid, isSubmitting },
+    formState: { errors, isValid },
   } = useForm<CreateAccountData>({
     resolver: yupResolver(CreateAccountFormSchema),
     mode: 'onChange',
@@ -45,21 +64,23 @@ function CreateAccountPopup({
   useEffect(() => {
     if (!open) {
       reset();
+      resetError();
     }
-  }, [open, reset]);
+  }, [open, reset, resetError]);
 
   const onSubmit = async (data: CreateAccountData) => {
-    registerUser(
-      {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        designation: data.designation,
-        contactNumber: data.contactNumber,
-      },
-      role
+    await execute(() =>
+      registerUser(
+        {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          designation: data.designation,
+          contactNumber: data.contactNumber,
+        },
+        role
+      )
     );
-    onClose(); // Close popup after submit
   };
 
   const handleCancel = () => {
@@ -75,6 +96,14 @@ function CreateAccountPopup({
       maxHeight="600px"
       onClose={onClose}
     >
+      {isLoading && (
+        <PageLoading
+          message="Creating account..."
+          variant="overlay"
+          size="small"
+        />
+      )}
+      
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box
           style={{
@@ -92,6 +121,7 @@ function CreateAccountPopup({
             error={!!errors.email}
             helperText={errors.email?.message || ' '}
             fullWidth
+            disabled={isLoading}
           />
           <BaseTextField
             variant="outlined"
@@ -101,6 +131,7 @@ function CreateAccountPopup({
             error={!!errors.firstName}
             helperText={errors.firstName?.message || ' '}
             fullWidth
+            disabled={isLoading}
           />
           <BaseTextField
             variant="outlined"
@@ -110,6 +141,7 @@ function CreateAccountPopup({
             error={!!errors.lastName}
             helperText={errors.lastName?.message || ' '}
             fullWidth
+            disabled={isLoading}
           />
           <BaseTextField
             variant="outlined"
@@ -119,6 +151,7 @@ function CreateAccountPopup({
             error={!!errors.designation}
             helperText={errors.designation?.message || ' '}
             fullWidth
+            disabled={isLoading}
           />
           <NumberField
             variant="outlined"
@@ -129,14 +162,23 @@ function CreateAccountPopup({
             error={!!errors.contactNumber}
             helperText={errors.contactNumber?.message || ' '}
             fullWidth
+            disabled={isLoading}
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 ,justifyContent:right}}>
-            <BaseBtn type="button" onClick={handleCancel} variant="outlined">
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'flex-end' }}>
+            <BaseBtn 
+              type="button" 
+              onClick={handleCancel} 
+              variant="outlined"
+              disabled={isLoading}
+            >
               Cancel
             </BaseBtn>
-            <BaseBtn type="submit" disabled={!isValid}>
-              {title}
+            <BaseBtn 
+              type="submit" 
+              disabled={!isValid || isLoading}
+            >
+              {isLoading ? 'Creating...' : title}
             </BaseBtn>
           </Box>
         </Box>

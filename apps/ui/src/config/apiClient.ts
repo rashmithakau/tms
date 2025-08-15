@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL; 
+// Use explicit API base when provided; otherwise rely on same-origin + dev proxy
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Create an Axios instance
 const apiClient = axios.create({
@@ -25,18 +26,20 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401 && !error.config._retry) {
-      error.config._retry = true; // Prevent infinite retry loop
+    const originalRequest = error.config || {};
+
+    // Avoid refresh attempts for auth endpoints (e.g., failed login) to prevent noise
+    const urlPath = (originalRequest.url || '').toString();
+    const isAuthEndpoint = /\/auth\/(login|refresh|password)/.test(urlPath);
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      originalRequest._retry = true; // Prevent infinite retry loop
       try {
-        // Attempt to refresh the session
-        await axios.post(
-          `${API_BASE_URL}/auth/refresh`, // Replace with your refresh endpoint
-          {},
-          { withCredentials: true } // Ensure cookies are sent with the refresh request
-        );
+        // Attempt to refresh the session (backend expects GET /auth/refresh)
+        await apiClient.get('/auth/refresh');
 
         // Retry the original request
-        return apiClient(error.config);
+        return apiClient(originalRequest);
       } catch (refreshError) {
         // Handle refresh token failure (e.g., logout user)
         console.error('Session refresh failed:', refreshError);
