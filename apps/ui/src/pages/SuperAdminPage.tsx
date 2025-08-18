@@ -13,6 +13,7 @@ import TableWindowLayout, {
   EmpRow,
 } from '../components/templates/TableWindowLayout'; // Assuming TimeSheetPage is in the same directory
 import { useUsers } from '../hooks/useUsers';
+import EmpTable from '../components/organisms/EmpTable';
 
 const SuperAdminPage = () => {
   const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Admin);
@@ -33,6 +34,7 @@ const SuperAdminPage = () => {
       designation: user.designation || '',
       status: user.status || '',
       contactNumber: user.contactNumber || '',
+      createdAt: user.createdAt || '',
     });
   });
 
@@ -85,6 +87,7 @@ const SuperAdminPage = () => {
                   </BaseBtn>
                 </Box>,
               ]}
+              table={<EmpTable rows={rows} />}
             />
           )}
           

@@ -43,6 +43,24 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Handle refresh token failure (e.g., logout user)
         console.error('Session refresh failed:', refreshError);
+        try {
+          // Attempt server-side logout to clear cookies
+          await apiClient.get('/auth/logout');
+        } catch {}
+        // Clear any client state and redirect to login
+        try {
+          localStorage.removeItem('isAuthenticated');
+          localStorage.removeItem('_id');
+          localStorage.removeItem('firstName');
+          localStorage.removeItem('lastName');
+          localStorage.removeItem('email');
+          localStorage.removeItem('role');
+          localStorage.removeItem('designation');
+          localStorage.removeItem('isChangedPwd');
+        } catch {}
+        if (typeof window !== 'undefined') {
+          window.location.assign('/');
+        }
         return Promise.reject(refreshError);
       }
     }

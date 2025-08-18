@@ -11,6 +11,7 @@ interface User {
   status: string;
   contactNumber: string;
   role: UserRole;
+  createdAt?: string;
 }
 
 interface UseUsersReturn {

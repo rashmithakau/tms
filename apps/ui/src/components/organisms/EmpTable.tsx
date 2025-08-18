@@ -17,6 +17,7 @@ export interface TimeSheetRow {
   designation: string;
   status: 'Active' | 'Inactive' | string;
   contactNumber: string;
+  createdAt?: string;
 }
 
 interface TimeSheetTableProps {
@@ -34,6 +35,7 @@ const EmpTable: React.FC<TimeSheetTableProps> = ({ rows }) => {
           <TableCell>Last Name</TableCell>
           <TableCell>Designation</TableCell>
           <TableCell>Contact Number</TableCell>
+          <TableCell>Created At</TableCell>
           <TableCell>Status</TableCell>
           <TableCell>Actions</TableCell>
         </TableRow>
@@ -48,6 +50,7 @@ const EmpTable: React.FC<TimeSheetTableProps> = ({ rows }) => {
               <TableCell>{row.lastName}</TableCell>
               <TableCell>{row.designation}</TableCell>
               <TableCell>{row.contactNumber}</TableCell>
+              <TableCell>{row.createdAt ? new Date(row.createdAt).toLocaleDateString() : ''}</TableCell>
               <TableCell>
                 <StatusChip status={row.status?"Active":"Inactive"} />
               </TableCell>

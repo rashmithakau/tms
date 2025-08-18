@@ -116,12 +116,12 @@ const PasswordResetChangePassword: React.FC = () => {
 
   return (
     <AuthFormContainer title="Reset Password" icon={WebSiteLogo}>
-      <Grid sx={{ padding: 3 }}>
+      <Grid sx={{ paddingX: 3 }}>
         {userInfo && (
           <Box sx={{ 
             mb: 3, 
             p: 2, 
-            bgcolor: 'info.light', 
+            bgcolor: 'info.dark', 
             color: 'info.contrastText',
             borderRadius: 1,
             textAlign: 'center'

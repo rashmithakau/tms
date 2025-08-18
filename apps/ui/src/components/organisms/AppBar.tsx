@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Divider, Box, Button, Popover } from '@mui/material';
+import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from './UserPopoverBox'; // Import the new component
 import { logout } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../../assets/images/WebSiteLogo.png';
+import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 
-export default function CustomAppBar() {
+export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
@@ -52,7 +54,7 @@ export default function CustomAppBar() {
         boxShadow: 'none',
         border: 'none',
         height: '64px',
-        paddingLeft: '60px',
+        paddingLeft: hasDrawer ? '60px' : '0px',
         alignContent: 'center',
       }}
     >
@@ -63,7 +65,24 @@ export default function CustomAppBar() {
           alignItems: 'center',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center' }}></Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', color:'red[100]'}}>
+
+        { !hasDrawer && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap:2}}>
+                  <IconButton><DensityMediumIcon/></IconButton>
+                <img
+                    src={logo}
+                    alt="Logo"
+                    style={{
+                      width: 47,
+                      height: 47,
+                    }}
+                  />
+                  {<Typography fontSize={25} sx={{ color: 'text.primary'}}>TimeSync</Typography>}
+                </Box>
+        )}
+
+        </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Button
             variant="text"

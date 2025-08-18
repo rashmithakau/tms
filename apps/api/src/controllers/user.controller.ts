@@ -1,4 +1,4 @@
-import { CREATED } from '../constants/http';
+import { CREATED, OK } from '../constants/http';
 import { registerSchema } from '../schemas/user.schema';
 import catchErrors from '../utils/catchErrors';
 import { createUser,getUsersByRole } from '../services/user.service';
@@ -32,5 +32,5 @@ export const registerHandler = (role: UserRole) =>
       const user = await getUsersByRole(role);
   
       // Return the created user with a 201 status
-      return res.status(CREATED).json(user);
+      return res.status(OK).json(user);
     });

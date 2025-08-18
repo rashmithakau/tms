@@ -10,15 +10,17 @@ export interface EmpRow {
   designation: string;
   status: 'Active' | 'Inactive' | string;
   contactNumber: string;
+  createdAt?: string;
 }
 
 interface TimeSheetPageProps {
   rows: EmpRow[];
   title: string;
   buttons: React.ReactNode[];
+  table: React.ReactNode; 
 }
 
-const TableWindowLayout: React.FC<TimeSheetPageProps> = ({ rows, title, buttons }) => {
+const TableWindowLayout: React.FC<TimeSheetPageProps> = ({ rows, title, buttons,table }) => {
   const theme = useTheme(); 
 
   return (
@@ -43,7 +45,8 @@ const TableWindowLayout: React.FC<TimeSheetPageProps> = ({ rows, title, buttons 
           ))}
         </Box>
       </Box>
-      <EmpTable rows={rows} />
+      {table}
+      {/* <EmpTable rows={rows} /> */}
     </Box>
   );
 };
