@@ -19,7 +19,7 @@ export default function ConfirmDialog({ open, title = 'Confirm', message, confir
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} variant="outlined">{cancelText}</Button>
-        <Button onClick={onConfirm} variant="contained" color="error">{confirmText}</Button>
+        <Button onClick={onConfirm} variant="contained">{confirmText}</Button>
       </DialogActions>
     </Dialog>
   );

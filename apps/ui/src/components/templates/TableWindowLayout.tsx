@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import EmpTable from '../organisms/EmpTable'; // Ensure this is the correct import path
 
 export interface EmpRow {
   email: string;
@@ -20,7 +19,7 @@ interface TimeSheetPageProps {
   table: React.ReactNode; 
 }
 
-const TableWindowLayout: React.FC<TimeSheetPageProps> = ({ rows, title, buttons,table }) => {
+const TableWindowLayout: React.FC<TimeSheetPageProps> = ({title, buttons,table }) => {
   const theme = useTheme(); 
 
   return (
@@ -46,7 +45,6 @@ const TableWindowLayout: React.FC<TimeSheetPageProps> = ({ rows, title, buttons,
         </Box>
       </Box>
       {table}
-      {/* <EmpTable rows={rows} /> */}
     </Box>
   );
 };
