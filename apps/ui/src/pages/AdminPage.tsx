@@ -2,27 +2,38 @@ import MainLayout from '../components/templates/MainLayout';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import CreateProjectPopUp from '../components/organisms/CreateProjectPopUp';
 import BaseBtn from '../components/atoms/buttons/BaseBtn';
 import { Box, Alert, CircularProgress } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateAccountPopup from '../components/organisms/CreateAccountPopup';
 import { UserRole } from '@tms/shared';
 import TableWindowLayout, {
   EmpRow,
 } from '../components/templates/TableWindowLayout';
 import { useUsers } from '../hooks/useUsers';
+import { select_btn } from '../store/slices/dashboardNavSlice';
+import EmpTable from '../components/organisms/EmpTable';
 
 const AdminPage = () => {
   const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Emp);
 
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const dispatch = useDispatch();
 
   const selectedBtn = useSelector(
     (state: any) => state.dashboardNav.selectedBtn
   );
+
+  useEffect(() => {
+    // Ensure the correct tab is selected when visiting Admin page
+    if (selectedBtn !== 'Employee') {
+      dispatch(select_btn('Employee'));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const rows: EmpRow[] = [];
 
@@ -34,6 +45,7 @@ const AdminPage = () => {
       designation: user.designation || '',
       status: user.status || '',
       contactNumber: user.contactNumber || '',
+      createdAt: user.createdAt || '',
     });
   });
 
@@ -86,6 +98,7 @@ const AdminPage = () => {
                   </BaseBtn>
                 </Box>,
               ]}
+              table={<EmpTable rows={rows}/>}
             />
           )}
           

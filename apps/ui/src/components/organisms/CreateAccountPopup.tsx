@@ -35,7 +35,7 @@ function CreateAccountPopup({
 }: CreateAccountPopupProps) {
   const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
   
-  const { execute, isLoading, error, resetError } = useApiCall({
+  const { execute, isLoading, resetError } = useApiCall({
     loadingMessage: 'Creating account...',
     loadingVariant: 'overlay',
     successMessage: `${title} created successfully!`,
@@ -93,9 +93,7 @@ function CreateAccountPopup({
     <PopupLayout
       open={open}
       title={title}
-      maxWidth="sm"
-      minHeight="350px"
-      maxHeight="600px"
+      
       onClose={onClose}
     >
       {isLoading && (

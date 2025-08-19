@@ -116,8 +116,6 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
       onClose={handleCancel}
       title="Add Employees"
       subtitle="Search and select employees to add to your project"
-      maxHeight="sm"
-      minHeight="600px"
       actions={
         <>
           <BaseBtn onClick={handleCancel} variant="outlined">

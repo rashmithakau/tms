@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import ResetPasswordFormSchema from '../../validations/ResetPasswordFormSchema';
 import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { sendPasswordResetEmail } from '../../api/auth';
 import { useState } from 'react';
 
@@ -16,7 +15,6 @@ type SetPasswordData = {
 };
 
 const PasswordReset: React.FC = () => {
-    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');

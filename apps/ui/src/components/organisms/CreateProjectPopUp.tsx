@@ -85,9 +85,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
       <PopupLayout
         open={open}
         title="Create Project"
-        maxWidth="sm"
-        minHeight="350px"
-        maxHeight="600px"
+        
         onClose={handleCancel}
         actions={null} // Submit button is inside the form
       >
