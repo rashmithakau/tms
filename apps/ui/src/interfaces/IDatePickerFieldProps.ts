@@ -1,13 +1,16 @@
+import React from 'react';
 import { Dayjs } from 'dayjs';
-import { BaseDatePickerProps } from '@mui/x-date-pickers/DatePicker';
 
-export interface IDatePickerFieldProps extends Omit<BaseDatePickerProps<Dayjs>, 'onChange' | 'value'> {
+export interface IDatePickerFieldProps {
   label?: string;
   value: Dayjs | null;
   onChange: (value: Dayjs | null) => void;
   minDate?: Dayjs;
   maxDate?: Dayjs;
   format?: string;
+  slotProps?: any;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  [key: string]: any;
 }
 
 

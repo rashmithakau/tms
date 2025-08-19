@@ -1,4 +1,5 @@
 import { Box, CircularProgress, Typography, Fade } from '@mui/material';
+import { SxProps, Theme } from '@mui/material/styles';
 
 interface PageLoadingProps {
   message?: string;
@@ -21,7 +22,7 @@ const PageLoading: React.FC<PageLoadingProps> = ({
     }
   };
 
-  const getContainerStyles = () => {
+  const getContainerStyles = (): SxProps<Theme> => {
     switch (variant) {
       case 'inline':
         return {

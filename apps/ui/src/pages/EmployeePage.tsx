@@ -1,13 +1,15 @@
-import { Box, CircularProgress } from "@mui/material"
+import React, { useState } from "react"
+import { Box, CircularProgress, Menu, MenuItem } from "@mui/material"
 import SecondaryLayout from "../components/templates/SecondaryLayout"
 import TableWindowLayout from "../components/templates/TableWindowLayout"
 import BaseBtn from "../components/atoms/buttons/BaseBtn"
 import TimeSheetTable from "../components/organisms/TimeSheetTable"
 import { useTimesheets } from "../hooks/useTimesheets"
-import { useState } from "react"
-import { deleteMyTimesheet, updateMyTimesheet } from "../api/timesheet"
+import { deleteMyTimesheet } from "../api/timesheet"
 import TimesheetFormPopup from "../components/organisms/TimesheetFormPopup"
 import ConfirmDialog from "../components/molecules/ConfirmDialog"
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
  
 
 
@@ -19,7 +21,17 @@ const EmployeePage = () => {
   const handleOpenPopup = () => setOpen(true);
   const handleClosePopup = () => setOpen(false);
 
- 
+  // State for the filter menu
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+
+  const handleFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <SecondaryLayout>
@@ -32,8 +44,19 @@ const EmployeePage = () => {
                 rows={[]}
                 title="Time Sheets"
                 buttons={[
-                  <Box sx={{ mt: 2, ml: 2 }}>
-                    <BaseBtn onClick={handleOpenPopup} variant="contained">Add new</BaseBtn>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      ml: 2,
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 2,
+                    }}
+                  >
+                    <BaseBtn onClick={handleFilterClick} variant="text" startIcon={<FilterAltOutlinedIcon />}> 
+                      Filter
+                    </BaseBtn>
+                    <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>Add new</BaseBtn>
                   </Box>,
                 ]}
                 table={<TimeSheetTable
@@ -43,6 +66,25 @@ const EmployeePage = () => {
                 />}
               />
             )}
+            {/* Filter Menu */}
+            <Menu
+              anchorEl={anchorEl}
+              open={openMenu}
+              onClose={handleMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+            >
+              <MenuItem onClick={handleMenuClose}>Filter by Date</MenuItem>
+              <MenuItem onClick={handleMenuClose}>Filter by Project</MenuItem>
+              <MenuItem onClick={handleMenuClose}>Filter by Task</MenuItem>
+            </Menu>
+
             <TimesheetFormPopup open={open} mode="create" onClose={handleClosePopup} onSuccess={refresh} />
             <ConfirmDialog
               open={confirm.open}
@@ -72,8 +114,8 @@ const EmployeePage = () => {
                     projectName: row.project,
                     taskTitle: row.task,
                     description: row.description,
-                    plannedHours: row.plannedHours,
-                    hoursSpent: row.hoursSpent,
+                    plannedHours: row.plannedHours !== undefined ? String(row.plannedHours) : undefined,
+                    hoursSpent: row.hoursSpent !== undefined ? String(row.hoursSpent) : undefined,
                     billableType: row.billableType,
                   }}
                 />
