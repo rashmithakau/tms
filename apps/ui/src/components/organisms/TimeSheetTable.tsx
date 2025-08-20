@@ -15,13 +15,14 @@ interface TimeSheetTableProps {
   rows: TimeSheetRow[];
   onEdit?: (row: TimeSheetRow) => void;
   onDelete?: (row: TimeSheetRow) => void;
-  selectableDrafts?: boolean;
+  selectableStatus?: TimesheetStatus[]; // rows with these statuses become selectable; header checkbox toggles only those
   selectedIds?: string[];
   onToggleOne?: (id: string, checked: boolean) => void;
-  onToggleAllDrafts?: (checked: boolean, ids: string[]) => void;
+  onToggleAll?: (checked: boolean, ids: string[]) => void;
+  showActions?: boolean;
 }
 
-const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete, selectableDrafts = false, selectedIds = [], onToggleOne, onToggleAllDrafts }) => {
+const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete, selectableStatus = [], selectedIds = [], onToggleOne, onToggleAll, showActions = true }) => {
   const [openRow, setOpenRow] = useState<number | null>(null);
 
   // Check if timesheet can be edited (only Draft status allows editing)
@@ -52,13 +53,13 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete,
   };
 
   // Derived selection state for header checkbox (avoid hooks inside conditionals in JSX)
-  const draftIds = useMemo(() => rows.filter(r => r.status === TimesheetStatus.Draft).map(r => r._id), [rows]);
-  const selectedInDraftsCount = useMemo(() => draftIds.filter(id => selectedIds.includes(id)).length, [draftIds, selectedIds]);
-  const allDraftsChecked = draftIds.length > 0 && selectedInDraftsCount === draftIds.length;
-  const someDraftsChecked = selectedInDraftsCount > 0 && !allDraftsChecked;
+  const selectableIds = useMemo(() => rows.filter(r => selectableStatus.includes(r.status)).map(r => r._id), [rows, selectableStatus]);
+  const selectedInSelectableCount = useMemo(() => selectableIds.filter(id => selectedIds.includes(id)).length, [selectableIds, selectedIds]);
+  const allSelectableChecked = selectableIds.length > 0 && selectedInSelectableCount === selectableIds.length;
+  const someSelectableChecked = selectedInSelectableCount > 0 && !allSelectableChecked;
 
-  const headerColsBase = 9; // includes expand column
-  const colSpan = headerColsBase + (selectableDrafts ? 1 : 0);
+  const headerColsBase = showActions ? 9 : 8; // includes expand column
+  const colSpan = headerColsBase + (selectableStatus.length > 0 ? 1 : 0);
 
   return (
     <Table size="small">
@@ -72,15 +73,15 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete,
           <TableCell>Hours Spent</TableCell>
           <TableCell>Billable Type</TableCell>
           <TableCell>Status</TableCell>
-          <TableCell>Actions</TableCell>
-          {selectableDrafts && (
+          {showActions && (<TableCell>Actions</TableCell>)}
+          {selectableStatus.length > 0 && (
             <TableCell>
               <Checkbox
-                indeterminate={someDraftsChecked}
-                checked={allDraftsChecked}
+                indeterminate={someSelectableChecked}
+                checked={allSelectableChecked}
                 onChange={(e) => {
-                  if (!onToggleAllDrafts) return;
-                  onToggleAllDrafts(e.target.checked, draftIds);
+                  if (!onToggleAll) return;
+                  onToggleAll(e.target.checked, selectableIds);
                 }}
                 inputProps={{ 'aria-label': 'select all draft timesheets' }}
               />
@@ -104,17 +105,19 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete,
               <TableCell>{formatTimeDisplay(row.hoursSpent)}</TableCell>
               <TableCell>{row.billableType}</TableCell>
               <TableCell><StatusChip status={row.status} /></TableCell>
-              <TableCell>
-                <ActionButtons
-                  onEdit={() => onEdit && onEdit(row)}
-                  onDelete={() => onDelete && onDelete(row)}
-                  disabled={!canEditTimesheet(row.status)}
-                />
-              </TableCell>
-              {selectableDrafts && (
+              {showActions && (
+                <TableCell>
+                  <ActionButtons
+                    onEdit={() => onEdit && onEdit(row)}
+                    onDelete={() => onDelete && onDelete(row)}
+                    disabled={!canEditTimesheet(row.status)}
+                  />
+                </TableCell>
+              )}
+              {selectableStatus.length > 0 && (
                 <TableCell>
                   <Checkbox
-                    disabled={row.status !== TimesheetStatus.Draft}
+                    disabled={!selectableStatus.includes(row.status)}
                     checked={selectedIds.includes(row._id)}
                     onChange={(e) => onToggleOne && onToggleOne(row._id, e.target.checked)}
                     inputProps={{ 'aria-label': `select ${row._id}` }}
