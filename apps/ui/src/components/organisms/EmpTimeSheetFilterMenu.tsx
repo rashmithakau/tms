@@ -29,9 +29,10 @@ interface FilterMenuProps {
 	onChangeMonth: (value: Dayjs | null) => void;
 	onChangeYear: (value: Dayjs | null) => void;
 	onClear: () => void;
+  statusOptions?: Array<TimesheetStatus | 'All'>;
 }
 
-const STATUS_OPTIONS: Array<TimesheetStatus | 'All'> = [
+const DEFAULT_STATUS_OPTIONS: Array<TimesheetStatus | 'All'> = [
 	'All',
 	TimesheetStatus.Draft,
 	TimesheetStatus.Pending,
@@ -41,9 +42,10 @@ const STATUS_OPTIONS: Array<TimesheetStatus | 'All'> = [
 
 const DATE_RANGE_OPTIONS: DateRange[] = ['All', 'Today', 'This Week', 'This Month'];
 
-const FilterMenu: React.FC<FilterMenuProps> = ({ selectedDateRange, selectedStatus, onFilterByDate, onFilterByStatus, selectedDay, selectedMonth, selectedYear, onChangeDay, onChangeMonth, onChangeYear, onClear }) => {
+const FilterMenu: React.FC<FilterMenuProps> = ({ selectedDateRange, selectedStatus, onFilterByDate, onFilterByStatus, selectedDay, selectedMonth, selectedYear, onChangeDay, onChangeMonth, onChangeYear, onClear, statusOptions }) => {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
+	const STATUS_OPTIONS = statusOptions && statusOptions.length > 0 ? statusOptions : DEFAULT_STATUS_OPTIONS;
 	const activeCount =
 		(selectedStatus !== 'All' ? 1 : 0) +
 		(selectedDateRange !== 'All' ? 1 : 0) +
@@ -166,7 +168,7 @@ const FilterMenu: React.FC<FilterMenuProps> = ({ selectedDateRange, selectedStat
 							}
 						}}
 						format="YYYY-MM-DD"
-						slotProps={{ textField: { fullWidth: true } }}
+						slotProps={{ textField: { fullWidth: true, size: "small" } }}
 					/>
 
 					<Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
@@ -188,7 +190,7 @@ const FilterMenu: React.FC<FilterMenuProps> = ({ selectedDateRange, selectedStat
 								views={["year", "month"] as any}
 								openTo={"month" as any}
 								format="YYYY-MM"
-								slotProps={{ textField: { fullWidth: true } }}
+								slotProps={{ textField: { fullWidth: true, size: "small" } }}
 							/>
 						</Box>
 						<Box sx={{ flex: 1 }}>
@@ -209,7 +211,7 @@ const FilterMenu: React.FC<FilterMenuProps> = ({ selectedDateRange, selectedStat
 								views={["year"] as any}
 								openTo={"year" as any}
 								format="YYYY"
-								slotProps={{ textField: { fullWidth: true } }}
+								slotProps={{ textField: { fullWidth: true, size: "small" } }}
 							/>
 						</Box>
 					</Box>

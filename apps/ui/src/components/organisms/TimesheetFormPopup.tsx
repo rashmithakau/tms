@@ -54,10 +54,10 @@ export default function TimesheetFormPopup({
     const [hours, minutes] = timeStr.split('.');
     const hoursNum = parseInt(hours, 10);
     const minutesNum = parseInt(minutes, 10);
-    
+
     // Convert to decimal hours: hours + (minutes / 60)
-    const decimalHours = hoursNum + (minutesNum / 60);
-    
+    const decimalHours = hoursNum + minutesNum / 60;
+
     // Round to 2 decimal places to avoid floating-point precision issues
     return Math.round(decimalHours * 100) / 100;
   };
@@ -65,22 +65,22 @@ export default function TimesheetFormPopup({
   // Convert decimal hours back to HH.MM format (e.g., 12.5 becomes "12.30")
   const convertDecimalToTimeFormat = (decimalHours: number): string => {
     if (!decimalHours || decimalHours === 0) return '';
-    
+
     // Round to 2 decimal places to avoid floating-point precision issues
     const roundedHours = Math.round(decimalHours * 100) / 100;
-    
+
     const hours = Math.floor(roundedHours);
     const minutes = Math.round((roundedHours - hours) * 60);
-    
+
     // Ensure minutes don't exceed 59
     if (minutes >= 60) {
       return `${(hours + 1).toString().padStart(2, '0')}.00`;
     }
-    
+
     // Format as HH.MM
     const formattedHours = hours.toString().padStart(2, '0');
     const formattedMinutes = minutes.toString().padStart(2, '0');
-    
+
     return `${formattedHours}.${formattedMinutes}`;
   };
 
@@ -114,8 +114,12 @@ export default function TimesheetFormPopup({
       projectName: initial?.projectName || '',
       taskTitle: initial?.taskTitle || '',
       description: initial?.description || '',
-      plannedHours: initial?.plannedHours ? convertDecimalToTimeFormat(Number(initial.plannedHours)) : '',
-      hoursSpent: initial?.hoursSpent ? convertDecimalToTimeFormat(Number(initial.hoursSpent)) : '',
+      plannedHours: initial?.plannedHours
+        ? convertDecimalToTimeFormat(Number(initial.plannedHours))
+        : '',
+      hoursSpent: initial?.hoursSpent
+        ? convertDecimalToTimeFormat(Number(initial.hoursSpent))
+        : '',
       status: initial?.status || TimesheetStatus.Draft,
     },
   });
@@ -147,8 +151,12 @@ export default function TimesheetFormPopup({
             projectName: data.projectName,
             taskTitle: data.taskTitle,
             description: data.description,
-            plannedHours: roundToTwoDecimals(convertTimeToDecimal(data.plannedHours || '')),
-            hoursSpent: roundToTwoDecimals(convertTimeToDecimal(data.hoursSpent || '')),
+            plannedHours: roundToTwoDecimals(
+              convertTimeToDecimal(data.plannedHours || '')
+            ),
+            hoursSpent: roundToTwoDecimals(
+              convertTimeToDecimal(data.hoursSpent || '')
+            ),
             billableType: data.billableType,
             status: data.status,
           } as any
@@ -161,8 +169,12 @@ export default function TimesheetFormPopup({
           projectName: data.projectName,
           taskTitle: data.taskTitle,
           description: data.description,
-          plannedHours: roundToTwoDecimals(convertTimeToDecimal(data.plannedHours || '')),
-          hoursSpent: roundToTwoDecimals(convertTimeToDecimal(data.hoursSpent || '')),
+          plannedHours: roundToTwoDecimals(
+            convertTimeToDecimal(data.plannedHours || '')
+          ),
+          hoursSpent: roundToTwoDecimals(
+            convertTimeToDecimal(data.hoursSpent || '')
+          ),
           billableType: data.billableType,
           status: data.status,
         })
@@ -223,6 +235,8 @@ export default function TimesheetFormPopup({
                 format="YYYY-MM-DD"
                 slotProps={{
                   textField: {
+                    fullWidth: true,
+                    size: 'small',
                     error: !!errors.date,
                     helperText: errors.date?.message || ' ',
                   },

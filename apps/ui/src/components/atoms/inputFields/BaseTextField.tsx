@@ -13,7 +13,7 @@ const BaseTextField = React.forwardRef<HTMLDivElement, IBaseTextFieldProps>(({
       ref={ref} // Forward the ref to TextField
       variant={variant}
       fullWidth
-      size="medium"
+      size="small"
       slotProps={{
         input: {
           inputProps: { maxLength }, 

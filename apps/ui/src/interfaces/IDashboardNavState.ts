@@ -1,3 +1,5 @@
+import { EmpMenuItem } from "@tms/shared";
+
 export default interface IDashboardNavState {
-    selectedBtn: string;
+    selectedBtn: string|EmpMenuItem;
 }
