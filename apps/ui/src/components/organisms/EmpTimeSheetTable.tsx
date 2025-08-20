@@ -2,6 +2,7 @@ import { Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton } fr
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import { red } from '@mui/material/colors';
+import { TimesheetStatus } from '@tms/shared';
 
 export type EmpTimesheetRow = {
   _id: string;
@@ -9,22 +10,30 @@ export type EmpTimesheetRow = {
   project: string;
   tasks: string;
   billableType: 'Billable' | 'Non Billable';
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: TimesheetStatus;
   plannedHours?: number;
   hoursSpent?: number;
   description?: string;
 };
 
 export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] }) {
-  const statusColor = (status: string) => {
+  const statusColor = (status: TimesheetStatus) => {
     switch (status) {
-      case 'Approved':
+      case TimesheetStatus.Approved:
         return 'success';
-      case 'Rejected':
+      case TimesheetStatus.Rejected:
         return 'error';
-      default:
+      case TimesheetStatus.Pending:
+      case TimesheetStatus.Validated:
         return 'warning';
+      default:
+        return 'default';
     }
+  };
+
+  // Check if timesheet can be edited (only Draft status allows editing)
+  const canEditTimesheet = (status: TimesheetStatus): boolean => {
+    return status === TimesheetStatus.Draft;
   };
 
   // Convert decimal hours to HH.MM format for display
@@ -39,7 +48,7 @@ export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] })
     
     // Ensure minutes don't exceed 59
     if (minutes >= 60) {
-      return `${(hours + 1).toString().padStart(2, '0')}.00`;
+      return `${(hours + 1).toString().padStart(2, '0')}`;
     }
     
     // Format as HH.MM
@@ -50,7 +59,7 @@ export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] })
   };
 
   return (
-    <Table>
+    <Table size="small">
       <TableHead>
         <TableRow>
           <TableCell>Date</TableCell>
@@ -76,10 +85,19 @@ export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] })
               <Chip size="small" label={row.status} color={statusColor(row.status) as any} />
             </TableCell>
             <TableCell align="right">
-              <IconButton size="small" aria-label="edit">
+              <IconButton 
+                size="small" 
+                aria-label="edit"
+                disabled={!canEditTimesheet(row.status)}
+              >
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
-              <IconButton size="small" aria-label="delete" sx={{ ml: 1 }}>
+              <IconButton 
+                size="small" 
+                aria-label="delete" 
+                sx={{ ml: 1 }}
+                disabled={!canEditTimesheet(row.status)}
+              >
                 <DeleteOutlineOutlinedIcon fontSize="small" />
               </IconButton>
             </TableCell>

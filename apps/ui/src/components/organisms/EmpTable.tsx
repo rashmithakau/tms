@@ -26,7 +26,7 @@ interface TimeSheetTableProps {
 
 const EmpTable: React.FC<TimeSheetTableProps> = ({ rows }) => {
   return (
-    <Table>
+    <Table size="small">
       <TableHead>
         <TableRow>
           <TableCell />

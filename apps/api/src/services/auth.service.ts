@@ -107,9 +107,14 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
       )
     : undefined;
 
+  // Include role in refreshed access token to satisfy auth middleware checks
+  const user = await UserModel.findById(session.userId).select('role');
+  appAssert(user, UNAUTHORIZED, 'User not found');
+
   const accessToken = signToken({
     userId: session.userId,
     sessionId: session._id,
+    role: user.role,
   });
 
   return {
