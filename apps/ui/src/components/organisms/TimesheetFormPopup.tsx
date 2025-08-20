@@ -12,6 +12,7 @@ import TimeField from '../atoms/inputFields/TimeField';
 import DatePickerField from '../atoms/inputFields/DatePickerField';
 import { timesheetFormSchema } from '../../validations/TimesheetFormSchema';
 import { ITimesheetFormValues } from '../../interfaces/ITimesheetFormValues';
+import { TimesheetStatus } from '@tms/shared';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
 
@@ -105,6 +106,7 @@ export default function TimesheetFormPopup({
       description: '',
       plannedHours: '',
       hoursSpent: '',
+      status: TimesheetStatus.Draft,
     },
     values: {
       date: initial?.date || new Date().toISOString().slice(0, 10),
@@ -114,6 +116,7 @@ export default function TimesheetFormPopup({
       description: initial?.description || '',
       plannedHours: initial?.plannedHours ? convertDecimalToTimeFormat(Number(initial.plannedHours)) : '',
       hoursSpent: initial?.hoursSpent ? convertDecimalToTimeFormat(Number(initial.hoursSpent)) : '',
+      status: initial?.status || TimesheetStatus.Draft,
     },
   });
 
@@ -127,6 +130,7 @@ export default function TimesheetFormPopup({
         description: '',
         plannedHours: '',
         hoursSpent: '',
+        status: TimesheetStatus.Draft,
       });
       resetError();
     }
@@ -146,6 +150,7 @@ export default function TimesheetFormPopup({
             plannedHours: roundToTwoDecimals(convertTimeToDecimal(data.plannedHours || '')),
             hoursSpent: roundToTwoDecimals(convertTimeToDecimal(data.hoursSpent || '')),
             billableType: data.billableType,
+            status: data.status,
           } as any
         )
       );
@@ -159,6 +164,7 @@ export default function TimesheetFormPopup({
           plannedHours: roundToTwoDecimals(convertTimeToDecimal(data.plannedHours || '')),
           hoursSpent: roundToTwoDecimals(convertTimeToDecimal(data.hoursSpent || '')),
           billableType: data.billableType,
+          status: data.status,
         })
       );
     }

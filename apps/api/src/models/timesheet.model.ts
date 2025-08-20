@@ -1,7 +1,7 @@
 import mongoose, { Model } from 'mongoose';
+import { TimesheetStatus } from '@tms/shared';
 
 export type BillableType = 'Billable' | 'Non Billable';
-export type TimesheetStatus = 'Pending' | 'Approved' | 'Rejected';
 
 export interface TimesheetDocument extends mongoose.Document {
   userId: mongoose.Types.ObjectId;
@@ -31,7 +31,7 @@ const timesheetSchema = new mongoose.Schema<TimesheetDocument>(
     plannedHours: { type: Number, default: 0 },
     hoursSpent: { type: Number, default: 0 },
     billableType: { type: String, enum: ['Billable', 'Non Billable'], required: true },
-    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+    status: { type: String, enum: Object.values(TimesheetStatus), default: TimesheetStatus.Draft },
   },
   {
     timestamps: true,

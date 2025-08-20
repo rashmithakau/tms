@@ -24,11 +24,11 @@ const TableWindowLayout: React.FC<TimeSheetPageProps> = ({title, buttons,table }
 
   return (
     <Box
-      height={'100%'}
+      height='auto'
       sx={{
-        padding: theme.spacing(3),
+        height: '100%',
         backgroundColor: theme.palette.background.default,
-        margin: theme.spacing(2),
+        padding: theme.spacing(2),
         borderRadius: theme.shape.borderRadius,
       }
       

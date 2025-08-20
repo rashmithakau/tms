@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import catchErrors from '../utils/catchErrors';
 import { OK, CREATED } from '../constants/http';
-import { createTimesheetSchema, updateTimesheetSchema } from '../schemas/timesheet.schema';
-import { createTimesheet, deleteMyTimesheet, listMyTimesheets, updateMyTimesheet } from '../services/timesheet.service';
+import { createTimesheetSchema, submitTimesheetsSchema, updateTimesheetSchema } from '../schemas/timesheet.schema';
+import { createTimesheet, deleteMyTimesheet, listMyTimesheets, submitDraftTimesheets, updateMyTimesheet } from '../services/timesheet.service';
 
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const parsed = createTimesheetSchema.parse(req.body);
@@ -16,7 +16,7 @@ export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Re
     description: parsed.description,
     plannedHours: parsed.plannedHours,
     hoursSpent: parsed.hoursSpent,
-    billableType: parsed.billableType,
+    billableType: parsed.billableType
   });
 
   return res.status(CREATED).json(result);
@@ -45,6 +45,13 @@ export const deleteMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   const { id } = req.params;
   const result = await deleteMyTimesheet(userId, id);
   return res.status(OK).json(result);
+});
+
+export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
+  const userId = req.userId as string;
+  const { ids } = submitTimesheetsSchema.parse(req.body);
+  const result = await submitDraftTimesheets(userId, ids);
+  return res.status(OK).json({ message: 'Timesheets submitted', ...result });
 });
 
 

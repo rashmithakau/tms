@@ -1,3 +1,5 @@
+import { TimesheetStatus } from '@tms/shared';
+
 export interface ITimesheetFormValues {
   date: string;
   projectName: string;
@@ -6,5 +8,6 @@ export interface ITimesheetFormValues {
   plannedHours?: string;
   hoursSpent?: string;
   billableType: 'Billable' | 'Non Billable';
+  status: TimesheetStatus;
 }
 
