@@ -3,16 +3,18 @@ import mongoose from 'mongoose';
 export interface ProjectDocument extends mongoose.Document {
   projectName: string;
   billable: boolean;
-  timeSheets: boolean;
-  isScrumProject: boolean;
+  employees: mongoose.Types.ObjectId[];
+  status: boolean;
+  supervisor: mongoose.Types.ObjectId;
 }
 
 const projectSchema = new mongoose.Schema<ProjectDocument>(
   {
     projectName: { type: String, required: true },
     billable: { type: Boolean, required: true },
-    timeSheets: { type: Boolean, required: true },
-    isScrumProject: { type: Boolean, required: true },
+    employees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    status: { type: Boolean, default: true },
+    supervisor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Supervisor field added
   },
   {
     timestamps: true,

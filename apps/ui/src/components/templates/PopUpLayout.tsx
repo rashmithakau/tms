@@ -19,9 +19,9 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   subtitle,
   children,
   actions,
-  maxWidth = 'sm',
-  minHeight = '420px',
-  maxHeight = '600px',
+  maxWidth = 'md',
+  minHeight = '520px',
+  maxHeight = '80vh',
   showCloseButton = true,
   disableBackdropClick = false,
   contentPadding = 3,
@@ -38,9 +38,9 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
       maxWidth={maxWidth}
       PaperProps={{
         sx: {
-          minHeight: minHeight, // Use minHeight from props
-          maxHeight: maxHeight, // Use maxHeight from props
-          width: '80%',
+          minHeight: minHeight,
+          maxHeight: maxHeight,
+          width: { xs: '90vw', sm: 720 },
           margin: 2,
           backgroundColor: theme.palette.background.default,
           display: 'flex',

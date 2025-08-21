@@ -17,11 +17,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import CreateProjectFormSchema from '../../validations/CreateProjectFormSchema';
 import { useTheme } from '@mui/material/styles';
 import PopupLayout from '../templates/PopUpLayout';
+import { createProject } from '../../api/project';
 
-type CreateProjectFormData = {
+interface CreateProjectFormData {
   projectName: string;
   billable: 'yes' | 'no';
-};
+  supervisor: string | null;
+}
 
 const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
   open,
@@ -41,18 +43,23 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
     reset,
   } = useForm<CreateProjectFormData>({
     resolver: yupResolver(CreateProjectFormSchema),
-    defaultValues: {
-      projectName: '',
-      billable: undefined,
-    },
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+   
   });
 
   // Form submission handler
   const onSubmit = async (data: CreateProjectFormData) => {
     try {
-      // TODO: Call your API here
+      await createProject({
+        projectName: data.projectName,
+        billable: data.billable,
+        employees: selectedEmployees.map((e) => e.id),
+        supervisor: data.supervisor ?? null,
+      });
       onClose(); // Close popup after submit
       reset();
+      setSelectedEmployees([]); // Clear selected employees
     } catch (error) {
       // error handling
     }
@@ -61,6 +68,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
   const handleCancel = () => {
     onClose();
     reset();
+    setSelectedEmployees([]);
   };
 
   const handleOpenEmployeeDialog = () => {
@@ -76,7 +84,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
     setOpenEmployeeDialog(false);
   };
 
-  const handleRemoveEmployee = (employeeId: number) => {
+  const handleRemoveEmployee = (employeeId: string) => {
     setSelectedEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
   };
 
@@ -85,19 +93,18 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
       <PopupLayout
         open={open}
         title="Create Project"
-        
         onClose={handleCancel}
         actions={null} // Submit button is inside the form
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-           <Box
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            padding: 5,
-            gap: 5,
-          }}
-        >
+          <Box
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: 5,
+              gap: 5,
+            }}
+          >
             {/* Project Name Field */}
             <Controller
               name="projectName"
@@ -126,10 +133,11 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                     variant="outlined"
                     error={!!errors.billable}
                   >
-                    <InputLabel required>Billable</InputLabel>
+                    <InputLabel required id="billable-label">Billable</InputLabel>
                     <Select
                       {...field}
-                      value={field.value || ''}
+                      labelId="billable-label"
+                      value={field.value}
                       label="Billable"
                       MenuProps={{
                         PaperProps: {
@@ -179,6 +187,40 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
               onAddEmployeesClick={handleOpenEmployeeDialog}
               onRemoveEmployee={handleRemoveEmployee}
             />
+            {/* Supervisor Dropdown */}
+            <Box sx={{ mt: 2 }}>
+              <Controller
+                name="supervisor"
+                control={control}
+                render={({ field }) => (
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel id="supervisor-label">Supervisor</InputLabel>
+                    <Select
+                      labelId="supervisor-label"
+                      label="Supervisor"
+                      value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange((e.target.value as string) || null)
+                      }
+                      displayEmpty
+                      disabled={selectedEmployees.length === 0}
+                    >
+                     
+                      {selectedEmployees.map((emp) => (
+                        <MenuItem key={emp.id} value={emp.id}>
+                          {emp.designation
+                            ? `${emp.name} - ${emp.designation}`
+                            : emp.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      Choose a supervisor from selected employees. You can add employees above.
+                    </FormHelperText>
+                  </FormControl>
+                )}
+              />
+            </Box>
 
             {/* Submit Button */}
             <BaseBtn

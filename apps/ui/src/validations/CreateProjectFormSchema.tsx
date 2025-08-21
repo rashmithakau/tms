@@ -1,11 +1,16 @@
 import * as yup from 'yup'; 
 
-const CreateProjectFormSchema = yup.object({
+const CreateProjectFormSchema: yup.ObjectSchema<{
+  projectName: string;
+  billable: 'yes' | 'no';
+  supervisor: string | null;
+}> = yup.object({
   projectName: yup.string().required('Project name is required'),
   billable: yup
-    .string()
+    .mixed<'yes' | 'no'>()
     .oneOf(['yes', 'no'])
     .required('Billable status is required'),
+  supervisor: yup.string().nullable().default(null) as any,
 });
 
 export default CreateProjectFormSchema;

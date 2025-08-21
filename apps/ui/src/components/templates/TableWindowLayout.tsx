@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
+
 export interface EmpRow {
   email: string;
   firstName: string;
@@ -12,15 +13,25 @@ export interface EmpRow {
   createdAt?: string;
 }
 
-interface TimeSheetPageProps {
-  rows: EmpRow[];
-  title: string;
-  buttons: React.ReactNode[];
-  table: React.ReactNode; 
+export interface ProjectRow {
+  id: string;
+  projectName: string;
+  billable: 'Yes' | 'No';
+  createdAt?: string;
+  employees?: { id: string; name: string; designation?: string }[];
+  supervisor?: { id: string; name: string; designation?: string } | null;
 }
 
-const TableWindowLayout: React.FC<TimeSheetPageProps> = ({title, buttons,table }) => {
-  const theme = useTheme(); 
+interface TableWindowLayoutProps {
+  title: string;
+  buttons: React.ReactNode[];
+  table: React.ReactNode;
+  search?: React.ReactNode;
+
+}
+
+const TableWindowLayout: React.FC<TableWindowLayoutProps> = ({ title, buttons, table, search }) => {
+  const theme = useTheme();
 
   return (
     <Box
@@ -38,6 +49,10 @@ const TableWindowLayout: React.FC<TimeSheetPageProps> = ({title, buttons,table }
         <Typography variant="h6" color={theme.palette.primary.main}>
           {title}
         </Typography>
+        <Box>
+          {search}
+        </Box>
+      
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
           {buttons.map((button, index) => (
             <React.Fragment key={index}>{button}</React.Fragment>

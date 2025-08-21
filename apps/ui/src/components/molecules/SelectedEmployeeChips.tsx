@@ -20,7 +20,7 @@ const SelectedEmployeeChips: React.FC<ISelectedEmployeeChipsProps> = ({
         {employees.map((employee) => (
           <Chip
             key={employee.id}
-            label={`${employee.name} - ${employee.designation}`}
+            label={employee.designation ? `${employee.name} - ${employee.designation}` : employee.name}
             onDelete={() => onRemove(employee.id)}
             variant="outlined"
             size="small"

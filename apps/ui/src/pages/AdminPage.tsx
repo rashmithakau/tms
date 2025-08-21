@@ -10,17 +10,20 @@ import { useEffect, useState } from 'react';
 import CreateAccountPopup from '../components/organisms/CreateAccountPopup';
 import { UserRole } from '@tms/shared';
 import TableWindowLayout, {
-  EmpRow,
+  EmpRow, ProjectRow,
 } from '../components/templates/TableWindowLayout';
 import { useUsers } from '../hooks/useUsers';
+import { listProjects, ProjectListItem } from '../api/project';
 import { select_btn } from '../store/slices/dashboardNavSlice';
 import EmpTable from '../components/organisms/EmpTable';
+import ProjectTable from '../components/organisms/ProjectTable';
 
 const AdminPage = () => {
   const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Emp);
 
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const dispatch = useDispatch();
 
   const selectedBtn = useSelector(
@@ -33,6 +36,20 @@ const AdminPage = () => {
       dispatch(select_btn('Employee'));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const resp = await listProjects();
+        const data = resp.data?.projects as ProjectListItem[];
+        setProjects(Array.isArray(data) ? data : []);
+      } catch (e) {
+        // ignore for now, keep empty
+        setProjects([]);
+      }
+    };
+    fetchProjects();
   }, []);
 
   const rows: EmpRow[] = [];
@@ -48,6 +65,15 @@ const AdminPage = () => {
       createdAt: user.createdAt || '',
     });
   });
+  // Project rows
+  const projectRows: ProjectRow[] = projects.map(p => ({
+    id: p._id,
+    projectName: p.projectName,
+    billable: p.billable ? 'Yes' : 'No',
+    createdAt: p.createdAt,
+    employees: (p.employees || []).map(e => ({ id: e._id, name: `${e.firstName} ${e.lastName}`.trim(), designation: e.designation })),
+    supervisor: p.supervisor ? { id: p.supervisor._id, name: `${p.supervisor.firstName} ${p.supervisor.lastName}`.trim(), designation: p.supervisor.designation } : null,
+  }));
 
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
@@ -70,7 +96,7 @@ const AdminPage = () => {
       { text: 'Employee', icon: <AssessmentOutlinedIcon /> },
     ],
   ];
-  
+
   return (
     <MainLayout items={items}>
       {selectedBtn === 'Employee' && (
@@ -82,14 +108,13 @@ const AdminPage = () => {
               </Alert>
             </Box>
           )}
-          
+
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
               <CircularProgress />
             </Box>
           ) : (
             <TableWindowLayout
-              rows={rows}
               title="Employee Account"
               buttons={[
                 <Box sx={{ mt: 2, ml: 2 }}>
@@ -98,10 +123,10 @@ const AdminPage = () => {
                   </BaseBtn>
                 </Box>,
               ]}
-              table={<EmpTable rows={rows}/>}
+              table={<EmpTable rows={rows} />}
             />
           )}
-          
+
           <CreateAccountPopup
             open={isPopupOpen}
             onClose={handleClosePopup}
@@ -113,17 +138,51 @@ const AdminPage = () => {
 
       {selectedBtn === 'Projects' && (
         <div>
-          <Box sx={{ mt: 2, ml: 2 }}>
-            <BaseBtn
-              onClick={() => setIsProjectPopupOpen(true)}
-              variant="contained"
-            >
-              Create Project
-            </BaseBtn>
-          </Box>
+          {error && (
+            <Box sx={{ m: 2 }}>
+              <Alert severity="error" onClose={() => {}}>
+                {error}
+              </Alert>
+            </Box>
+          )}
+
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableWindowLayout
+              title="Projects"
+              buttons={[
+                <Box sx={{ mt: 2, ml: 2 }}>
+                  <BaseBtn
+                    onClick={() => setIsProjectPopupOpen(true)}
+                    variant="contained"
+                  >
+                    Create Project
+                  </BaseBtn>
+                </Box>,
+              ]}
+              table={<ProjectTable rows={projectRows} onRefresh={async () => {
+                try {
+                  const resp = await listProjects();
+                  const data = resp.data?.projects as ProjectListItem[];
+                  setProjects(Array.isArray(data) ? data : []);
+                } catch {}
+              }} />}
+            />
+          )}
+
           <CreateProjectPopUp
             open={isProjectPopupOpen}
-            onClose={() => setIsProjectPopupOpen(false)}
+            onClose={async () => {
+              setIsProjectPopupOpen(false);
+              try {
+                const resp = await listProjects();
+                const data = resp.data?.projects as ProjectListItem[];
+                setProjects(Array.isArray(data) ? data : []);
+              } catch {}
+            }}
           />
         </div>
       )}

@@ -7,52 +7,10 @@ import { IAddEmployeePopupProps } from '../../interfaces/IAddEmployeePopupProps'
 import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { Box } from '@mui/material';
+import { useUsersByRoles } from '../../hooks/useUsers';
+import { UserRole } from '@tms/shared';
 
-// Mock employee data
-const allEmployees = [
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john@company.com',
-    designation: 'Senior Software Engineer',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    email: 'jane@company.com',
-    designation: 'Software Engineer',
-  },
-  {
-    id: 3,
-    name: 'Mike Johnson',
-    email: 'mike@company.com',
-    designation: 'QA Engineer',
-  },
-  {
-    id: 4,
-    name: 'Sarah Wilson',
-    email: 'sarah@company.com',
-    designation: 'Project Manager',
-  },
-  {
-    id: 5,
-    name: 'David Brown',
-    email: 'david@company.com',
-    designation: 'Tech Lead',
-  },
-  {
-    id: 6,
-    name: 'Emily Davis',
-    email: 'emily@company.com',
-    designation: 'Associate Software Engineer',
-  },
-  {
-    id: 7,
-    name: 'Chris Martin',
-    email: 'chris@company.com',
-    designation: 'Data Scientist',
-  },
-];
+
 
 const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
   open,
@@ -64,19 +22,27 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
     initialSelectedEmployees
   );
+  // Fetch both employees and supervisors
+  const { users } = useUsersByRoles([UserRole.Emp, UserRole.Supervisor]);
   const [filteredEmployees, setFilteredEmployees] =
-    useState<IEmployeeProps[]>(allEmployees);
+    useState<IEmployeeProps[]>([]);
 
   // Filter employees based on search term
+ // Filter employees based on search term
   useEffect(() => {
-    const filtered = allEmployees.filter(
-      (employee) =>
-        employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.designation.toLowerCase().includes(searchTerm.toLowerCase())
+    const mapped: IEmployeeProps[] = users.map((u: any) => ({
+      id: u._id,
+      name: `${u.firstName} ${u.lastName}`.trim(),
+      email: u.email,
+      designation: u.designation,
+    }));
+    const filtered = mapped.filter((employee) =>
+      [employee.name, employee.email, employee.designation]
+        .filter(Boolean)
+        .some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     setFilteredEmployees(filtered);
-  }, [searchTerm]);
+  }, [searchTerm, users]);
 
   // Reset selected employees when popup opens
   useEffect(() => {
@@ -98,9 +64,9 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
     }
   };
 
-  const handleRemoveEmployee = (employeeId: number) => {
+ const handleRemoveEmployee = (employeeId: string) => {
     setSelectedEmployees(
-      selectedEmployees.filter((emp) => emp.id !== employeeId)
+       selectedEmployees.filter((emp) => emp.id !== employeeId)
     );
   };
 
@@ -156,7 +122,7 @@ const AddEmployeePopup: React.FC<IAddEmployeePopupProps> = ({
         employees={filteredEmployees}
         selectedEmployees={selectedEmployees}
         onEmployeeToggle={handleEmployeeToggle}
-        title="Available Employees"
+        title="All Employees"
         searchTerm={searchTerm}
       />
     </PopupLayout>
