@@ -1,6 +1,7 @@
 import Timesheet from '../models/timesheet.model';
 import appAssert from '../utils/appAssert';
 import { FORBIDDEN, NOT_FOUND } from '../constants/http';
+import { TimesheetStatus } from '@tms/shared';
 
 export type CreateTimesheetParams = {
   userId: string;
@@ -14,7 +15,7 @@ export type CreateTimesheetParams = {
 };
 
 export type UpdateTimesheetParams = Partial<Omit<CreateTimesheetParams, 'userId'>> & {
-  status?: 'Pending' | 'Approved' | 'Rejected';
+  status?: TimesheetStatus;
 };
 
 export const createTimesheet = async (params: CreateTimesheetParams) => {
@@ -27,6 +28,7 @@ export const createTimesheet = async (params: CreateTimesheetParams) => {
     plannedHours: params.plannedHours ?? 0,
     hoursSpent: params.hoursSpent ?? 0,
     billableType: params.billableType,
+    // Status will default to Draft from the model
   });
   return { timesheet: doc };
 };
@@ -39,7 +41,7 @@ export const listMyTimesheets = async (userId: string) => {
 export const updateMyTimesheet = async (userId: string, id: string, update: UpdateTimesheetParams) => {
   const existing = await Timesheet.findOne({ _id: id, userId });
   appAssert(existing, NOT_FOUND, 'Timesheet not found');
-  appAssert(existing.status === 'Pending', FORBIDDEN, 'Only pending timesheets can be updated');
+  appAssert(existing.status === TimesheetStatus.Draft, FORBIDDEN, 'Only draft timesheets can be updated');
   const doc = await Timesheet.findOneAndUpdate({ _id: id, userId }, update, { new: true });
   return { timesheet: doc };
 };
@@ -47,9 +49,18 @@ export const updateMyTimesheet = async (userId: string, id: string, update: Upda
 export const deleteMyTimesheet = async (userId: string, id: string) => {
   const existing = await Timesheet.findOne({ _id: id, userId });
   appAssert(existing, NOT_FOUND, 'Timesheet not found');
-  appAssert(existing.status === 'Pending', FORBIDDEN, 'Only pending timesheets can be deleted');
+  appAssert(existing.status === TimesheetStatus.Draft, FORBIDDEN, 'Only draft timesheets can be deleted');
   await Timesheet.deleteOne({ _id: id, userId });
   return { success: true };
+};
+
+export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
+  // Only transition Draft -> Pending, and only for the owner's docs
+  const result = await Timesheet.updateMany(
+    { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
+    { $set: { status: TimesheetStatus.Pending } }
+  );
+  return { matched: (result as any).matchedCount, modified: (result as any).modifiedCount };
 };
 
 

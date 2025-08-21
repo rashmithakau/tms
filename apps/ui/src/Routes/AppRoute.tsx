@@ -56,21 +56,10 @@ const AppRoute: React.FC = () => {
         path="/employee"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && user?.role === UserRole.Emp}
+            isAllowed={isAuthenticated && user?.role === UserRole.Emp || user?.role === UserRole.Supervisor}
             redirectPath="/"
           >
             <EmployeePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/supervisor"
-        element={
-          <ProtectedRoute
-            isAllowed={isAuthenticated && user?.role === UserRole.Supervisor}
-            redirectPath="/"
-          >
-            <AdminPage /> {/* You might want to create a separate SupervisorPage */}
           </ProtectedRoute>
         }
       />

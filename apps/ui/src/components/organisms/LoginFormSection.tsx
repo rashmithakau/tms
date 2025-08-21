@@ -60,7 +60,7 @@ const LoginFormSection: React.FC = () => {
               navigate('/employee', { replace: true });
               break;
             case UserRole.Supervisor:
-              navigate('/supervisor', { replace: true });
+              navigate('/employee', { replace: true });
               break;
             default:
               console.error('Unknown role:', user.role);

@@ -8,7 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 const DatePickerField = React.forwardRef<HTMLDivElement, IDatePickerFieldProps>(
   ({ label, value, onChange, minDate, maxDate, format = 'YYYY-MM-DD', slotProps, ...rest }, ref) => {
     return (
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDayjs} >
         <DatePicker
           label={label}
           value={value}
@@ -19,6 +19,7 @@ const DatePickerField = React.forwardRef<HTMLDivElement, IDatePickerFieldProps>(
           slotProps={{
             textField: {
               fullWidth: true,
+              size: 'small',
             },
             ...slotProps,
           }}

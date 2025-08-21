@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from './UserPopoverBox'; // Import the new component
+import EmpMenu from './EmpMenu'; // Import the EmpMenu component
 import { logout } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +11,7 @@ import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 
 export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(null);
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
 
@@ -19,6 +21,14 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleEmpMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setEmpMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleEmpMenuClose = () => {
+    setEmpMenuAnchorEl(null);
   };
 
   const navigate = useNavigate();
@@ -43,8 +53,11 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
     }
   };
 
+
   const open = Boolean(anchorEl);
+  const empMenuOpen = Boolean(empMenuAnchorEl);
   const id = open ? 'simple-popover' : undefined;
+  const empMenuId = empMenuOpen ? 'emp-menu-popover' : undefined;
 
   return (
     <AppBar
@@ -69,7 +82,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
 
         { !hasDrawer && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap:2}}>
-                  <IconButton><DensityMediumIcon/></IconButton>
+                  <IconButton onClick={handleEmpMenuClick}><DensityMediumIcon/></IconButton>
                 <img
                     src={logo}
                     alt="Logo"
@@ -115,6 +128,22 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
           onProfileClick={handleProfileClick}
           onLogoutClick={handleLogoutClick}
         />
+      </Popover>
+      <Popover
+        id={empMenuId}
+        open={empMenuOpen}
+        anchorEl={empMenuAnchorEl}
+        onClose={handleEmpMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <EmpMenu onClose={handleEmpMenuClose} />
       </Popover>
     </AppBar>
   );

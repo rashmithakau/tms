@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import { ITimesheetFormValues } from '../interfaces/ITimesheetFormValues';
+import { TimesheetStatus } from '@tms/shared';
 
 export const timesheetFormSchema: yup.ObjectSchema<ITimesheetFormValues> = yup.object({
   date: yup.string().required('Date is required'),
@@ -50,4 +51,8 @@ export const timesheetFormSchema: yup.ObjectSchema<ITimesheetFormValues> = yup.o
     .mixed<'Billable' | 'Non Billable'>()
     .oneOf(['Billable', 'Non Billable'], 'Please select a valid billable type')
     .required('Billable type is required'),
+  status: yup
+    .mixed<TimesheetStatus>()
+    .oneOf(Object.values(TimesheetStatus), 'Please select a valid status')
+    .default(TimesheetStatus.Draft),
 });
