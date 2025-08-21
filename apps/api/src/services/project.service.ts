@@ -1,12 +1,16 @@
 import { CONFLICT, INTERNAL_SERVER_ERROR } from '../constants/http';
 import appAssert from '../utils/appAssert';
 import ProjectModel from '../models/project.model';
+import mongoose from 'mongoose';
+import UserModel from '../models/user.model';
+import { UserRole } from '@tms/shared';
 
 export type CreateProjectParams = {
   projectName: string;
   billable: boolean;
-  timeSheets: boolean;
-  isScrumProject: boolean;
+  employees?: string[];
+  supervisor?: string | null;
+  status?: boolean;
 };
 
 export const createProject = async (data: CreateProjectParams) => {
@@ -19,13 +23,115 @@ export const createProject = async (data: CreateProjectParams) => {
   const project = await ProjectModel.create({
     projectName: data.projectName,
     billable: data.billable,
-    timeSheets: data.timeSheets,
-    isScrumProject: data.isScrumProject,
+    employees: (data.employees ?? [])
+      .filter((id) => !!id)
+      .map((id) => new mongoose.Types.ObjectId(id)),
+    supervisor:
+      data.supervisor && data.supervisor.trim() !== ''
+        ? new mongoose.Types.ObjectId(data.supervisor)
+        : null,
+    status: data.status ?? true,
   });
 
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project creation failed');
 
+  // If a supervisor is assigned on creation, set their role to Supervisor
+  if (project.supervisor) {
+    await UserModel.findByIdAndUpdate(project.supervisor, {
+      $set: { role: UserRole.Supervisor },
+    });
+  }
+
   return {
-    project
+    project,
   };
+};
+
+export const listProjects = async () => {
+  const projects = await ProjectModel.find({ status: true })
+    .sort({ createdAt: -1 })
+    .populate({ path: 'employees', select: 'firstName lastName email designation' })
+    .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
+  return { projects };
+};
+
+export const updateProjectStaff = async (
+  projectId: string,
+  data: { employees?: string[]; supervisor?: string | null }
+) => {
+  // Fetch existing project to determine previous supervisor
+  const existing = await ProjectModel.findById(projectId).select('supervisor');
+  const update: any = {};
+  if (Array.isArray(data.employees)) {
+    update.employees = data.employees
+      .filter((id) => !!id)
+      .map((id) => new mongoose.Types.ObjectId(id));
+  }
+  if (data.supervisor !== undefined) {
+    update.supervisor = data.supervisor
+      ? new mongoose.Types.ObjectId(data.supervisor)
+      : null;
+  }
+  const project = await ProjectModel.findByIdAndUpdate(
+    projectId,
+    { $set: update },
+    { new: true }
+  )
+    .populate({ path: 'employees', select: 'firstName lastName email' })
+    .populate({ path: 'supervisor', select: 'firstName lastName email' });
+  appAssert(project, INTERNAL_SERVER_ERROR, 'Project update failed');
+
+  // Update roles based on supervisor change, with cross-project check
+  if (data.supervisor !== undefined) {
+    const previousSupervisorId = existing?.supervisor?.toString() || null;
+    const newSupervisorId = project.supervisor
+      ? (project.supervisor as any)._id?.toString?.() || project.supervisor.toString()
+      : null;
+
+    // Promote new supervisor if changed
+    if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
+      await UserModel.findByIdAndUpdate(newSupervisorId, {
+        $set: { role: UserRole.Supervisor },
+      });
+    }
+
+    // Handle demotion of previous supervisor only if they are not supervising any other active project
+    if (previousSupervisorId && previousSupervisorId !== newSupervisorId) {
+      const stillSupervisingAnother = await ProjectModel.exists({
+        _id: { $ne: projectId },
+        supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
+        status: true,
+      });
+      if (!stillSupervisingAnother) {
+        await UserModel.findByIdAndUpdate(previousSupervisorId, {
+          $set: { role: UserRole.Emp },
+        });
+      }
+    }
+
+    // If supervisor removed (set to null), demote old supervisor if not supervising elsewhere
+    if (!newSupervisorId && previousSupervisorId) {
+      const stillSupervisingAnother = await ProjectModel.exists({
+        _id: { $ne: projectId },
+        supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
+        status: true,
+      });
+      if (!stillSupervisingAnother) {
+        await UserModel.findByIdAndUpdate(previousSupervisorId, {
+          $set: { role: UserRole.Emp },
+        });
+      }
+    }
+  }
+  return { project };
+};
+
+export const softDeleteProject = async (projectId: string) => {
+  const project = await ProjectModel.findByIdAndUpdate(
+    projectId,
+    { $set: { status: false } },
+    { new: true }
+  );
+  appAssert(project, INTERNAL_SERVER_ERROR, 'Project delete failed');
+  return { projectId };
 };

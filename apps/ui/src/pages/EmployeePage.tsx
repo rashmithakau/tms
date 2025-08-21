@@ -29,7 +29,6 @@ const EmployeePage = () => {
               </Box>
             ) : (
               <TableWindowLayout
-                rows={[]}
                 title="Time Sheets"
                 buttons={[
                   <Box sx={{ mt: 2, ml: 2 }}>

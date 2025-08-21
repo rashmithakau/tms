@@ -1,5 +1,5 @@
 export interface IEmployeeProps {
-  id: number;
+  id: string;
   name: string;
   email: string;
   designation: string;

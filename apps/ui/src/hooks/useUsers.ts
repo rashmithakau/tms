@@ -69,3 +69,54 @@ export const useUsers = (role: UserRole): UseUsersReturn => {
   };
 };
 
+// New hook to fetch users across multiple roles and merge them
+export const useUsersByRoles = (roles: UserRole[]): UseUsersReturn => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const responses = await Promise.all(roles.map((r) => getUsers(r)));
+      const merged: Record<string, User> = {};
+      responses.forEach((resp) => {
+        const arr = resp?.data?.users as User[] | undefined;
+        (arr ?? []).forEach((u) => {
+          merged[(u as any)._id as string] = u;
+        });
+      });
+      setUsers(Object.values(merged));
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to fetch users';
+      console.error('Error fetching users:', err);
+      setError(errorMessage);
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [roles]);
+
+  const refreshUsers = useCallback(async () => {
+    await fetchUsers();
+  }, [fetchUsers]);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  return {
+    users,
+    isLoading,
+    error,
+    refreshUsers,
+    clearError,
+  };
+};
+

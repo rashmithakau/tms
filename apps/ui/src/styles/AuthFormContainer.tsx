@@ -1,17 +1,19 @@
 import styled from '@emotion/styled';
 import { Grid, Paper, Box, Typography } from '@mui/material';
 import { IAuthFormContainer } from '../interfaces/IAuthFormContainer';
-import theme from '../styles/theme';
+import theme from './theme';
 
 const StylePaper = styled(Paper)(() => ({
- minHeight: 400,
-  minWidth: 300,
+  minHeight: 520,
+  width: 460,
   maxWidth: 460,
   borderRadius: 16,
   boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
   overflow: 'hidden',
-  
-
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: theme.palette.background.default,
 }));
 
 const AuthFormContainer: React.FC<IAuthFormContainer> = ({
@@ -21,14 +23,14 @@ const AuthFormContainer: React.FC<IAuthFormContainer> = ({
   description,
 }) => {
   return (
-   
-      <StylePaper>
-        <Grid
-          sx={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '20px 16px',
-            bgcolor: theme.palette.background.default
+    <StylePaper>
+      <Grid
+        sx={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px 16px',
+            // Use transparent to avoid any extra color band at the bottom
+            bgcolor: theme.palette.background.default,
           }}
         >
           <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>

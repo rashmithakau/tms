@@ -20,6 +20,7 @@ const SearchField: React.FC<ISearchFieldProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       sx={{mt: 2, ...sx}}
+      size='small'
     />
   );
 };
