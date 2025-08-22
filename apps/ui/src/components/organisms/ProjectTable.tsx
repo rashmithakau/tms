@@ -11,7 +11,7 @@ import { deleteProject } from '../../api/project';
 
 import { ProjectRow } from '../templates/TableWindowLayout';
 import ProjectStaffManager from './ProjectStaffManager';
-import ProjectTableToolbar from '../molecules/ProjectTableToolbar';
+
 import ActionButtons from '../molecules/ActionButtons';
 
 // Add ConfirmDialog import if you have a custom dialog component
@@ -20,38 +20,27 @@ import ConfirmDialog from '../molecules/ConfirmDialog';
 interface ProjectTableProps {
   rows: ProjectRow[];
   onRefresh?: () => Promise<void> | void;
+  billableFilter?: 'all' | 'Yes' | 'No';
 }
 
-const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh }) => {
+const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [billable, setBillable] = useState<'all' | 'Yes' | 'No'>('all');
   // Add confirm dialog state for delete
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
 
   const filtered = useMemo(() => {
-    const s = search.toLowerCase().trim();
     return rows.filter((r) => {
       const billableOk =
-        billable === 'all' ||
-        (billable === 'Yes' ? r.billable.toLowerCase() === 'yes' : r.billable.toLowerCase() === 'no');
-      const text = `${r.projectName} ${r.supervisor?.name ?? ''} ${
-        r.supervisor?.designation ?? ''
-      }`.toLowerCase();
-      const matches = s === '' || text.includes(s);
-      return billableOk && matches;
+        billableFilter === 'all' ||
+        (billableFilter === 'Yes' ? r.billable.toLowerCase() === 'yes' : r.billable.toLowerCase() === 'no');
+
+      return billableOk;
     });
-  }, [rows, search, billable]);
+  }, [rows, billableFilter]);
 
   return (
     <>
-      <ProjectTableToolbar
-        search={search}
-        onSearch={setSearch}
-        billable={billable}
-        onBillableChange={setBillable}
-      />
-      <Table>
+      <Table size='small'>
         <TableHead>
           <TableRow>
             <TableCell />

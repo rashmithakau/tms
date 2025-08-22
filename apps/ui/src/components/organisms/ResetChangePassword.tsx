@@ -14,7 +14,7 @@ type SetPasswordData = {
   confirmPassword: string;
 };
 
-const PasswordResetChangePassword: React.FC = () => {
+const ResetChangePassword: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
@@ -189,4 +189,4 @@ const PasswordResetChangePassword: React.FC = () => {
   );
 };
 
-export default PasswordResetChangePassword;
+export default ResetChangePassword;

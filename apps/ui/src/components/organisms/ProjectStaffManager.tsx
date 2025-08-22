@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PopupLayout from '../templates/PopUpLayout';
 import {
   Box,
@@ -55,6 +55,9 @@ export default function ProjectStaffManager({
 
   useEffect(() => {
     if (open) {
+      // Initialize from props only when opening or when initial values change.
+      // Do not depend on employeeOptions to avoid resetting user selections
+      // after the users list refreshes.
       setSelectedEmployees(
         initialEmployees.map(
           (e) =>
@@ -69,7 +72,7 @@ export default function ProjectStaffManager({
       setSupervisor(initialSupervisor?.id || '');
       setSearchTerm('');
     }
-  }, [open, initialEmployees, initialSupervisor, employeeOptions]);
+  }, [open, initialEmployees, initialSupervisor]);
 
   const filteredEmployees = useMemo(() => {
     const lc = searchTerm.toLowerCase();
@@ -81,19 +84,19 @@ export default function ProjectStaffManager({
   }, [employeeOptions, searchTerm]);
 
   const handleEmployeeToggle = (employee: IEmployeeProps) => {
-    const exists = selectedEmployees.some((e) => e.id === employee.id);
-    if (exists) {
-      setSelectedEmployees(
-        selectedEmployees.filter((e) => e.id !== employee.id)
-      );
-      if (supervisor === employee.id) setSupervisor('');
-    } else {
-      setSelectedEmployees([...selectedEmployees, employee]);
-    }
+    setSelectedEmployees((prev) => {
+      const exists = prev.some((e) => e.id === employee.id);
+      if (exists) {
+        const updated = prev.filter((e) => e.id !== employee.id);
+        if (supervisor === employee.id) setSupervisor('');
+        return updated;
+      }
+      return [...prev, employee];
+    });
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
-    setSelectedEmployees(selectedEmployees.filter((e) => e.id !== employeeId));
+    setSelectedEmployees((prev) => prev.filter((e) => e.id !== employeeId));
     if (supervisor === employeeId) setSupervisor('');
   };
 
@@ -131,7 +134,7 @@ export default function ProjectStaffManager({
           sx={{ mb: 2 }}
         />
 
-        <FormControl fullWidth>
+        <FormControl fullWidth size='small'>
           <InputLabel id="supervisor-select">Supervisor</InputLabel>
           <Select
             labelId="supervisor-select"

@@ -17,9 +17,10 @@ import { listProjects, ProjectListItem } from '../api/project';
 import { select_btn } from '../store/slices/dashboardNavSlice';
 import EmpTable from '../components/organisms/EmpTable';
 import ProjectTable from '../components/organisms/ProjectTable';
+import ProjectTableToolbar from '../components/molecules/ProjectTableToolbar';
 
 const AdminPage = () => {
-  const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Emp);
+ const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Emp);
 
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -54,7 +55,7 @@ const AdminPage = () => {
 
   const rows: EmpRow[] = [];
 
-  users.forEach((user) => {
+   users.forEach((user) => {
     rows.push({
       email: user.email || '',
       firstName: user.firstName || '',
@@ -65,6 +66,7 @@ const AdminPage = () => {
       createdAt: user.createdAt || '',
     });
   });
+
   // Project rows
   const projectRows: ProjectRow[] = projects.map(p => ({
     id: p._id,
@@ -96,6 +98,8 @@ const AdminPage = () => {
       { text: 'Employee', icon: <AssessmentOutlinedIcon /> },
     ],
   ];
+
+  const [billable, setBillable] = useState<'all' | 'Yes' | 'No'>('all');
 
   return (
     <MainLayout items={items}>
@@ -153,17 +157,18 @@ const AdminPage = () => {
           ) : (
             <TableWindowLayout
               title="Projects"
+              filter={<ProjectTableToolbar billable={billable} onBillableChange={setBillable} />}
               buttons={[
                 <Box sx={{ mt: 2, ml: 2 }}>
                   <BaseBtn
                     onClick={() => setIsProjectPopupOpen(true)}
                     variant="contained"
                   >
-                    Create Project
+                  Create Project
                   </BaseBtn>
                 </Box>,
               ]}
-              table={<ProjectTable rows={projectRows} onRefresh={async () => {
+              table={<ProjectTable rows={projectRows} billableFilter={billable} onRefresh={async () => {
                 try {
                   const resp = await listProjects();
                   const data = resp.data?.projects as ProjectListItem[];
