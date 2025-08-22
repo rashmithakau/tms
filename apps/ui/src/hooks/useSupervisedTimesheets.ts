@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listMyTimesheets } from '../api/timesheet';
+import { listSupervisedTimesheets } from '../api/timesheet';
 import { TimeSheetRow } from '../types/timesheet';
 
-export const useTimesheets = () => {
+export const useSupervisedTimesheets = () => {
   const [rows, setRows] = useState<TimeSheetRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +11,7 @@ export const useTimesheets = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const resp = await listMyTimesheets();
+      const resp = await listSupervisedTimesheets();
       const data = resp.data?.timesheets || [];
       const mapped: TimeSheetRow[] = data.map((t: any) => ({
         _id: t._id,
@@ -24,10 +24,18 @@ export const useTimesheets = () => {
         plannedHours: t.plannedHours,
         hoursSpent: t.hoursSpent,
         description: t.description,
+        employee: t.userId ? {
+          _id: t.userId._id,
+          firstName: t.userId.firstName,
+          lastName: t.userId.lastName,
+          email: t.userId.email,
+          contactNumber: t.userId.contactNumber,
+          designation: t.userId.designation,
+        } : undefined,
       }));
       setRows(mapped);
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Failed to load timesheets';
+      const message = err.response?.data?.message || 'Failed to load supervised timesheets';
       setError(message);
       setRows([]);
     } finally {
@@ -41,6 +49,3 @@ export const useTimesheets = () => {
 
   return { rows, isLoading, error, refresh: fetchData };
 };
-
-
-

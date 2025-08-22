@@ -2,7 +2,7 @@ import { TimesheetStatus } from '@tms/shared';
 
 export interface ITimesheetFormValues {
   date: string;
-  projectName: string;
+  projectId: string;
   taskTitle: string;
   description?: string;
   plannedHours?: string;

@@ -1,12 +1,22 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import dashboardNavReducer from './slices/dashboardNavSlice'; 
-import empMenudNavReducer from './slices/empMenuNavSclice'; 
+import empMenuNavReducer from './slices/empMenuNavSclice'; 
+
+const appReducer = combineReducers({
+    dashboardNav: dashboardNavReducer,
+    empMenuNav: empMenuNavReducer,
+});
+
+
+const rootReducer = (state: any, action: any) => {
+    if (action.type === "LOGOUT") {
+        state = undefined;
+    }
+    return appReducer(state, action);
+};
 
 const store = configureStore({
-    reducer: {
-        dashboardNav: dashboardNavReducer,
-        empMenuNav:empMenudNavReducer
-    },
+    reducer: rootReducer,
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -119,8 +119,8 @@ const MyTimesheetsWindow: React.FC = () => {
         </Box>
       ) : (
         <TableWindowLayout
-          rows={[]}
-          title="Time Sheets"
+          // rows={[]}
+          title="My Time Sheets"
           buttons={[
             <Box
               sx={{
@@ -221,7 +221,7 @@ const MyTimesheetsWindow: React.FC = () => {
             }}
             initial={{
               date: row.date,
-              projectName: row.project,
+              projectId: row.projectId,
               taskTitle: row.task,
               description: row.description,
               plannedHours: row.plannedHours !== undefined ? String(row.plannedHours) : undefined,

@@ -6,6 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, MenuItem } from '@mui/material';
 import { useApiCall } from '../../hooks/useApiCall';
+import { useProjects } from '../../hooks/useProjects';
 import PageLoading from '../molecules/PageLoading';
 import { createMyTimesheet, updateMyTimesheet } from '../../api/timesheet';
 import TimeField from '../atoms/inputFields/TimeField';
@@ -34,6 +35,7 @@ export default function TimesheetFormPopup({
   initial,
 }: TimesheetFormPopupProps) {
   const isEdit = mode === 'edit';
+  const { projects, isLoading: projectsLoading } = useProjects();
 
   const { execute, isLoading, resetError } = useApiCall({
     loadingMessage: isEdit ? 'Updating timesheet...' : 'Creating timesheet...',
@@ -101,7 +103,7 @@ export default function TimesheetFormPopup({
     defaultValues: {
       date: new Date().toISOString().slice(0, 10),
       billableType: 'Non Billable',
-      projectName: '',
+      projectId: '',
       taskTitle: '',
       description: '',
       plannedHours: '',
@@ -111,7 +113,7 @@ export default function TimesheetFormPopup({
     values: {
       date: initial?.date || new Date().toISOString().slice(0, 10),
       billableType: (initial?.billableType as any) || 'Non Billable',
-      projectName: initial?.projectName || '',
+      projectId: initial?.projectId || '',
       taskTitle: initial?.taskTitle || '',
       description: initial?.description || '',
       plannedHours: initial?.plannedHours
@@ -129,7 +131,7 @@ export default function TimesheetFormPopup({
       reset({
         date: new Date().toISOString().slice(0, 10),
         billableType: 'Non Billable',
-        projectName: '',
+        projectId: '',
         taskTitle: '',
         description: '',
         plannedHours: '',
@@ -148,7 +150,7 @@ export default function TimesheetFormPopup({
           id as string,
           {
             date: data.date,
-            projectName: data.projectName,
+            projectId: data.projectId,
             taskTitle: data.taskTitle,
             description: data.description,
             plannedHours: roundToTwoDecimals(
@@ -166,7 +168,7 @@ export default function TimesheetFormPopup({
       await execute(() =>
         createMyTimesheet({
           date: data.date,
-          projectName: data.projectName,
+          projectId: data.projectId,
           taskTitle: data.taskTitle,
           description: data.description,
           plannedHours: roundToTwoDecimals(
@@ -225,7 +227,7 @@ export default function TimesheetFormPopup({
               <DatePickerField
                 ref={dateRef}
                 onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) =>
-                  handleKeyDown(e, 'projectName')
+                  handleKeyDown(e, 'projectId')
                 }
                 label="Date"
                 value={field.value ? dayjs(field.value) : null}
@@ -244,15 +246,30 @@ export default function TimesheetFormPopup({
               />
             )}
           />
-          <BaseTextField
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-              handleKeyDown(e, 'taskTitle')
-            }
-            label="Project"
-            placeholder="Project name"
-            {...register('projectName')}
-            error={!!errors.projectName}
-            helperText={errors.projectName?.message || ' '}
+          <Controller
+            name="projectId"
+            control={control}
+            render={({ field }) => (
+              <BaseTextField
+                select
+                label="Project"
+                placeholder="Select project"
+                value={field.value}
+                onChange={field.onChange}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                  handleKeyDown(e, 'taskTitle')
+                }
+                error={!!errors.projectId}
+                helperText={errors.projectId?.message || ' '}
+                disabled={projectsLoading}
+              >
+                {projects.map((project) => (
+                  <MenuItem key={project._id} value={project._id}>
+                    {project.projectName}
+                  </MenuItem>
+                ))}
+              </BaseTextField>
+            )}
           />
           <BaseTextField
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
