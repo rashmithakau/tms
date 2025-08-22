@@ -45,7 +45,6 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
     resolver: yupResolver(CreateProjectFormSchema),
     mode: 'onChange',
     reValidateMode: 'onChange',
-   
   });
 
   // Form submission handler
@@ -129,11 +128,14 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl
+                    size="small"
                     fullWidth
                     variant="outlined"
                     error={!!errors.billable}
                   >
-                    <InputLabel required id="billable-label">Billable</InputLabel>
+                    <InputLabel required id="billable-label">
+                      Billable
+                    </InputLabel>
                     <Select
                       {...field}
                       labelId="billable-label"
@@ -193,11 +195,19 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                 name="supervisor"
                 control={control}
                 render={({ field }) => (
-                  <FormControl fullWidth variant="outlined">
+                  <FormControl fullWidth variant="outlined" size="small">
                     <InputLabel id="supervisor-label">Supervisor</InputLabel>
                     <Select
                       labelId="supervisor-label"
                       label="Supervisor"
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 200,
+                            backgroundColor: theme.palette.background.default,
+                          },
+                        },
+                      }}
                       value={field.value ?? ''}
                       onChange={(e) =>
                         field.onChange((e.target.value as string) || null)
@@ -205,9 +215,17 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                       displayEmpty
                       disabled={selectedEmployees.length === 0}
                     >
-                     
                       {selectedEmployees.map((emp) => (
-                        <MenuItem key={emp.id} value={emp.id}>
+                        <MenuItem
+                          sx={{
+                            backgroundColor: theme.palette.background.default,
+                            '&:hover': {
+                              backgroundColor: theme.palette.background.paper,
+                            },
+                          }}
+                          key={emp.id}
+                          value={emp.id}
+                        >
                           {emp.designation
                             ? `${emp.name} - ${emp.designation}`
                             : emp.name}
@@ -215,7 +233,8 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                       ))}
                     </Select>
                     <FormHelperText>
-                      Choose a supervisor from selected employees. You can add employees above.
+                      Choose a supervisor from selected employees. You can add
+                      employees above.
                     </FormHelperText>
                   </FormControl>
                 )}
@@ -223,23 +242,30 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
             </Box>
 
             {/* Submit Button */}
-            <BaseBtn
-              type="submit"
-              sx={{ mt: 2 }}
-              disabled={!isValid || isSubmitting}
-              fullWidth={true}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 2,
+                justifyContent: 'flex-end',
+              }}
             >
-              Create Project
-            </BaseBtn>
-            <BaseBtn
-              type="button"
-              sx={{ mt: 1 }}
-              variant="outlined"
-              onClick={handleCancel}
-              fullWidth={true}
-            >
-              Cancel
-            </BaseBtn>
+              <BaseBtn
+                type="button"
+                sx={{ mt: 2 }}
+                variant="outlined"
+                onClick={handleCancel}
+              >
+                Cancel
+              </BaseBtn>
+              <BaseBtn
+                type="submit"
+                sx={{ mt: 2 }}
+                disabled={!isValid || isSubmitting}
+              >
+                Create
+              </BaseBtn>
+            </Box>
           </Box>
         </form>
       </PopupLayout>

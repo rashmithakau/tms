@@ -19,7 +19,7 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   subtitle,
   children,
   actions,
-  maxWidth = 'md',
+  maxWidth = 'xs',
   minHeight = '520px',
   maxHeight = '80vh',
   showCloseButton = true,

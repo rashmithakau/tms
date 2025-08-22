@@ -5,7 +5,7 @@ import LoginPage from '../pages/LoginPage';
 import SuperAdminPage from '../pages/SuperAdminPage';
 import ProtectedRoute from './ProtectedRoute';
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
-import PasswordResetChangePasswordPage from '../pages/PasswordResetChangePasswordPage';
+import ResetChangePasswordPage from '../pages/ResetChangePasswordPage';
 import PasswordResetPage from '../pages/PasswordResetPage';
 import { useAuth } from '../components/contexts/AuthContext';
 import { UserRole } from '@tms/shared';
@@ -102,13 +102,13 @@ const AppRoute: React.FC = () => {
             isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
             redirectPath="/"
           >
-            <PasswordResetChangePasswordPage />
+            <ResetChangePasswordPage />
           </ProtectedRoute>
         }
       />
       <Route
         path="/password/reset"
-        element={<PasswordResetChangePasswordPage />}
+        element={<ResetChangePasswordPage />}
       />
     </Routes>
   );
