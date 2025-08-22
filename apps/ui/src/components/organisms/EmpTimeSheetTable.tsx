@@ -7,7 +7,8 @@ import { TimesheetStatus } from '@tms/shared';
 export type EmpTimesheetRow = {
   _id: string;
   date: string;
-  project: string;
+  projectId: string;
+  projectName: string; // populated from project reference
   tasks: string;
   billableType: 'Billable' | 'Non Billable';
   status: TimesheetStatus;
@@ -24,7 +25,6 @@ export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] })
       case TimesheetStatus.Rejected:
         return 'error';
       case TimesheetStatus.Pending:
-      case TimesheetStatus.Validated:
         return 'warning';
       default:
         return 'default';
@@ -76,7 +76,7 @@ export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] })
         {rows.map((row) => (
           <TableRow key={row._id} hover sx={{color:red[400]}}>
             <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
-            <TableCell>{row.project}</TableCell>
+            <TableCell>{row.projectName}</TableCell>
             <TableCell>{row.tasks}</TableCell>
             <TableCell>{formatTimeDisplay(row.plannedHours)}</TableCell>
             <TableCell>{formatTimeDisplay(row.hoursSpent)}</TableCell>

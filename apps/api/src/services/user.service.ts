@@ -47,12 +47,7 @@ export const createUser = async (data: CreateUserParams) => {
   });
 
   appAssert(user, INTERNAL_SERVER_ERROR, 'User creation failed');
- //create verification code
-  const verificationCode = await VerificationCodeModel.create({
-    userId: user._id,
-    type: VerificationCodeType.EmailVerification,
-    expiresAt: oneYearFromNow(),
-  });
+
   sendEmail({
     to: user.email,
     ...getWelcomeTmsTemplate(APP_ORIGIN,user.email,genertatedPassword),

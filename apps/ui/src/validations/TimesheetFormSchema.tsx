@@ -4,7 +4,7 @@ import { TimesheetStatus } from '@tms/shared';
 
 export const timesheetFormSchema: yup.ObjectSchema<ITimesheetFormValues> = yup.object({
   date: yup.string().required('Date is required'),
-  projectName: yup.string().required('Project is required'),
+  projectId: yup.string().required('Project is required'),
   taskTitle: yup.string().required('Task is required'),
   description: yup.string().optional(),
   plannedHours: yup.string()
@@ -49,10 +49,7 @@ export const timesheetFormSchema: yup.ObjectSchema<ITimesheetFormValues> = yup.o
     .optional(),
   billableType: yup
     .mixed<'Billable' | 'Non Billable'>()
-    .oneOf(['Billable', 'Non Billable'], 'Please select a valid billable type')
+    .oneOf(['Billable', 'Non Billable'], 'Please select a billable type')
     .required('Billable type is required'),
-  status: yup
-    .mixed<TimesheetStatus>()
-    .oneOf(Object.values(TimesheetStatus), 'Please select a valid status')
-    .default(TimesheetStatus.Draft),
+  status: yup.mixed<TimesheetStatus>().oneOf(Object.values(TimesheetStatus)).required(),
 });

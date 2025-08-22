@@ -6,7 +6,7 @@ export const timesheetStatusSchema = z.nativeEnum(TimesheetStatus);
 
 export const createTimesheetSchema = z.object({
   date: z.string().or(z.date()),
-  projectName: z.string().min(1),
+  projectId: z.string().min(1),
   taskTitle: z.string().min(1),
   description: z.string().optional().default(''),
   plannedHours: z.number().min(0).default(0),
@@ -16,7 +16,7 @@ export const createTimesheetSchema = z.object({
 
 export const updateTimesheetSchema = z.object({
   date: z.string().or(z.date()).optional(),
-  projectName: z.string().min(1).optional(),
+  projectId: z.string().min(1).optional(),
   taskTitle: z.string().min(1).optional(),
   description: z.string().optional(),
   plannedHours: z.number().min(0).optional(),

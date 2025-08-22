@@ -20,9 +20,22 @@ interface TimeSheetTableProps {
   onToggleOne?: (id: string, checked: boolean) => void;
   onToggleAll?: (checked: boolean, ids: string[]) => void;
   showActions?: boolean;
+  showEmployee?: boolean; // Show employee column for supervised timesheets
+  onEmployeeClick?: (row: TimeSheetRow) => void;
 }
 
-const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete, selectableStatus = [], selectedIds = [], onToggleOne, onToggleAll, showActions = true }) => {
+const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ 
+  rows, 
+  onEdit, 
+  onDelete, 
+  selectableStatus = [], 
+  selectedIds = [], 
+  onToggleOne, 
+  onToggleAll, 
+  showActions = true,
+  showEmployee = false,
+  onEmployeeClick
+}) => {
   const [openRow, setOpenRow] = useState<number | null>(null);
 
   // Check if timesheet can be edited (only Draft status allows editing)
@@ -58,15 +71,16 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete,
   const allSelectableChecked = selectableIds.length > 0 && selectedInSelectableCount === selectableIds.length;
   const someSelectableChecked = selectedInSelectableCount > 0 && !allSelectableChecked;
 
-  const headerColsBase = showActions ? 9 : 8; // includes expand column
+  const headerColsBase = showActions ? (showEmployee ? 10 : 9) : (showEmployee ? 9 : 8); // includes expand column
   const colSpan = headerColsBase + (selectableStatus.length > 0 ? 1 : 0);
 
   return (
-    <Table size="small">
+    <Table size="small" >
       <TableHead>
         <TableRow>
           <TableCell />
           <TableCell>Date</TableCell>
+          {showEmployee && <TableCell>Employee</TableCell>}
           <TableCell>Project</TableCell>
           <TableCell>Tasks</TableCell>
           <TableCell>Planned Hours</TableCell>
@@ -99,7 +113,15 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ rows, onEdit, onDelete,
                 </IconButton>
               </TableCell>
               <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
-              <TableCell>{row.project}</TableCell>
+              {showEmployee && (
+                <TableCell
+                  sx={{ cursor: onEmployeeClick ? 'pointer' : 'default', color: onEmployeeClick ? 'primary.main' : 'inherit' }}
+                  onClick={() => onEmployeeClick && onEmployeeClick(row)}
+                >
+                  {row.employee ? `${row.employee.firstName} ${row.employee.lastName}` : '-'}
+                </TableCell>
+              )}
+              <TableCell>{row.projectName}</TableCell>
               <TableCell>{row.task}</TableCell>
               <TableCell>{formatTimeDisplay(row.plannedHours)}</TableCell>
               <TableCell>{formatTimeDisplay(row.hoursSpent)}</TableCell>

@@ -101,7 +101,7 @@ export const sendPasswordResetHandler = catchErrors(async (req, res) => {
 })
 
 export const resetPasswordHandler = catchErrors(async (req, res) => {
-    const { newPassword, verificationCodeId, confirmNewPassword } = resetPasswordSchema.parse(req.body);
+    const { newPassword, verificationCodeId } = resetPasswordSchema.parse(req.body);
 
     // Find the verification code and validate it
     const validCode = await VerificationCodeModel.findOne({

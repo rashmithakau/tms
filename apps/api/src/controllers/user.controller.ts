@@ -19,6 +19,8 @@ export const registerHandler = (role: UserRole) =>
       role,
     };
 
+    
+
     // Save data in the database
     const user = await createUser(requestWithRole);
 

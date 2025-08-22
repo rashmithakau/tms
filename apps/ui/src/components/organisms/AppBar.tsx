@@ -8,12 +8,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
+import { useDispatch } from "react-redux";
 
 export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(null);
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
+  const dispatch = useDispatch(); 
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -38,6 +40,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
   };
 
   const handleLogoutClick = async () => {
+
     try {
       // Call the API logout
       await logout();
@@ -49,6 +52,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
       console.error('Logout error:', error);
       // Even if API call fails, clear local state and redirect
       authLogout();
+      dispatch({ type: "LOGOUT" });
       navigate('/', { replace: true });
     }
   };
