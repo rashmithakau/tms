@@ -4,7 +4,6 @@ import CustomAppBar from '../organisms/AppBar';
 import NavDrawer from '../organisms/NavDrawer';
 import { useTheme } from '@mui/material/styles'; 
 import INavItemProps  from '../../interfaces/INavItemProps';
-import { useSelector } from 'react-redux';
 
 interface MainLayoutProps {
   children: React.ReactNode;
