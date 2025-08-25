@@ -1,10 +1,12 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import dashboardNavReducer from './slices/dashboardNavSlice'; 
 import empMenuNavReducer from './slices/empMenuNavSclice'; 
+import searchBarReducer from './slices/SearchBarSlice';
 
 const appReducer = combineReducers({
     dashboardNav: dashboardNavReducer,
     empMenuNav: empMenuNavReducer,
+    searchBar: searchBarReducer,
 });
 
 

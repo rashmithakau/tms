@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton, TextField } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from './UserPopoverBox'; // Import the new component
 import EmpMenu from './EmpMenu'; // Import the EmpMenu component
@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import { useDispatch } from "react-redux";
+import SearchBar from '../atoms/inputFields/SearchBar';
 
 export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -96,6 +97,8 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
                     }}
                   />
                   {<Typography fontSize={25} sx={{ color: 'text.primary'}}>TimeSync</Typography>}
+                  <SearchBar/>
+             
                 </Box>
         )}
 
