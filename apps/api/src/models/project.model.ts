@@ -14,7 +14,7 @@ const projectSchema = new mongoose.Schema<ProjectDocument>(
     billable: { type: Boolean, required: true },
     employees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
     status: { type: Boolean, default: true },
-    supervisor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Supervisor field added
+    supervisor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, 
   },
   {
     timestamps: true,

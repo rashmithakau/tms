@@ -72,15 +72,13 @@ export const refreshHandler = catchErrors(async (req, res) => {
 
 export const changePasswordHandler = catchErrors(async (req, res) => {
   const request = changePasswordSchema.parse(req.body);
-  
 
-  // Get user ID from the authenticated request (set by authenticate middleware)
+  // Get user ID from the authenticated request
   const userId = req.userId as string;
   appAssert(userId, UNAUTHORIZED, 'User not authenticated');
 
   const result = await changePassword({
     userId,
-    currentPassword: request.currentPassword,
     newPassword: request.newPassword,
   });
 
@@ -164,7 +162,7 @@ export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
   });
   appAssert(validCode, NOT_FOUND, 'Reset token has expired or is invalid');
 
-  // Get user information (without sensitive data)
+  // Get user information 
   const user = await UserModel.findById(userId).select('-password');
   appAssert(user, NOT_FOUND, 'User not found');
 
@@ -205,7 +203,7 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
   });
   appAssert(validCode, NOT_FOUND, 'Reset token has expired or is invalid');
 
-  // Get user information (without sensitive data)
+  // Get user information 
   const user = await UserModel.findById(userId).select('-password');
   appAssert(user, NOT_FOUND, 'User not found');
 

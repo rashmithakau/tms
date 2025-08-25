@@ -9,6 +9,7 @@ import PasswordResetChangePasswordPageSchema from '../../validations/PasswordRes
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { verifyPasswordResetToken, resetPassword } from '../../api/auth';
+import { useToast } from '../contexts/ToastContext';
 type SetPasswordData = {
   newPassword: string;
   confirmPassword: string;
@@ -16,6 +17,7 @@ type SetPasswordData = {
 
 const ResetChangePassword: React.FC = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [searchParams] = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [isVerifying, setIsVerifying] = useState(true);
@@ -53,6 +55,7 @@ const ResetChangePassword: React.FC = () => {
         } catch (err: any) {
           setVerificationError(err.response?.data?.message || 'Invalid or expired reset link. Please request a new password reset.');
           setIsVerifying(false);
+          toast.error('Invalid or expired reset link');
         }
       };
 
@@ -76,9 +79,12 @@ const ResetChangePassword: React.FC = () => {
           confirmNewPassword: data.confirmPassword
         });
         setMessage('Password reset successfully! Redirecting to login...');
+        toast.success('Password reset successfully');
         setTimeout(() => navigate('/'), 2000);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to reset password. Please try again.');
+        const msg = err.response?.data?.message || 'Failed to reset password. Please try again.';
+        setError(msg);
+        toast.error(msg);
       } finally {
         setIsLoading(false);
       }

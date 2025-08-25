@@ -16,6 +16,7 @@ import ActionButtons from '../molecules/ActionButtons';
 
 // Add ConfirmDialog import if you have a custom dialog component
 import ConfirmDialog from '../molecules/ConfirmDialog';
+import { useToast } from '../contexts/ToastContext';
 
 interface ProjectTableProps {
   rows: ProjectRow[];
@@ -27,6 +28,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFi
   const [editingId, setEditingId] = useState<string | null>(null);
   // Add confirm dialog state for delete
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
+  const toast = useToast();
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
@@ -110,8 +112,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFi
         onCancel={() => setConfirm({ open: false })}
         onConfirm={async () => {
           if (confirm.id) {
-            await deleteProject(confirm.id);
-            if (onRefresh) await onRefresh();
+            try {
+              await deleteProject(confirm.id);
+              toast.success('Project deleted');
+              if (onRefresh) await onRefresh();
+            } catch (e) {
+              toast.error('Failed to delete project');
+            }
           }
           setConfirm({ open: false });
         }}

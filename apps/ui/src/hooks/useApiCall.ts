@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { useToast } from '../components/contexts/ToastContext';
 import { useLoading } from '../components/contexts/LoadingContext';
+import { useToast } from '../components/contexts/ToastContext';
 
 interface UseApiCallOptions {
   loadingMessage?: string;
@@ -23,8 +23,8 @@ interface UseApiCallReturn {
 export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<any>(null);
-  const { showSuccess, showError } = useToast();
   const { showLoading, hideLoading } = useLoading();
+  const toast = useToast();
 
   const {
     loadingMessage = 'Loading...',
@@ -49,9 +49,8 @@ export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn =>
       hideLoading();
       setIsLoading(false);
 
-      // Show success toast if configured
       if (showSuccessToast && successMessage) {
-        showSuccess(successMessage);
+        toast.success(successMessage);
       }
 
       // Execute onSuccess callback asynchronously to ensure proper timing
@@ -70,9 +69,8 @@ export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn =>
     } catch (err: any) {
       const errorMsg = errorMessage || err.response?.data?.message || 'An error occurred';
       setError(err);
-
-      if (showErrorToast) {
-        showError(errorMsg, 'Error');
+      if (showErrorToast && errorMsg) {
+        toast.error(errorMsg);
       }
 
       if (onError) {

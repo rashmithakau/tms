@@ -59,7 +59,7 @@ export const updateProjectStaff = async (
   projectId: string,
   data: { employees?: string[]; supervisor?: string | null }
 ) => {
-  // Fetch existing project to determine previous supervisor
+  //get the previous supervisor
   const existing = await ProjectModel.findById(projectId).select('supervisor');
   const update: any = {};
   if (Array.isArray(data.employees)) {
@@ -81,7 +81,7 @@ export const updateProjectStaff = async (
     .populate({ path: 'supervisor', select: 'firstName lastName email' });
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project update failed');
 
-  // Update roles based on supervisor change, with cross-project check
+  // Update roles based on supervisor change
   if (data.supervisor !== undefined) {
     const previousSupervisorId = existing?.supervisor?.toString() || null;
     const newSupervisorId = project.supervisor
@@ -94,23 +94,11 @@ export const updateProjectStaff = async (
         $set: { role: UserRole.Supervisor },
       });
     }
-
-    // Handle demotion of previous supervisor only if they are not supervising any other active project
-    if (previousSupervisorId && previousSupervisorId !== newSupervisorId) {
-      const stillSupervisingAnother = await ProjectModel.exists({
-        _id: { $ne: projectId },
-        supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
-        status: true,
-      });
-      if (!stillSupervisingAnother) {
-        await UserModel.findByIdAndUpdate(previousSupervisorId, {
-          $set: { role: UserRole.Emp },
-        });
-      }
-    }
-
-    // If supervisor removed (set to null), demote old supervisor if not supervising elsewhere
-    if (!newSupervisorId && previousSupervisorId) {
+    //previous supervisor if changed or removed and not supervising any other active project  
+    if (
+      previousSupervisorId &&
+      (previousSupervisorId !== newSupervisorId || !newSupervisorId)
+    ) {
       const stillSupervisingAnother = await ProjectModel.exists({
         _id: { $ne: projectId },
         supervisor: new mongoose.Types.ObjectId(previousSupervisorId),

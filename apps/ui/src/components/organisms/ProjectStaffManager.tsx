@@ -18,6 +18,7 @@ import { UserRole } from '@tms/shared';
 import { updateProjectStaff } from '../../api/project';
 import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
 import theme from '../../styles/theme';
+import { useToast } from '../contexts/ToastContext';
 
 export default function ProjectStaffManager({
   open,
@@ -52,12 +53,10 @@ export default function ProjectStaffManager({
       })),
     [users]
   );
+  const toast = useToast();
 
   useEffect(() => {
     if (open) {
-      // Initialize from props only when opening or when initial values change.
-      // Do not depend on employeeOptions to avoid resetting user selections
-      // after the users list refreshes.
       setSelectedEmployees(
         initialEmployees.map(
           (e) =>
@@ -101,12 +100,17 @@ export default function ProjectStaffManager({
   };
 
   const handleSave = async () => {
-    await updateProjectStaff(projectId, {
-      employees: selectedEmployees.map((e) => e.id),
-      supervisor: supervisor || null,
-    });
-    onSaved && onSaved();
-    onClose();
+    try {
+      await updateProjectStaff(projectId, {
+        employees: selectedEmployees.map((e) => e.id),
+        supervisor: supervisor || null,
+      });
+      toast.success('Project staff updated');
+      onSaved && onSaved();
+      onClose();
+    } catch (e) {
+      toast.error('Failed to update project staff');
+    }
   };
 
   return (

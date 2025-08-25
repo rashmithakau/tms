@@ -12,9 +12,11 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import FilterMenu, { DateRange } from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
+import { useToast } from '../contexts/ToastContext';
 
 const MyTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useTimesheets();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -106,9 +108,14 @@ const MyTimesheetsWindow: React.FC = () => {
   const sendSelected = async () => {
     const idsToSend = selectedIds.filter(id => draftIdsInFiltered.includes(id));
     if (idsToSend.length === 0) return;
-    await submitMyDraftTimesheets(idsToSend);
-    setSelectedIds((prev) => prev.filter(id => !idsToSend.includes(id)));
-    await refresh();
+    try {
+      await submitMyDraftTimesheets(idsToSend);
+      toast.success('Draft timesheets submitted');
+      setSelectedIds((prev) => prev.filter(id => !idsToSend.includes(id)));
+      await refresh();
+    } catch (e) {
+      toast.error('Failed to submit drafts');
+    }
   };
 
   return (
@@ -199,8 +206,13 @@ const MyTimesheetsWindow: React.FC = () => {
         onCancel={() => setConfirm({ open: false })}
         onConfirm={async () => {
           if (confirm.id) {
-            await deleteMyTimesheet(confirm.id);
-            await refresh();
+            try {
+              await deleteMyTimesheet(confirm.id);
+              toast.success('Timesheet deleted');
+              await refresh();
+            } catch (e) {
+              toast.error('Failed to delete timesheet');
+            }
           }
           setConfirm({ open: false });
         }}

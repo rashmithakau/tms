@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import { useDispatch } from "react-redux";
+import { useToast } from '../contexts/ToastContext';
 
 export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -16,6 +17,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
   const dispatch = useDispatch(); 
+  const toast = useToast();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -46,6 +48,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
       await logout();
       // Use the auth context to handle logout
       authLogout();
+      toast.success('Logged out successfully');
       // Navigate to login page
       navigate('/', { replace: true });
     } catch (error) {
@@ -53,6 +56,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
       // Even if API call fails, clear local state and redirect
       authLogout();
       dispatch({ type: "LOGOUT" });
+      toast.error('Logout failed on server. You have been signed out locally.');
       navigate('/', { replace: true });
     }
   };

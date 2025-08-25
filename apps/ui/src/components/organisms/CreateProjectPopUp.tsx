@@ -18,6 +18,7 @@ import CreateProjectFormSchema from '../../validations/CreateProjectFormSchema';
 import { useTheme } from '@mui/material/styles';
 import PopupLayout from '../templates/PopUpLayout';
 import { createProject } from '../../api/project';
+import { useToast } from '../contexts/ToastContext';
 
 interface CreateProjectFormData {
   projectName: string;
@@ -34,6 +35,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
     []
   );
   const theme = useTheme();
+  const toast = useToast();
 
   // React Hook Form
   const {
@@ -56,11 +58,12 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
         employees: selectedEmployees.map((e) => e.id),
         supervisor: data.supervisor ?? null,
       });
+      toast.success('Project created');
       onClose(); // Close popup after submit
       reset();
       setSelectedEmployees([]); // Clear selected employees
     } catch (error) {
-      // error handling
+      toast.error('Failed to create project');
     }
   };
 
