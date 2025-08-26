@@ -6,9 +6,6 @@ import { sendEmail } from '../utils/sendEmail';
 import {getWelcomeTmsTemplate}  from '../utils/emailTemplates';
 import {generateRandomPassword} from '../utils/passwordUtils';
 import { APP_ORIGIN } from '../constants/env';
-import VerificationCodeModel from '../models/verificationCode.model';
-import VerificationCodeType from '../constants/verificationCodeType';
-import { oneYearFromNow } from '../utils/date';
 
 export type CreateUserParams = {
   email: string;

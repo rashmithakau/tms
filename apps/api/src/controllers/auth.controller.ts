@@ -1,11 +1,7 @@
 import catchErrors from '../utils/catchErrors';
 import { refreshUserAccessToken, resetPassword, sendPasswordResetEmail, verifyEmail } from '../services/auth.service';
 import { NOT_FOUND, OK } from '../constants/http';
-import {
-  getAccessTokenCookieOptions,
-  getRefreshTokenCookieOptions,
-  setAuthCookies,
-} from '../utils/cookies';
+import {getAccessTokenCookieOptions,getRefreshTokenCookieOptions,setAuthCookies} from '../utils/cookies';
 import { loginSchema, changePasswordSchema, resetPasswordSchema } from './../schemas/auth.schema';
 import { loginUser } from '../services/auth.service';
 import { verifyToken } from '../utils/jwt';
@@ -74,7 +70,7 @@ export const changePasswordHandler = catchErrors(async (req, res) => {
   const request = changePasswordSchema.parse(req.body);
   
 
-  // Get user ID from the authenticated request (set by authenticate middleware)
+  // Get user ID from the authenticated request 
   const userId = req.userId as string;
   appAssert(userId, UNAUTHORIZED, 'User not authenticated');
 
@@ -180,7 +176,6 @@ export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
   });
 });
 
-// New handler for GET request with query parameters
 export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
   const { token, verificationCode } = req.query;
   appAssert(token, NOT_FOUND, 'Reset token is required');
@@ -194,7 +189,6 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
   appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
 
   const userId = (payload as any).userId;
-  const verificationCodeId = (payload as any).verificationCodeId;
 
   // Verify the verification code still exists and is valid
   const validCode = await VerificationCodeModel.findOne({

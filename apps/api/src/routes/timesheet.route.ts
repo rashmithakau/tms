@@ -5,7 +5,6 @@ import { createMyTimesheetHandler, deleteMyTimesheetHandler, listMyTimesheetsHan
 
 const timesheetRoutes = Router();
 
-// Employees can manage their own timesheets; Admin/Supervisor could also read in future
 timesheetRoutes.post('/', authenticate([UserRole.Emp,UserRole.Supervisor]), createMyTimesheetHandler);
 timesheetRoutes.get('/', authenticate([UserRole.Emp,UserRole.Supervisor]), listMyTimesheetsHandler);
 timesheetRoutes.get('/supervised', authenticate([UserRole.Supervisor]), listSupervisedTimesheetsHandler);

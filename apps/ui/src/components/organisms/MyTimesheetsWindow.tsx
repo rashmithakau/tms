@@ -12,10 +12,12 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import FilterMenu, { DateRange } from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
+import AbsenceFormPopup from './AbsenceFormPopup';
 
 const MyTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useTimesheets();
   const [open, setOpen] = useState(false);
+  const [absencePopupOpen, setAbsencePopupOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
@@ -25,6 +27,8 @@ const MyTimesheetsWindow: React.FC = () => {
 
   const handleOpenPopup = () => setOpen(true);
   const handleClosePopup = () => setOpen(false);
+  const handleOpenAbsencePopup =() => setAbsencePopupOpen(true);
+  const handleCloseAbsencePopup =() => setAbsencePopupOpen(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>('All');
@@ -36,6 +40,7 @@ const MyTimesheetsWindow: React.FC = () => {
 
   const handleFilterByDate = (range: DateRange) => setDateRangeFilter(range);
   const handleFilterByStatus = (status: TimesheetStatus | 'All') => setStatusFilter(status);
+  
 
   const filteredRows = useMemo(() => {
     const now = new Date();
@@ -119,7 +124,6 @@ const MyTimesheetsWindow: React.FC = () => {
         </Box>
       ) : (
         <TableWindowLayout
-          // rows={[]}
           title="My Time Sheets"
           buttons={[
             <Box
@@ -163,11 +167,19 @@ const MyTimesheetsWindow: React.FC = () => {
               </BaseBtn>
 
               <BaseBtn
+                onClick={handleOpenAbsencePopup}
+                variant="contained"
+                startIcon={<AddOutlinedIcon />}
+              >
+                 Absence
+              </BaseBtn>
+
+              <BaseBtn
                 onClick={handleOpenPopup}
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
               >
-                Add new
+                 Time Sheet
               </BaseBtn>
             </Box>,
           ]}
@@ -190,6 +202,17 @@ const MyTimesheetsWindow: React.FC = () => {
         mode="create"
         onClose={handleClosePopup}
         onSuccess={refresh}
+      />
+
+      <AbsenceFormPopup
+        open={absencePopupOpen}
+        isEdit={false}
+        onClose={handleCloseAbsencePopup}
+        onSubmit={async (data) => {
+          console.log('Absence data submitted:', data);
+          handleClosePopup();
+          await refresh();
+        }}
       />
 
       <ConfirmDialog
