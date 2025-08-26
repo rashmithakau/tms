@@ -24,17 +24,25 @@ interface ProjectTableProps {
   billableFilter?: 'all' | 'Yes' | 'No';
 }
 
-const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFilter = 'all' }) => {
+const ProjectTable: React.FC<ProjectTableProps> = ({
+  rows,
+  onRefresh,
+  billableFilter = 'all',
+}) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   // Add confirm dialog state for delete
-  const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
+  const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
+    open: false,
+  });
   const toast = useToast();
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
       const billableOk =
         billableFilter === 'all' ||
-        (billableFilter === 'Yes' ? r.billable.toLowerCase() === 'yes' : r.billable.toLowerCase() === 'no');
+        (billableFilter === 'Yes'
+          ? r.billable.toLowerCase() === 'yes'
+          : r.billable.toLowerCase() === 'no');
 
       return billableOk;
     });
@@ -42,13 +50,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFi
 
   return (
     <>
-      <Table size='small'>
+      <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell />
             <TableCell>Project Name</TableCell>
             <TableCell>Billable Type</TableCell>
-            <TableCell>Supervisor</TableCell>
+            <TableCell>Supervisor Name</TableCell>
+            <TableCell>Supervisor Email</TableCell>
+            <TableCell>Supervisor Designation</TableCell>
             <TableCell>Created At</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
@@ -68,7 +78,21 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFi
                 <TableCell>
                   {row.supervisor
                     ? row.supervisor.designation
-                      ? `${row.supervisor.name} - ${row.supervisor.designation}`
+                      ? `${row.supervisor.name} `
+                      : row.supervisor.name
+                    : ''}
+                </TableCell>
+                <TableCell>
+                  {row.supervisor
+                    ? row.supervisor.designation
+                      ? `${row.supervisor.email}`
+                      : row.supervisor.name
+                    : ''}
+                </TableCell>
+                <TableCell>
+                  {row.supervisor
+                    ? row.supervisor.designation
+                      ? ` ${row.supervisor.designation} `
                       : row.supervisor.name
                     : ''}
                 </TableCell>
@@ -105,7 +129,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ rows, onRefresh, billableFi
           ))}
         </TableBody>
       </Table>
-      <ConfirmDialog 
+      <ConfirmDialog
         open={confirm.open}
         title="Delete Project"
         message="Are you sure you want to delete this project? This action cannot be undone."

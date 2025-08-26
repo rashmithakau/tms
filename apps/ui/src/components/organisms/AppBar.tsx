@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton, TextField } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import UserPopoverBox from './UserPopoverBox'; // Import the new component
-import EmpMenu from './EmpMenu'; // Import the EmpMenu component
+import UserPopoverBox from './UserPopoverBox'; 
+import EmpMenu from './EmpMenu'; 
 import { logout } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';

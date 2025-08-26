@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getUsers } from '../api/user';
 import { UserRole } from '@tms/shared';
 
@@ -74,13 +74,14 @@ export const useUsersByRoles = (roles: UserRole[]): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const rolesKey = useMemo(() => (Array.isArray(roles) ? [...roles].sort().join(',') : ''), [roles]);
 
   const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const responses = await Promise.all(roles.map((r) => getUsers(r)));
+      const responses = await Promise.all((roles || []).map((r) => getUsers(r)));
       const merged: Record<string, User> = {};
       responses.forEach((resp) => {
         const arr = resp?.data?.users as User[] | undefined;
@@ -97,7 +98,7 @@ export const useUsersByRoles = (roles: UserRole[]): UseUsersReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [roles]);
+  }, [rolesKey]);
 
   const refreshUsers = useCallback(async () => {
     await fetchUsers();

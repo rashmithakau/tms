@@ -71,8 +71,9 @@ export const changePassword = async (data: ChangePasswordParams) => {
 };
 
 //getUsersByRole
-export const getUsersByRole = async (role: UserRole) => {
-  const data = await UserModel.findAllByRole(role);
+export const getUsersByRole = async (role: UserRole| UserRole[]) => {
+  const roles = Array.isArray(role) ? role : [role];
+  const data = await UserModel.findAllByRoles(roles);
   const users = data.map(user => user.omitPassword());
   return {
     users,
