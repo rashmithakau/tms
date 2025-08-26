@@ -1,121 +1,77 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import Toast from '../molecules/Toast';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import { useSnackbar, VariantType, SnackbarKey, SnackbarProvider } from 'notistack';
 
-interface ToastMessage {
-  id: string;
-  message: string;
-  severity: 'success' | 'error' | 'warning' | 'info';
-  title?: string;
-  autoHideDuration?: number;
-  position?: 'top' | 'bottom';
+type ToastVariant = Extract<VariantType, 'default' | 'success' | 'error' | 'warning' | 'info'>;
+
+interface ToastApi {
+  show: (message: string, options?: { variant?: ToastVariant; actionLabel?: string; onAction?: () => void; persist?: boolean }) => SnackbarKey;
+  success: (message: string) => SnackbarKey;
+  error: (message: string) => SnackbarKey;
+  info: (message: string) => SnackbarKey;
+  warning: (message: string) => SnackbarKey;
+  close: (key?: SnackbarKey) => void;
 }
 
-interface ToastContextType {
-  showToast: (message: string, severity?: 'success' | 'error' | 'warning' | 'info', title?: string, autoHideDuration?: number, position?: 'top' | 'bottom') => void;
-  showSuccess: (message: string, title?: string) => void;
-  showError: (message: string, title?: string) => void;
-  showWarning: (message: string, title?: string) => void;
-  showInfo: (message: string, title?: string) => void;
-  clearToasts: () => void;
-}
+const ToastContext = createContext<ToastApi | undefined>(undefined);
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
+export const useToast = (): ToastApi => {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error('useToast must be used within ToastProvider');
+  return ctx;
 };
 
-interface ToastProviderProps {
-  children: ReactNode;
-}
+export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Use a child component to access notistack hook
+  const InnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+    const api = useMemo<ToastApi>(() => ({
+      show: (message, options) =>
+        enqueueSnackbar(message, {
+          variant: options?.variant ?? 'default',
+          persist: options?.persist,
+          action: options?.actionLabel
+            ? (key) => (
+                <button
+                  onClick={() => {
+                    options.onAction?.();
+                    closeSnackbar(key);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  {options.actionLabel}
+                </button>
+              )
+            : undefined,
+        }),
+      success: (message) => enqueueSnackbar(message, { variant: 'success' }),
+      error: (message) => enqueueSnackbar(message, { variant: 'error' }),
+      info: (message) => enqueueSnackbar(message, { variant: 'info' }),
+      warning: (message) => enqueueSnackbar(message, { variant: 'warning' }),
+      close: (key) => closeSnackbar(key),
+    }), [enqueueSnackbar, closeSnackbar]);
 
-  const showToast = (
-    message: string,
-    severity: 'success' | 'error' | 'warning' | 'info' = 'info',
-    title?: string,
-    autoHideDuration?: number,
-    position: 'top' | 'bottom' = 'bottom'
-  ) => {
-    const id = Date.now().toString();
-    const newToast: ToastMessage = {
-      id,
-      message,
-      severity,
-      title,
-      autoHideDuration,
-      position,
-    };
-
-    setToasts(prev => [...prev, newToast]);
-
-    // Auto-remove toast after duration
-    if (autoHideDuration) {
-      setTimeout(() => {
-        removeToast(id);
-      }, autoHideDuration);
-    }
+    return <ToastContext.Provider value={api}>{children}</ToastContext.Provider>;
   };
 
-  const showSuccess = (message: string, title?: string) => {
-    showToast(message, 'success', title, 4000);
-  };
-
-  const showError = (message: string, title?: string) => {
-    showToast(message, 'error', title, 6000);
-  };
-
-  const showWarning = (message: string, title?: string) => {
-    showToast(message, 'warning', title, 5000);
-  };
-
-  const showInfo = (message: string, title?: string) => {
-    showToast(message, 'info', title, 4000);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
-  const clearToasts = () => {
-    setToasts([]);
-  };
-
-  const handleClose = (id: string) => {
-    removeToast(id);
-  };
-
-  const value: ToastContextType = {
-    showToast,
-    showSuccess,
-    showError,
-    showWarning,
-    showInfo,
-    clearToasts,
-  };
-
+  
   return (
-    <ToastContext.Provider value={value}>
-      {children}
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          open={true}
-          message={toast.message}
-          severity={toast.severity}
-          title={toast.title}
-          autoHideDuration={toast.autoHideDuration}
-          position={toast.position}
-          onClose={() => handleClose(toast.id)}
-        />
-      ))}
-    </ToastContext.Provider>
+    <SnackbarProvider
+      maxSnack={3}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      autoHideDuration={1500}
+      preventDuplicate
+    >
+      <InnerProvider>{children}</InnerProvider>
+    </SnackbarProvider>
   );
 };
+
+
 

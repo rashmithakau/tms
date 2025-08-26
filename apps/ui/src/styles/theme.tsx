@@ -6,22 +6,21 @@ const fonts = {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#013282', 
+      main: '#013282',
     },
     secondary: {
-      main: grey[300], 
+      main: grey[300],
     },
     background: {
       default: '#ffffff',
-      paper: '#EBEFF4', 
+      paper: '#EBEFF4',
     },
-    text:{
-      primary:'#2C2C2C',
-      secondary:'#9A9A9A',
-      
+    text: {
+      primary: '#2C2C2C',
+      secondary: '#9A9A9A',
     },
-     error: { main: '#FF7081' },
-     success: { main: '#CCFFCC' },
+    error: { main: '#FF7081' },
+    success: { main: '#CCFFCC' },
   },
   typography: {
     fontFamily: fonts.primary,
@@ -30,8 +29,8 @@ const theme = createTheme({
     h3: { fontFamily: fonts.primary },
     h4: { fontFamily: fonts.primary },
     button: { fontFamily: fonts.primary },
-   
   },
+  components: {},
 });
 
 export default theme;

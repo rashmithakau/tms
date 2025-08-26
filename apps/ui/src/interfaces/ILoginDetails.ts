@@ -5,7 +5,6 @@ export interface ILoginDetails {
 
   export interface IChangePwdFirstLogin {
     userId:string
-    currentPassword: string;
     newPassword: string;
   }
 

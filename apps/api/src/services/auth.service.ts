@@ -176,7 +176,7 @@ export const sendPasswordResetEmail = async (email: string) => {
 
 type ResetPasswordParams = {
   newPassword: string;
-  verificationCode: string; // Keep this as is since it's used internally
+  verificationCode: string;
   userId: string;
 };
 
@@ -195,7 +195,11 @@ export const resetPassword = async ({
   appAssert(validCode, NOT_FOUND, 'Invalid or expired verification code');
 
   // Verify that the userId in the token matches the userId in the verification code
-  appAssert(validCode.userId.toString() === userId, UNAUTHORIZED, 'Invalid verification code for this user');
+  appAssert(
+    validCode.userId.toString() === userId,
+    UNAUTHORIZED,
+    'Invalid verification code for this user'
+  );
 
   // Get the user
   const user = await UserModel.findById(validCode.userId);

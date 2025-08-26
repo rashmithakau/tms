@@ -19,9 +19,11 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
+import { useToast } from '../contexts/ToastContext';
 
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useSupervisedTimesheets();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -134,8 +136,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
       await updateSupervisedTimesheetsStatusApi(selectedPendingIds, narrowed);
       await refresh();
       setSelectedIds([]);
+      toast.success(`Timesheets ${narrowed.toLowerCase()}`);
     } catch (e) {
       console.error('Failed to update status', e);
+      toast.error('Failed to update timesheet status');
     }
   };
 
@@ -275,8 +279,13 @@ const ReviewTimesheetsWindow: React.FC = () => {
         onCancel={() => setConfirm({ open: false })}
         onConfirm={async () => {
           if (confirm.id) {
-            await deleteMyTimesheet(confirm.id);
-            await refresh();
+            try {
+              await deleteMyTimesheet(confirm.id);
+              toast.success('Timesheet deleted');
+              await refresh();
+            } catch (e) {
+              toast.error('Failed to delete timesheet');
+            }
           }
           setConfirm({ open: false });
         }}

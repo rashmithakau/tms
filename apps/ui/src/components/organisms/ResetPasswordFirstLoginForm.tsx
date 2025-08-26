@@ -9,14 +9,15 @@ import ResetPasswordFirstLoginSchema from '../../validations/ResetPasswordFirstL
 import { changePwdFirstLogin } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@tms/shared';
+import { useToast } from '../contexts/ToastContext';
 
 type SetPasswordData = {
-  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 };
 const ResetPasswordFirstLoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const {
     register,
     handleSubmit,
@@ -32,7 +33,8 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
       console.error('User ID not found in local storage');
       return;
     }
-    const response=await changePwdFirstLogin({userId , currentPassword: data.currentPassword, newPassword: data.newPassword});
+    const response=await changePwdFirstLogin({userId , newPassword: data.newPassword});
+    toast.success('Password set successfully');
 
     switch (role) {
       case UserRole.Admin:
@@ -54,14 +56,6 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
       <Grid sx={{ padding: 3, mt: -2 }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Form fields for setting a new password */}
-          <BaseTextField
-            label="Current Password"
-            type="password"
-            sx={{ mb: 2 }}
-            {...register('currentPassword')}
-            error={!!errors.currentPassword}
-            helperText={errors.currentPassword?.message}
-          />
           <BaseTextField
             label="New Password"
             type="password"

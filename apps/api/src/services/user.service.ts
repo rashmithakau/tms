@@ -19,7 +19,6 @@ export type CreateUserParams = {
 
 export type ChangePasswordParams = {
   userId:string;
-  currentPassword:string;
   newPassword:string;
 }
 
@@ -59,22 +58,6 @@ export const changePassword = async (data: ChangePasswordParams) => {
   const user = await UserModel.findById(data.userId);
   appAssert(user, UNAUTHORIZED, 'User not found');
 
-   // Verify current password
-  const isValidCurrentPassword = await user.comparePassword(
-    data.currentPassword
-  );
-  appAssert(
-    isValidCurrentPassword,
-    UNAUTHORIZED,
-    'Current password is incorrect'
-  );
-
-  // Validate that new password is different from current password
-  appAssert(
-    data.newPassword !== data.currentPassword,
-    UNAUTHORIZED,
-    'New password must be different from current password'
-  );
   // Update password and set isChangedPwd to true
   user.password = data.newPassword;
   user.isChangedPwd = true;
