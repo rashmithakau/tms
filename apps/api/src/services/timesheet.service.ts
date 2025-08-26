@@ -1,7 +1,7 @@
 import Timesheet from '../models/timesheet.model';
 import appAssert from '../utils/appAssert';
 import { FORBIDDEN, NOT_FOUND } from '../constants/http';
-import { TimesheetStatus } from '@tms/shared';
+import { TimesheetStatus,BillableType} from '@tms/shared';
 import ProjectModel from '../models/project.model';
 
 export type CreateTimesheetParams = {
@@ -12,7 +12,7 @@ export type CreateTimesheetParams = {
   description?: string;
   plannedHours?: number;
   hoursSpent?: number;
-  billableType: 'Billable' | 'Non Billable';
+  billableType: BillableType;
 };
 
 export type UpdateTimesheetParams = Partial<Omit<CreateTimesheetParams, 'userId'>> & {
@@ -39,10 +39,9 @@ export const listMyTimesheets = async (userId: string) => {
 };
 
 export const listSupervisedTimesheets = async (supervisorId: string) => {
-  // Find all projects where the user is the supervisor
+
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
 
-  // Collect all employees from these projects, excluding the supervisor themself and deduplicating
   const employeeIdStrings = Array.from(
     new Set(
       supervisedProjects
@@ -84,7 +83,6 @@ export const deleteMyTimesheet = async (userId: string, id: string) => {
 };
 
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
-  // Only transition Draft -> Pending, and only for the owner's docs
   const result = await Timesheet.updateMany(
     { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
     { $set: { status: TimesheetStatus.Pending } }
@@ -97,7 +95,7 @@ export const updateSupervisedTimesheetsStatus = async (
   ids: string[],
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected
 ) => {
-  // Derive supervised employee ids
+  // Get supervised employee ids
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
   const employeeIdStrings = Array.from(
     new Set(

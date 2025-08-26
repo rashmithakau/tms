@@ -1,9 +1,7 @@
 import { z } from 'zod';
 import { projectNameSchema } from './main.schema';
 
-// Incoming payload from UI
-// - billable comes as 'yes' | 'no'
-// - employees is an array of user ids (strings)
+
 export const createProjectFromUiSchema = z.object({
   projectName: projectNameSchema,
   billable: z.enum(['yes', 'no']),

@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { TimesheetStatus } from '@tms/shared';
+import { TimesheetStatus,BillableType } from '@tms/shared';
 
-export const billableTypeSchema = z.enum(['Billable', 'Non Billable']);
+export const billableTypeSchema = z.nativeEnum(BillableType);
 export const timesheetStatusSchema = z.nativeEnum(TimesheetStatus);
 
 export const createTimesheetSchema = z.object({
