@@ -1,33 +1,34 @@
 import { z } from 'zod';
 import { TimesheetStatus } from '@tms/shared';
 
-export const billableTypeSchema = z.enum(['Billable', 'Non Billable']);
-export const timesheetStatusSchema = z.nativeEnum(TimesheetStatus);
+// --- Item schema ---
+const ItemSchema = z.object({
+  work: z.string().optional(), // present if Absence
+  projectId: z.string().optional(), // present if Project
+  hours: z.array(z.string().min(1)).length(7), // 7 days
+  descriptions: z.array(z.string()).length(7).optional().default(['','','','','','','']),
+});
 
+// --- Category schema ---
+const CategorySchema = z.object({
+  category: z.enum(['Project', 'Absence']),
+  items: z.array(ItemSchema).min(1),
+});
+
+// --- Create Timesheet ---
 export const createTimesheetSchema = z.object({
-  date: z.string().or(z.date()),
-  projectId: z.string().min(1),
-  taskTitle: z.string().min(1),
-  description: z.string().optional().default(''),
-  plannedHours: z.number().min(0).default(0),
-  hoursSpent: z.number().min(0).default(0),
-  billableType: billableTypeSchema,
+  weekStartDate: z.string().or(z.date()),
+  categories: z.array(CategorySchema).min(1),
 });
 
+// --- Update Timesheet ---
 export const updateTimesheetSchema = z.object({
-  date: z.string().or(z.date()).optional(),
-  projectId: z.string().min(1).optional(),
-  taskTitle: z.string().min(1).optional(),
-  description: z.string().optional(),
-  plannedHours: z.number().min(0).optional(),
-  hoursSpent: z.number().min(0).optional(),
-  billableType: billableTypeSchema.optional(),
-  status: timesheetStatusSchema.optional(),
+  weekStartDate: z.string().or(z.date()).optional(),
+  categories: z.array(CategorySchema).optional(),
+  status: z.nativeEnum(TimesheetStatus).optional(),
 });
 
+// --- Submit Timesheets ---
 export const submitTimesheetsSchema = z.object({
   ids: z.array(z.string().min(1)).min(1),
 });
-
-
-
