@@ -34,7 +34,7 @@ function CreateAccountPopup({
   onSuccess,
 }: CreateAccountPopupProps) {
   const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
-  
+
   const { execute, isLoading, resetError } = useApiCall({
     loadingMessage: 'Creating account...',
     loadingVariant: 'overlay',
@@ -66,8 +66,8 @@ function CreateAccountPopup({
       reset();
       resetError();
     }
-  // We only want this to run when the popup visibility changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // We only want this to run when the popup visibility changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const onSubmit = async (data: CreateAccountData) => {
@@ -90,12 +90,7 @@ function CreateAccountPopup({
   };
 
   return (
-    <PopupLayout
-      open={open}
-      title={title}
-      
-      onClose={onClose}
-    >
+    <PopupLayout open={open} title={title} onClose={onClose}>
       {isLoading && (
         <PageLoading
           message="Creating account..."
@@ -103,7 +98,7 @@ function CreateAccountPopup({
           size="small"
         />
       )}
-      
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box
           style={{
@@ -165,20 +160,25 @@ function CreateAccountPopup({
             disabled={isLoading}
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'flex-end' }}>
-            <BaseBtn 
-              type="button" 
-              onClick={handleCancel} 
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 2,
+              justifyContent: 'flex-end',
+            }}
+          >
+            <BaseBtn
+              type="button"
+              onClick={handleCancel}
               variant="outlined"
               disabled={isLoading}
+              sx={{ mt: 2 }}
             >
               Cancel
             </BaseBtn>
-            <BaseBtn 
-              type="submit" 
-              disabled={!isValid || isLoading}
-            >
-              {isLoading ? 'Creating...' : title}
+            <BaseBtn sx={{ mt: 2 }} type="submit" disabled={!isValid || isLoading}>
+              {isLoading ? 'Creating...' : 'Create'}
             </BaseBtn>
           </Box>
         </Box>

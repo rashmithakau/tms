@@ -115,11 +115,30 @@ export const updateProjectStaff = async (
 };
 
 export const softDeleteProject = async (projectId: string) => {
+  // Capture the current supervisor before deletion
+  const existing = await ProjectModel.findById(projectId).select('supervisor');
+
   const project = await ProjectModel.findByIdAndUpdate(
     projectId,
     { $set: { status: false } },
     { new: true }
   );
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project delete failed');
+
+  // If there was a supervisor, check if they still supervise any other active projects
+  const supervisorId = existing?.supervisor?.toString();
+  if (supervisorId) {
+    const stillSupervising = await ProjectModel.exists({
+      _id: { $ne: projectId as any },
+      supervisor: new mongoose.Types.ObjectId(supervisorId),
+      status: true,
+    });
+    if (!stillSupervising) {
+      await UserModel.findByIdAndUpdate(supervisorId, {
+        $set: { role: UserRole.Emp },
+      });
+    }
+  }
+
   return { projectId };
 };

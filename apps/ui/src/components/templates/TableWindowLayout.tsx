@@ -3,10 +3,14 @@ import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 export interface EmpRow {
+  id?: string;
   email: string;
   firstName: string;
   lastName: string;
   designation: string;
+  role?: string;
+  supervisedProjects?: string[];
+  memberProjects?: string[];
   status: 'Active' | 'Inactive' | string;
   contactNumber: string;
   createdAt?: string;
@@ -17,8 +21,8 @@ export interface ProjectRow {
   projectName: string;
   billable: 'Yes' | 'No';
   createdAt?: string;
-  employees?: { id: string; name: string; designation?: string }[];
-  supervisor?: { id: string; name: string; designation?: string } | null;
+  employees?: { id: string; name: string; designation?: string;  }[];
+  supervisor?: { id: string; name: string; designation?: string; email?: string } | null;
 }
 
 interface TableWindowLayoutProps {

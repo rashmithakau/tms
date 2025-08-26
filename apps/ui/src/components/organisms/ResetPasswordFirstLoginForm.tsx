@@ -47,7 +47,7 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
         navigate('/employee');
         break;
       case UserRole.Supervisor:
-        navigate('/supervisor');
+        navigate('/employee');
         break;
     }
   };

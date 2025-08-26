@@ -6,25 +6,31 @@ import { useDispatch, useSelector } from 'react-redux';
 import CreateProjectPopUp from '../components/organisms/CreateProjectPopUp';
 import BaseBtn from '../components/atoms/buttons/BaseBtn';
 import { Box, Alert, CircularProgress } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CreateAccountPopup from '../components/organisms/CreateAccountPopup';
 import { UserRole } from '@tms/shared';
 import TableWindowLayout, {
-  EmpRow, ProjectRow,
+  EmpRow,
+  ProjectRow,
 } from '../components/templates/TableWindowLayout';
-import { useUsers } from '../hooks/useUsers';
+import { useUsersByRoles } from '../hooks/useUsers';
 import { listProjects, ProjectListItem } from '../api/project';
 import { select_btn } from '../store/slices/dashboardNavSlice';
 import EmpTable from '../components/organisms/EmpTable';
 import ProjectTable from '../components/organisms/ProjectTable';
 import ProjectTableToolbar from '../components/molecules/ProjectTableToolbar';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import EmpTableToolbar, { EmpRoleFilter } from '../components/molecules/EmpTableToolbar';
 
 const AdminPage = () => {
- const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Emp);
+  const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor] as const, []);
+  const { users, isLoading, error, refreshUsers } = useUsersByRoles(roles as unknown as UserRole[]);
 
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [empRoleFilter, setEmpRoleFilter] = useState<EmpRoleFilter>('all');
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const dispatch = useDispatch();
 
   const selectedBtn = useSelector(
@@ -53,29 +59,93 @@ const AdminPage = () => {
     fetchProjects();
   }, []);
 
-  const rows: EmpRow[] = [];
+  const projectOptions = useMemo(
+    () => projects.map((p) => ({ id: p._id, name: p.projectName })),
+    [projects]
+  );
 
-   users.forEach((user) => {
-    rows.push({
-      email: user.email || '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      designation: user.designation || '',
-      status: user.status || '',
-      contactNumber: user.contactNumber || '',
-      createdAt: user.createdAt || '',
+  const rows: EmpRow[] = useMemo(() => {
+    // Build quick lookup for supervised and member projects by user id
+    const supervisedByUserId = new Map<string, Set<string>>();
+    const memberByUserId = new Map<string, Set<string>>();
+
+    projects.forEach((p) => {
+      (p.employees || []).forEach((e) => {
+        if (!e?._id) return;
+        if (!memberByUserId.has(e._id)) memberByUserId.set(e._id, new Set());
+        memberByUserId.get(e._id)!.add(p._id);
+      });
+      if (p.supervisor?._id) {
+        const sid = p.supervisor._id;
+        if (!supervisedByUserId.has(sid)) supervisedByUserId.set(sid, new Set());
+        supervisedByUserId.get(sid)!.add(p._id);
+      }
     });
-  });
+
+    return users.map((user) => {
+      const uid = (user as any)._id as string;
+      const supervisedSet = supervisedByUserId.get(uid);
+      const memberSet = memberByUserId.get(uid);
+      const supervisedIds = supervisedSet ? Array.from(supervisedSet) : [];
+      const memberIds = memberSet ? Array.from(memberSet) : [];
+      const idToName = new Map(projects.map((p) => [p._id, p.projectName] as const));
+      return {
+        id: uid,
+        email: user.email || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        designation: user.designation || '',
+        role: user.role || '',
+        supervisedProjects: supervisedIds.map((id) => idToName.get(id) || id).sort(),
+        memberProjects: memberIds.map((id) => idToName.get(id) || id).sort(),
+        status: user.status || '',
+        contactNumber: user.contactNumber || '',
+        createdAt: user.createdAt || '',
+        // attach raw ids for filtering
+        // @ts-ignore
+        supervisedProjectIds: supervisedIds,
+        // @ts-ignore
+        memberProjectIds: memberIds,
+      } as EmpRow & { supervisedProjectIds: string[]; memberProjectIds: string[] };
+    });
+  }, [users, projects]);
+
+  const filteredRows: EmpRow[] = useMemo(() => {
+    let res: (EmpRow & { supervisedProjectIds?: string[]; memberProjectIds?: string[] })[] = rows as any;
+    if (empRoleFilter !== 'all') {
+      res = res.filter((r) => (r.role || '').toLowerCase() === (empRoleFilter === 'employee' ? 'emp' : 'supervisor'));
+    }
+    if (selectedProjectIds.length > 0) {
+      const set = new Set(selectedProjectIds);
+      res = res.filter((r) => {
+        const sp = r.supervisedProjectIds || [];
+        const mp = r.memberProjectIds || [];
+        return sp.some((id) => set.has(id)) || mp.some((id) => set.has(id));
+      });
+    }
+    return res;
+  }, [rows, empRoleFilter, selectedProjectIds]);
 
   // Project rows
-  const projectRows: ProjectRow[] = projects.map(p => ({
+  const projectRows: ProjectRow[] = useMemo(() => projects.map((p) => ({
     id: p._id,
     projectName: p.projectName,
     billable: p.billable ? 'Yes' : 'No',
     createdAt: p.createdAt,
-    employees: (p.employees || []).map(e => ({ id: e._id, name: `${e.firstName} ${e.lastName}`.trim(), designation: e.designation })),
-    supervisor: p.supervisor ? { id: p.supervisor._id, name: `${p.supervisor.firstName} ${p.supervisor.lastName}`.trim(), designation: p.supervisor.designation } : null,
-  }));
+    employees: (p.employees || []).map((e) => ({
+      id: e._id,
+      name: `${e.firstName} ${e.lastName}`.trim(),
+      designation: e.designation,
+    })),
+    supervisor: p.supervisor
+      ? {
+          id: p.supervisor._id,
+          name: `${p.supervisor.firstName} ${p.supervisor.lastName}`.trim(),
+          designation: p.supervisor.designation,
+          email: p.supervisor.email,
+        }
+      : null,
+  })), [projects]);
 
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
@@ -119,15 +189,20 @@ const AdminPage = () => {
             </Box>
           ) : (
             <TableWindowLayout
-              title="Employee Account"
+              title="Employee Accounts"
+              filter={<EmpTableToolbar roleFilter={empRoleFilter} onRoleFilterChange={setEmpRoleFilter} projectsOptions={projectOptions} selectedProjectIds={selectedProjectIds} onSelectedProjectIdsChange={setSelectedProjectIds} />}
               buttons={[
                 <Box sx={{ mt: 2, ml: 2 }}>
-                  <BaseBtn onClick={handleOpenPopup} variant="contained">
-                    Create Employee
+                  <BaseBtn
+                    onClick={handleOpenPopup}
+                    variant="contained"
+                    startIcon={<AddOutlinedIcon />}
+                  >
+                    Employee
                   </BaseBtn>
                 </Box>,
               ]}
-              table={<EmpTable rows={rows} />}
+              table={<EmpTable rows={filteredRows} />}
             />
           )}
 
@@ -157,24 +232,38 @@ const AdminPage = () => {
           ) : (
             <TableWindowLayout
               title="Projects"
-              filter={<ProjectTableToolbar billable={billable} onBillableChange={setBillable} />}
+              filter={
+                <ProjectTableToolbar
+                  billable={billable}
+                  onBillableChange={setBillable}
+                />
+              }
               buttons={[
                 <Box sx={{ mt: 2, ml: 2 }}>
                   <BaseBtn
                     onClick={() => setIsProjectPopupOpen(true)}
                     variant="contained"
+                    startIcon={<AddOutlinedIcon />}
                   >
-                  Create Project
+                    Project
                   </BaseBtn>
                 </Box>,
               ]}
-              table={<ProjectTable rows={projectRows} billableFilter={billable} onRefresh={async () => {
-                try {
-                  const resp = await listProjects();
-                  const data = resp.data?.projects as ProjectListItem[];
-                  setProjects(Array.isArray(data) ? data : []);
-                } catch {}
-              }} />}
+              table={
+                <ProjectTable
+                  rows={projectRows}
+                  billableFilter={billable}
+                  onRefresh={async () => {
+                    try {
+                      const resp = await listProjects();
+                      const data = resp.data?.projects as ProjectListItem[];
+                      setProjects(Array.isArray(data) ? data : []);
+                      // Also refresh users so Emp table reflects role changes (e.g., supervisor promotions/demotions)
+                      await refreshUsers();
+                    } catch {}
+                  }}
+                />
+              }
             />
           )}
 
@@ -186,6 +275,8 @@ const AdminPage = () => {
                 const resp = await listProjects();
                 const data = resp.data?.projects as ProjectListItem[];
                 setProjects(Array.isArray(data) ? data : []);
+                // Keep user roles in sync after project creation
+                await refreshUsers();
               } catch {}
             }}
           />

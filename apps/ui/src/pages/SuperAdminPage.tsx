@@ -14,7 +14,7 @@ import TableWindowLayout, {
 } from '../components/templates/TableWindowLayout'; // Assuming TimeSheetPage is in the same directory
 import { useUsers } from '../hooks/useUsers';
 import EmpTable from '../components/organisms/EmpTable';
-
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 const SuperAdminPage = () => {
   const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Admin);
 
@@ -82,8 +82,8 @@ const SuperAdminPage = () => {
               title="Admin Account"
               buttons={[
                 <Box sx={{ mt: 2, ml: 2 }}>
-                  <BaseBtn onClick={handleOpenPopup} variant="contained">
-                    Create Admin
+                  <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>
+                     Admin
                   </BaseBtn>
                 </Box>,
               ]}

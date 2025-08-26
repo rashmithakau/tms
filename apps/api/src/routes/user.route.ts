@@ -6,7 +6,7 @@ import { UserRole } from "@tms/shared";
 const userhRoutes=Router();
 
 userhRoutes.post("/admin",authenticate([UserRole.SuperAdmin]), registerHandler(UserRole.Admin)); 
-userhRoutes.get("/admin",authenticate([UserRole.SuperAdmin]), getUserHandler(UserRole.Admin)); 
+userhRoutes.get("/admin",authenticate([UserRole.SuperAdmin]), getUserHandler([UserRole.Emp, UserRole.Supervisor])); 
 userhRoutes.post("/emp",authenticate([UserRole.Admin]),registerHandler(UserRole.Emp)); 
 userhRoutes.get("/emp",authenticate([UserRole.Admin]), getUserHandler(UserRole.Emp));
 userhRoutes.get("/supervisor", authenticate([UserRole.Admin]), getUserHandler(UserRole.Supervisor));
