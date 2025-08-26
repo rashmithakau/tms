@@ -29,7 +29,6 @@ export const createTimesheet = async (params: CreateTimesheetParams) => {
     plannedHours: params.plannedHours ?? 0,
     hoursSpent: params.hoursSpent ?? 0,
     billableType: params.billableType,
-    // Status will default to Draft from the model
   });
   return { timesheet: doc };
 };
@@ -122,7 +121,6 @@ export const updateSupervisedTimesheetsStatus = async (
     { $set: { status } }
   );
 
-  // Using any to accommodate different driver versions (matchedCount/modifiedCount)
   return { matched: (result as any).matchedCount ?? 0, modified: (result as any).modifiedCount ?? 0 };
 };
 

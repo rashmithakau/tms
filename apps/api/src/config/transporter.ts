@@ -4,8 +4,8 @@ import { GMAIL_APP_PASSWORD, GMAIL_USER } from '../constants/env';
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: GMAIL_USER, // Your Gmail address
-      pass: GMAIL_APP_PASSWORD, // App password
+      user: GMAIL_USER, 
+      pass: GMAIL_APP_PASSWORD, 
     },
   });
 
