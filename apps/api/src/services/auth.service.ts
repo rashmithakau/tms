@@ -38,11 +38,11 @@ export const loginUser = async ({
 }: LoginParams) => {
   //get the user by email
   const user = await UserModel.findOne({ email });
-  appAssert(user, UNAUTHORIZED, 'Invalid email or password');
+  appAssert(user, UNAUTHORIZED, 'Invalid email');
 
   //validate password
   const isValid = await user.comparePassword(password);
-  appAssert(isValid, UNAUTHORIZED, 'Invalid email or password');
+  appAssert(isValid, UNAUTHORIZED, 'Invalid password');
 
   const userId = user._id;
 
@@ -123,7 +123,6 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
   };
 };
 
-//new added
 export const sendPasswordResetEmail = async (email: string) => {
   //get the user by email
   const user = await UserModel.findOne({ email });
