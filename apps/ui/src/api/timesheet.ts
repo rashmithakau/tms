@@ -1,17 +1,24 @@
+// services/timesheet.service.ts
 import API from '../config/apiClient';
-import { TimesheetStatus } from '@tms/shared';
+import { TimesheetStatus, BillableType } from '@tms/shared';
+
+// --- TypeScript types for weekly timesheets ---
+export type TimesheetItem = {
+  work?: string; // only for Absence
+  projectId?: string; // only for Project
+  hours: string[]; // 7 days
+  descriptions: string[]; // 7 days
+};
+
+
+
+export type TimesheetCategory = {
+  category: 'Project' | 'Absence';
+  items: TimesheetItem[];
+};
 
 export type Timesheet = {
   _id: string;
-  date: string;
-  projectId: string;
-  projectName: string; // populated from project reference
-  taskTitle: string;
-  description?: string;
-  plannedHours?: number;
-  hoursSpent?: number;
-  billableType: 'Billable' | 'Non Billable';
-  status: TimesheetStatus;
   userId?: {
     _id: string;
     firstName: string;
@@ -19,23 +26,34 @@ export type Timesheet = {
     email: string;
     contactNumber?: string;
     designation?: string;
-  }; // populated for supervised timesheets
+  };
+  weekStartDate: string;
+  categories: TimesheetCategory[];
+  status: TimesheetStatus;
+  createdAt: string;
+  updatedAt: string;
 };
 
+// --- API calls ---
 export const listMyTimesheets = async () => {
-  return API.get('/api/timesheets');
+  return API.get<Timesheet[]>('/api/timesheets');
 };
 
 export const listSupervisedTimesheets = async () => {
-  return API.get('/api/timesheets/supervised');
+  return API.get<Timesheet[]>('/api/timesheets/supervised');
 };
 
-export const createMyTimesheet = async (data: Omit<Timesheet, '_id' | 'projectName' | 'userId'>) => {
-  return API.post('/api/timesheets', data);
+export type CreateTimesheetPayload = {
+  weekStartDate: string | Date;
+  categories: TimesheetCategory[];
 };
 
-export const updateMyTimesheet = async (id: string, data: Partial<Omit<Timesheet, '_id' | 'projectName' | 'userId'>>) => {
-  return API.patch(`/api/timesheets/${id}`, data);
+export const createMyTimesheet = async (data: CreateTimesheetPayload) => {
+  return API.post<Timesheet>('/api/timesheets', data);
+};
+
+export const updateMyTimesheet = async (id: string, data: Partial<CreateTimesheetPayload & { status?: TimesheetStatus }>) => {
+  return API.patch<Timesheet>(`/api/timesheets/${id}`, data);
 };
 
 export const deleteMyTimesheet = async (id: string) => {
@@ -46,9 +64,9 @@ export const submitMyDraftTimesheets = async (ids: string[]) => {
   return API.post('/api/timesheets/submit', { ids });
 };
 
-export const updateSupervisedTimesheetsStatusApi = async (ids: string[], status: TimesheetStatus.Approved | TimesheetStatus.Rejected) => {
+export const updateSupervisedTimesheetsStatusApi = async (
+  ids: string[],
+  status: TimesheetStatus.Approved | TimesheetStatus.Rejected
+) => {
   return API.post('/api/timesheets/supervised/status', { ids, status });
 };
-
-
-

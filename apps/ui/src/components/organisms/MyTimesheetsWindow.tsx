@@ -2,19 +2,19 @@ import React, { useMemo, useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
-import TimeSheetTable from './TimeSheetTable';
 import { useTimesheets } from '../../hooks/useTimesheets';
 import { Dayjs } from 'dayjs';
-import { deleteMyTimesheet, submitMyDraftTimesheets } from '../../api/timesheet';
-import TimesheetFormPopup from './TimesheetFormPopup';
+import {
+  deleteMyTimesheet,
+  submitMyDraftTimesheets,
+} from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import FilterMenu, { DateRange } from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
 import { useToast } from '../contexts/ToastContext';
-import AbsenceFormPopup from './AbsenceFormPopup';
-
+import TimeSheetTableCalander from './TimeSheetTableCalander';
 
 const MyTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useTimesheets();
@@ -30,11 +30,13 @@ const MyTimesheetsWindow: React.FC = () => {
 
   const handleOpenPopup = () => setOpen(true);
   const handleClosePopup = () => setOpen(false);
-  const handleOpenAbsencePopup =() => setAbsencePopupOpen(true);
-  const handleCloseAbsencePopup =() => setAbsencePopupOpen(false);
+  const handleOpenAbsencePopup = () => setAbsencePopupOpen(true);
+  const handleCloseAbsencePopup = () => setAbsencePopupOpen(false);
 
   // Filters
-  const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>('All');
+  const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>(
+    'All'
+  );
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>('All');
   const [specificDay, setSpecificDay] = useState<Dayjs | null>(null);
   const [specificMonth, setSpecificMonth] = useState<Dayjs | null>(null);
@@ -42,12 +44,16 @@ const MyTimesheetsWindow: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleFilterByDate = (range: DateRange) => setDateRangeFilter(range);
-  const handleFilterByStatus = (status: TimesheetStatus | 'All') => setStatusFilter(status);
-  
+  const handleFilterByStatus = (status: TimesheetStatus | 'All') =>
+    setStatusFilter(status);
 
   const filteredRows = useMemo(() => {
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
 
     const isInDateRange = (dateIso: string): boolean => {
       const date = new Date(dateIso);
@@ -72,7 +78,10 @@ const MyTimesheetsWindow: React.FC = () => {
 
       if (dateRangeFilter === 'All') return true;
       if (dateRangeFilter === 'Today') {
-        return date >= startOfDay && date < new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+        return (
+          date >= startOfDay &&
+          date < new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000)
+        );
       }
       if (dateRangeFilter === 'This Week') {
         const dayOfWeek = startOfDay.getDay();
@@ -92,32 +101,53 @@ const MyTimesheetsWindow: React.FC = () => {
     };
 
     return rows.filter((r) => {
-      const statusOk = statusFilter === 'All' ? true : r.status === statusFilter;
+      const statusOk =
+        statusFilter === 'All' ? true : r.status === statusFilter;
       const dateOk = isInDateRange(r.date);
       return statusOk && dateOk;
     });
-  }, [rows, statusFilter, dateRangeFilter, specificDay, specificMonth, specificYear]);
+  }, [
+    rows,
+    statusFilter,
+    dateRangeFilter,
+    specificDay,
+    specificMonth,
+    specificYear,
+  ]);
 
   const draftIdsInFiltered = useMemo(
-    () => filteredRows.filter(r => r.status === TimesheetStatus.Draft).map(r => r._id),
+    () =>
+      filteredRows
+        .filter((r) => r.status === TimesheetStatus.Draft)
+        .map((r) => r._id),
     [filteredRows]
   );
 
   const toggleOne = (id: string, checked: boolean) => {
-    setSelectedIds((prev) => checked ? Array.from(new Set([...prev, id])) : prev.filter(x => x !== id));
+    setSelectedIds((prev) =>
+      checked
+        ? Array.from(new Set([...prev, id]))
+        : prev.filter((x) => x !== id)
+    );
   };
 
   const toggleAllDrafts = (checked: boolean, ids: string[]) => {
-    setSelectedIds((prev) => checked ? Array.from(new Set([...prev, ...ids])) : prev.filter(x => !ids.includes(x)));
+    setSelectedIds((prev) =>
+      checked
+        ? Array.from(new Set([...prev, ...ids]))
+        : prev.filter((x) => !ids.includes(x))
+    );
   };
 
   const sendSelected = async () => {
-    const idsToSend = selectedIds.filter(id => draftIdsInFiltered.includes(id));
+    const idsToSend = selectedIds.filter((id) =>
+      draftIdsInFiltered.includes(id)
+    );
     if (idsToSend.length === 0) return;
     try {
       await submitMyDraftTimesheets(idsToSend);
       toast.success('Draft timesheets submitted');
-      setSelectedIds((prev) => prev.filter(id => !idsToSend.includes(id)));
+      setSelectedIds((prev) => prev.filter((id) => !idsToSend.includes(id)));
       await refresh();
     } catch (e) {
       toast.error('Failed to submit drafts');
@@ -167,7 +197,11 @@ const MyTimesheetsWindow: React.FC = () => {
 
               <BaseBtn
                 variant="text"
-                disabled={draftIdsInFiltered.length === 0 || selectedIds.filter(id => draftIdsInFiltered.includes(id)).length === 0}
+                disabled={
+                  draftIdsInFiltered.length === 0 ||
+                  selectedIds.filter((id) => draftIdsInFiltered.includes(id))
+                    .length === 0
+                }
                 onClick={sendSelected}
                 startIcon={<SendOutlinedIcon />}
               >
@@ -179,7 +213,7 @@ const MyTimesheetsWindow: React.FC = () => {
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
               >
-                 Absence
+                Absence
               </BaseBtn>
 
               <BaseBtn
@@ -187,41 +221,13 @@ const MyTimesheetsWindow: React.FC = () => {
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
               >
-                 Time Sheet
+                Time Sheet
               </BaseBtn>
             </Box>,
           ]}
-          table={
-            <TimeSheetTable
-              rows={filteredRows}
-              selectableStatus={[TimesheetStatus.Draft]}
-              selectedIds={selectedIds}
-              onToggleOne={toggleOne}
-              onToggleAll={toggleAllDrafts}
-              onDelete={(row) => setConfirm({ open: true, id: row._id })}
-              onEdit={(row) => setEditing({ open: true, id: row._id })}
-            />
-          }
+          table={<TimeSheetTableCalander />}
         />
       )}
-
-      <TimesheetFormPopup
-        open={open}
-        mode="create"
-        onClose={handleClosePopup}
-        onSuccess={refresh}
-      />
-
-      <AbsenceFormPopup
-        open={absencePopupOpen}
-        isEdit={false}
-        onClose={handleCloseAbsencePopup}
-        onSubmit={async (data) => {
-          console.log('Absence data submitted:', data);
-          handleClosePopup();
-          await refresh();
-        }}
-      />
 
       <ConfirmDialog
         open={confirm.open}
@@ -241,36 +247,8 @@ const MyTimesheetsWindow: React.FC = () => {
           setConfirm({ open: false });
         }}
       />
-
-      {editing.open && (() => {
-        const row = rows.find((r) => r._id === editing.id);
-        if (!row) return null;
-        return (
-          <TimesheetFormPopup
-            open={editing.open}
-            mode="edit"
-            id={editing.id}
-            onClose={() => setEditing({ open: false })}
-            onSuccess={async () => {
-              setEditing({ open: false });
-              await refresh();
-            }}
-            initial={{
-              date: row.date,
-              projectId: row.projectId,
-              taskTitle: row.task,
-              description: row.description,
-              plannedHours: row.plannedHours !== undefined ? String(row.plannedHours) : undefined,
-              hoursSpent: row.hoursSpent !== undefined ? String(row.hoursSpent) : undefined,
-              billableType: row.billableType,
-            }}
-          />
-        );
-      })()}
     </Box>
   );
 };
 
 export default MyTimesheetsWindow;
-
-

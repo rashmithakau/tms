@@ -1,82 +1,110 @@
+// controllers/timesheet.controller.ts
 import { Request, Response } from 'express';
 import catchErrors from '../utils/catchErrors';
-import { OK, CREATED } from '../constants/http';
-import { createTimesheetSchema, submitTimesheetsSchema, updateTimesheetSchema } from '../schemas/timesheet.schema';
-import { createTimesheet, deleteMyTimesheet, listMyTimesheets, listSupervisedTimesheets, submitDraftTimesheets, updateMyTimesheet, updateSupervisedTimesheetsStatus } from '../services/timesheet.service';
+import { OK, CREATED, BAD_REQUEST } from '../constants/http';
+import Timesheet, { ITimesheet } from '../models/timesheet.model';
+import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
+import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
 
+// --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
-  const parsed = createTimesheetSchema.parse(req.body);
   const userId = req.userId as string;
+  const parsed = createTimesheetSchema.parse(req.body);
+  const { weekStartDate, categories } = parsed;
 
-  const result = await createTimesheet({
+  const timesheet = new Timesheet({
     userId,
-    date: new Date(parsed.date as any),
-    projectId: parsed.projectId,
-    taskTitle: parsed.taskTitle,
-    description: parsed.description,
-    plannedHours: parsed.plannedHours,
-    hoursSpent: parsed.hoursSpent,
-    billableType: parsed.billableType
+    weekStartDate: new Date(weekStartDate),
+    status: TimesheetStatus.Draft,
+    categories,
   });
 
+  const result = await timesheet.save();
   return res.status(CREATED).json(result);
 });
 
+// --- List my timesheets ---
 export const listMyTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
-  const result = await listMyTimesheets(userId);
-  return res.status(OK).json(result);
+  const timesheets = await Timesheet.find({ userId }).sort({ weekStartDate: -1 });
+  return res.status(OK).json(timesheets);
 });
 
+// --- List supervised timesheets ---
 export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
-  const result = await listSupervisedTimesheets(supervisorId);
-  return res.status(OK).json(result);
+
+  // Fetch supervised employees from Projects
+  const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedUserIds = Array.from(
+    new Set(
+      supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+    )
+  );
+
+  const timesheets = await Timesheet.find({ userId: { $in: supervisedUserIds } })
+    .sort({ weekStartDate: -1 });
+
+  return res.status(OK).json(timesheets);
 });
 
+// --- Update status of supervised timesheets ---
 export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: Request, res: Response) => {
-  const supervisorId = req.userId as string;
   const { ids, status } = req.body as { ids: string[]; status: TimesheetStatus };
+
   if (![TimesheetStatus.Approved, TimesheetStatus.Rejected].includes(status)) {
-    return res.status(400).json({ message: 'Invalid status. Must be Approved or Rejected' });
+    return res.status(BAD_REQUEST).json({ message: 'Invalid status. Must be Approved or Rejected' });
   }
-  const narrowed = status as TimesheetStatus.Approved | TimesheetStatus.Rejected;
-  const result = await updateSupervisedTimesheetsStatus(supervisorId, ids, narrowed);
+
+  const result = await Timesheet.updateMany(
+    { _id: { $in: ids }, status: TimesheetStatus.Pending },
+    { $set: { status } }
+  );
+
   return res.status(OK).json(result);
 });
 
+// --- Update my timesheet ---
 export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
-  const parsed = updateTimesheetSchema.parse(req.body);
   const userId = req.userId as string;
-  const id = req.params.id;
+  const timesheetId = req.params.id;
 
-  const updateData: any = {};
-  if (parsed.date) updateData.date = new Date(parsed.date as any);
-  if (parsed.projectId) updateData.projectId = parsed.projectId;
-  if (parsed.taskTitle) updateData.taskTitle = parsed.taskTitle;
-  if (parsed.description !== undefined) updateData.description = parsed.description;
-  if (parsed.plannedHours !== undefined) updateData.plannedHours = parsed.plannedHours;
-  if (parsed.hoursSpent !== undefined) updateData.hoursSpent = parsed.hoursSpent;
-  if (parsed.billableType) updateData.billableType = parsed.billableType;
-  if (parsed.status) updateData.status = parsed.status;
+  const parsed = updateTimesheetSchema.parse(req.body);
+  const { weekStartDate, categories, status } = parsed;
 
-  const result = await updateMyTimesheet(userId, id, updateData);
-  return res.status(OK).json(result);
+  const updateData: Partial<ITimesheet> = {};
+  if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
+  //if (categories) updateData.categories = categories;
+  if (status) updateData.status = status;
+
+  const updated = await Timesheet.findOneAndUpdate(
+    { _id: timesheetId, userId },
+    { $set: updateData },
+    { new: true }
+  );
+
+  return res.status(OK).json(updated);
 });
 
+// --- Delete my timesheet ---
 export const deleteMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const id = req.params.id;
-  const result = await deleteMyTimesheet(userId, id);
-  return res.status(OK).json(result);
+  const deleted = await Timesheet.findOneAndDelete({ _id: id, userId });
+  return res.status(OK).json(deleted);
 });
 
+// --- Submit draft timesheets ---
 export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
-  const parsed = submitTimesheetsSchema.parse(req.body);
   const userId = req.userId as string;
-  const result = await submitDraftTimesheets(userId, parsed.ids);
+  const parsed = submitTimesheetsSchema.parse(req.body);
+  const { ids } = parsed;
+
+  const result = await Timesheet.updateMany(
+    { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
+    { $set: { status: TimesheetStatus.Pending } }
+  );
+
   return res.status(OK).json(result);
 });
-
-
