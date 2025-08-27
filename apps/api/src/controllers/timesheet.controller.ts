@@ -6,6 +6,7 @@ import Timesheet, { ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
+import mongoose from 'mongoose';
 
 // --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
@@ -13,11 +14,19 @@ export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   const parsed = createTimesheetSchema.parse(req.body);
   const { weekStartDate, categories } = parsed;
 
+  const convertedCategories = categories.map(cat => ({
+    ...cat,
+    items: cat.items.map(item => ({
+      ...item,
+      projectId: item.projectId ? new mongoose.Types.ObjectId(item.projectId) : undefined
+    }))
+  }));
+
   const timesheet = new Timesheet({
     userId,
     weekStartDate: new Date(weekStartDate),
     status: TimesheetStatus.Draft,
-    categories,
+    categories: convertedCategories,
   });
 
   const result = await timesheet.save();
@@ -75,7 +84,16 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
 
   const updateData: Partial<ITimesheet> = {};
   if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
-  //if (categories) updateData.categories = categories;
+  if (categories) {
+    const convertedCategories = categories.map(cat => ({
+      ...cat,
+      items: cat.items.map(item => ({
+        ...item,
+        projectId: item.projectId ? new mongoose.Types.ObjectId(item.projectId) : undefined
+      }))
+    }));
+    updateData.categories = convertedCategories;
+  }
   if (status) updateData.status = status;
 
   const updated = await Timesheet.findOneAndUpdate(

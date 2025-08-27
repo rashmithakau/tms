@@ -5,7 +5,7 @@ export interface ProjectDocument extends mongoose.Document {
   billable: boolean;
   employees: mongoose.Types.ObjectId[];
   status: boolean;
-  supervisor: mongoose.Types.ObjectId;
+  supervisor?: mongoose.Types.ObjectId;
 }
 
 const projectSchema = new mongoose.Schema<ProjectDocument>(
