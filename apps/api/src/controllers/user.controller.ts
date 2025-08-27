@@ -24,13 +24,7 @@ export const registerHandler = (role: UserRole) =>
     return res.status(CREATED).json(user);
   });
 
-<<<<<<< HEAD
-export const getUserHandler = (role: UserRole) =>
-  catchErrors(async (req: Request, res: Response) => {
-    const user = await getUsersByRole(role);
-    return res.status(OK).json(user);
-  });
-=======
+
   export const getUserHandler = (role: UserRole | UserRole[]) =>
     catchErrors(async (req: Request, res: Response) => {
 
@@ -39,4 +33,4 @@ export const getUserHandler = (role: UserRole) =>
       // Return the created user with a 201 status
       return res.status(OK).json(user);
     });
->>>>>>> db7c329 (chore:employee account)
+
