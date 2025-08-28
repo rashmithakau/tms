@@ -13,7 +13,7 @@ export const getWeekRangeAndUpdateRedux = (
   const weekEndDate = new Date(weekStartDate);
   weekEndDate.setDate(weekStartDate.getDate() + 6);
 
-  dispatch(setWeekStartDate(String(weekStartDate)));
-  dispatch(setWeekEndDate(String(weekEndDate)));
+  dispatch(setWeekStartDate(weekStartDate.toISOString()));
+  dispatch(setWeekEndDate(weekEndDate.toISOString()));
 };
 

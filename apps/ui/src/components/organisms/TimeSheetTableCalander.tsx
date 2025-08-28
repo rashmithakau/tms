@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Table,
   TableHead,
@@ -15,7 +15,7 @@ import {
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import theme from '../../styles/theme';
 import { startOfWeek, addDays, format, isSameWeek, isSameDay } from 'date-fns';
-import { listMyTimesheets, Timesheet } from '../../api/timesheet';
+import { getOrCreateMyTimesheetForWeek, Timesheet } from '../../api/timesheet';
 import { listProjects } from '../../api/project';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
@@ -23,10 +23,13 @@ import {
   setTimesheetData,
   setWeekEndDate,
   setWeekStartDate,
+  setCurrentTimesheetId,
+  setTimesheetStatus,
+  setOriginalDataHash,
 } from '../../store/slices/timesheetSlice';
 
-const getCurrentWeek = () => {
-  const start = startOfWeek(new Date(), { weekStartsOn: 1 }); 
+const buildWeekFrom = (startDate: Date) => {
+  const start = startOfWeek(startDate, { weekStartsOn: 1 });
   return Array.from({ length: 7 }).map((_, i) => ({
     day: format(addDays(start, i), 'EEE dd'),
     date: addDays(start, i),
@@ -57,7 +60,10 @@ const TimeSheetTableCalendar: React.FC = () => {
   } | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const days = getCurrentWeek();
+  const selectedWeekStartIso = useSelector((state: RootState) => state.timesheet.weekStartDate);
+  const selectedWeekStart = useMemo(() => selectedWeekStartIso ? new Date(selectedWeekStartIso) : startOfWeek(new Date(), { weekStartsOn: 1 }), [selectedWeekStartIso]);
+  const days = useMemo(() => buildWeekFrom(selectedWeekStart), [selectedWeekStart]);
+  const timesheetStatus = useSelector((state: RootState) => state.timesheet.status);
   const selectedActivities = useSelector(
     (state: RootState) => state.timesheet.selectedActivities
   );
@@ -72,16 +78,20 @@ const TimeSheetTableCalendar: React.FC = () => {
 
   useEffect(() => {
     dispatch(setTimesheetData(data));
-    dispatch(setWeekStartDate(String(days[0].date)));
-    dispatch(setWeekEndDate(String(days[6].date)));
   }, [data, dispatch]);
+
+  useEffect(() => {
+    // keep redux week range in ISO
+    dispatch(setWeekStartDate(days[0].date.toISOString()));
+    dispatch(setWeekEndDate(days[6].date.toISOString()));
+  }, [dispatch, days]);
 
   // --- Fetch projects + timesheet ---
   useEffect(() => {
     const fetchData = async () => {
       try {
         const projectsResponse = await listProjects();
-        const fetchedProjects = projectsResponse.data || [];
+        const fetchedProjects = (projectsResponse.data as any)?.projects || [];
 
         // Build project rows
         const projectRows: TimesheetItem[] = fetchedProjects.map((project: any) => ({
@@ -91,31 +101,71 @@ const TimeSheetTableCalendar: React.FC = () => {
           descriptions: Array(7).fill(''),
         }));
 
-        // Fetch existing timesheet for current week
-        const timesheetsResponse = await listMyTimesheets();
-        const currentWeekStart = days[0].date;
-
-        const existing = timesheetsResponse.data?.find((ts: Timesheet) =>
-          isSameWeek(new Date(ts.weekStartDate), currentWeekStart, { weekStartsOn: 1 })
-        );
-
+        // Fetch or create timesheet for current week
+        const resp = await getOrCreateMyTimesheetForWeek(days[0].date.toISOString());
+        const existing: Timesheet | undefined = (resp.data as any).timesheet;
         if (existing) {
-          setData(existing.categories);
+          dispatch(setCurrentTimesheetId(existing._id));
+          dispatch(setTimesheetStatus(existing.status as any));
+          const existingData: any[] = (existing as any).data || [];
+          // ensure Absence category includes newly selected activities (if Draft)
+          let nextData = existingData;
+          if ((existing.status as any) === 'Draft') {
+            // Merge in missing Project rows
+            const projectCatIndex = nextData.findIndex((c) => c.category === 'Project');
+            if (projectCatIndex >= 0) {
+              const presentProjectIds = new Set(
+                (nextData[projectCatIndex].items || []).map((it: any) => it.projectId)
+              );
+              const newProjectItems = projectRows.filter(
+                (row) => row.projectId && !presentProjectIds.has(row.projectId)
+              );
+              if (newProjectItems.length > 0) {
+                nextData = nextData.map((c, i) =>
+                  i === projectCatIndex ? { ...c, items: [...c.items, ...newProjectItems] } : c
+                );
+              }
+            } else if (projectRows.length > 0) {
+              nextData = [{ category: 'Project', items: projectRows }, ...nextData];
+            }
+            const absenceCatIndex = nextData.findIndex((c) => c.category === 'Absence');
+            if (absenceCatIndex >= 0) {
+              const presentWorks = new Set(
+                (nextData[absenceCatIndex].items || []).map((it: any) => it.work)
+              );
+              const newItems = absenceRows.filter((row) => row.work && !presentWorks.has(row.work));
+              if (newItems.length > 0) {
+                nextData = nextData.map((c, i) =>
+                  i === absenceCatIndex ? { ...c, items: [...c.items, ...newItems] } : c
+                );
+              }
+            } else if (absenceRows.length > 0) {
+              nextData = [...nextData, { category: 'Absence', items: absenceRows }];
+            }
+          }
+          setData(nextData);
+          dispatch(setOriginalDataHash(JSON.stringify(nextData)));
         } else {
           setData([
             { category: 'Project', items: projectRows },
             { category: 'Absence', items: absenceRows },
           ]);
+          const initial = [
+            { category: 'Project', items: projectRows },
+            { category: 'Absence', items: absenceRows },
+          ];
+          dispatch(setOriginalDataHash(JSON.stringify(initial)));
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
       }
     };
     fetchData();
-  }, [selectedActivities]);
+  }, [selectedActivities, days, dispatch]);
 
   // --- Hours edit ---
   const handleCellClick = (catIndex: number, rowIndex: number, colIndex: number) => {
+    if (timesheetStatus && timesheetStatus !== 'Draft') return; // read-only when not Draft
     setEditCell({ cat: catIndex, row: rowIndex, col: colIndex });
   };
 

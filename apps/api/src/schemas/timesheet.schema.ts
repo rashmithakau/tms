@@ -18,13 +18,13 @@ const CategorySchema = z.object({
 // --- Create Timesheet ---
 export const createTimesheetSchema = z.object({
   weekStartDate: z.string().or(z.date()),
-  categories: z.array(CategorySchema).min(1),
+  data: z.array(CategorySchema).min(0).default([]),
 });
 
 // --- Update Timesheet ---
 export const updateTimesheetSchema = z.object({
   weekStartDate: z.string().or(z.date()).optional(),
-  categories: z.array(CategorySchema).optional(),
+  data: z.array(CategorySchema).optional(),
   status: z.nativeEnum(TimesheetStatus).optional(),
 });
 

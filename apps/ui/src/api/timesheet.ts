@@ -35,7 +35,7 @@ export type Timesheet = {
 
 // --- API calls ---
 export const listMyTimesheets = async () => {
-  return API.get<Timesheet[]>('/api/timesheets');
+  return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
 };
 
 export const listSupervisedTimesheets = async () => {
@@ -68,4 +68,9 @@ export const updateSupervisedTimesheetsStatusApi = async (
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected
 ) => {
   return API.post('/api/timesheets/supervised/status', { ids, status });
+};
+
+export const getOrCreateMyTimesheetForWeek = async (weekStartDateIso?: string) => {
+  const params = weekStartDateIso ? { params: { weekStartDate: weekStartDateIso } } : undefined;
+  return API.get<{ timesheet?: Timesheet; timesheetId?: string; timesheets?: Timesheet[] }>('/api/timesheets/week', params as any);
 };
