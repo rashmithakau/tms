@@ -10,6 +10,7 @@ import {
   updateProjectStaff,
   softDeleteProject,
 } from '../services/project.service';
+import { UserRole } from '@tms/shared';
 
 export const createHandler = catchErrors(async (req, res) => {
   const parsedUi = createProjectFromUiSchema.parse(req.body);
@@ -25,8 +26,10 @@ export const createHandler = catchErrors(async (req, res) => {
   return res.status(CREATED).json(project);
 });
 
-export const listHandler = catchErrors(async (_req, res) => {
-  const result = await listProjects();
+export const listHandler = catchErrors(async (req, res) => {
+  const userId = req.userId as string;
+  const userRole = req.userRole as UserRole;
+  const result = await listProjects(userId, userRole);
   return res.status(OK).json(result);
 });
 

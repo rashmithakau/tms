@@ -45,7 +45,7 @@ export const listSupervisedTimesheets = async () => {
 
 export type CreateTimesheetPayload = {
   weekStartDate: string | Date;
-  categories: TimesheetCategory[];
+  data: TimesheetCategory[];
 };
 
 export const createMyTimesheet = async (data: CreateTimesheetPayload) => {

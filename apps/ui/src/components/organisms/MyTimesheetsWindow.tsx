@@ -15,23 +15,37 @@ import FilterMenu, { DateRange } from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
 import { useToast } from '../contexts/ToastContext';
 import TimeSheetTableCalander from './TimeSheetTableCalander';
+import SelectActivityPopup from './SelectActivityPopup';
+import SaveIcon from '@mui/icons-material/Save';
+import {createMyTimesheet} from '../../api/timesheet'
+import { useSelector } from 'react-redux';
+import { setWeekStartDate } from '../../store/slices/timesheetSlice';
+import { data } from 'react-router';
 
 const MyTimesheetsWindow: React.FC = () => {
+  const timesheetData = useSelector((state:any) => state.timesheet);
+  const payload={
+      weekStartDate:timesheetData.weekStartDate,
+      data:timesheetData.timesheetData
+  }
+  const [isActivityPopupOpen, setActivityPopupOpen] = useState(false);
+
+  const handleActivityOpenPopup = () => {
+    setActivityPopupOpen(true);
+  };
+
+  const handleActivityClosePopup = () => {
+    setActivityPopupOpen(false);
+  };
   const { rows, isLoading, refresh } = useTimesheets();
   const toast = useToast();
   const [open, setOpen] = useState(false);
-  const [absencePopupOpen, setAbsencePopupOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
   const [editing, setEditing] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
-
-  const handleOpenPopup = () => setOpen(true);
-  const handleClosePopup = () => setOpen(false);
-  const handleOpenAbsencePopup = () => setAbsencePopupOpen(true);
-  const handleCloseAbsencePopup = () => setAbsencePopupOpen(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>(
@@ -205,24 +219,30 @@ const MyTimesheetsWindow: React.FC = () => {
                 onClick={sendSelected}
                 startIcon={<SendOutlinedIcon />}
               >
-                Send selected
+                Sign And Submit
+              </BaseBtn>
+              <BaseBtn
+                onClick={()=>{
+                  console.log(payload)
+                  createMyTimesheet(payload);
+                }}
+                variant="text"
+                startIcon={<SaveIcon />}
+              >
+                Save as Draft
               </BaseBtn>
 
               <BaseBtn
-                onClick={handleOpenAbsencePopup}
+                onClick={handleActivityOpenPopup}
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
               >
-                Absence
+                Select Work
               </BaseBtn>
-
-              <BaseBtn
-                onClick={handleOpenPopup}
-                variant="contained"
-                startIcon={<AddOutlinedIcon />}
-              >
-                Time Sheet
-              </BaseBtn>
+              <SelectActivityPopup
+                open={isActivityPopupOpen}
+                onClose={handleActivityClosePopup}
+              />
             </Box>,
           ]}
           table={<TimeSheetTableCalander />}
