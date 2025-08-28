@@ -1,15 +1,14 @@
 // services/timesheet.service.ts
 import API from '../config/apiClient';
-import { TimesheetStatus, BillableType } from '@tms/shared';
+import { TimesheetStatus } from '@tms/shared';
 
-// --- TypeScript types for weekly timesheets ---
+
 export type TimesheetItem = {
   work?: string; // only for Absence
   projectId?: string; // only for Project
   hours: string[]; // 7 days
   descriptions: string[]; // 7 days
 };
-
 
 
 export type TimesheetCategory = {
