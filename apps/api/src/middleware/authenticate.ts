@@ -37,6 +37,7 @@ const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
 
     // Attach user details to the request object
     req.userId = payload.userId;
+    req.userRole = payload.role;
     req.sessionId = payload.sessionId;
 
     const userRole = payload.role as UserRole;

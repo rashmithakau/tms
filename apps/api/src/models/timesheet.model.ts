@@ -1,55 +1,47 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
 import { TimesheetStatus } from '@tms/shared';
 
-// --- Item Schema ---
-const ItemSchema = new Schema(
-  {
-    work: { type: String, required: false }, // only for Absence
-    projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: false }, // only for Project
-    hours: { type: [String], required: true }, // array of hours for 7 days
-    descriptions: { type: [String], default: ['', '', '', '', '', '', ''] }, // array of descriptions for 7 days
-  },
-  { _id: false }
-);
+import mongoose, { Schema, Document } from "mongoose";
 
-// --- Category Schema ---
-const CategorySchema = new Schema(
-  {
-    category: { type: String, required: true }, // "Project" or "Absence"
-    items: { type: [ItemSchema], required: true },
-  },
-  { _id: false }
-);
-
-// --- Timesheet Schema ---
-export interface ITimesheet extends Document {
-  userId: mongoose.Types.ObjectId;
-  status: TimesheetStatus;
-  weekStartDate: Date;
-  categories: Array<{
-    category: string;
-    items: Array<{
-      work?: string; // present if Absence
-      projectId?: mongoose.Types.ObjectId; // present if Project
-      hours: string[];
-      descriptions: string[];
-    }>;
-  }>;
+interface ITimesheetItem {
+  work: string;
+  projectId?: string;       
+  hours: string[];
+  descriptions: string[];
 }
 
-const TimesheetSchema: Schema = new Schema(
-  {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    weekStartDate: { type: Date, required: true },
-    status: { type: String, enum: Object.values(TimesheetStatus), default: TimesheetStatus.Pending },
-    categories: { type: [CategorySchema], required: true },
-  },
-  { timestamps: true }
-);
+interface ITimesheetCategory {
+  category: string;      
+  items: ITimesheetItem[];
+}
 
-const Timesheet: Model<ITimesheet> = mongoose.model<ITimesheet>(
-  'Timesheet',
+export interface ITimesheet extends Document {
+  userId: mongoose.Types.ObjectId;          
+  weekStartDate: Date;    
+  data: ITimesheetCategory[];
+  status: TimesheetStatus; 
+}
+
+const TimesheetItemSchema = new Schema<ITimesheetItem>({
+  work: { type: String, required: true },
+  projectId: { type: String },
+  hours: [{ type: String }],
+  descriptions: [{ type: String }]
+});
+
+const TimesheetCategorySchema = new Schema<ITimesheetCategory>({
+  category: { type: String, required: true },
+  items: [TimesheetItemSchema],
+});
+
+const TimesheetSchema = new Schema<ITimesheet>({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  status: { type: String, enum: Object.values(TimesheetStatus), default: TimesheetStatus.Draft },
+  weekStartDate: { type: Date, required: true }, // store as ISO
+  data: [TimesheetCategorySchema],
+});
+
+export const Timesheet = mongoose.model<ITimesheet>(
+  "Timesheet",
   TimesheetSchema
 );
 
-export default Timesheet;

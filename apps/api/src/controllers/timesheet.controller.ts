@@ -2,34 +2,21 @@
 import { Request, Response } from 'express';
 import catchErrors from '../utils/catchErrors';
 import { OK, CREATED, BAD_REQUEST } from '../constants/http';
-import Timesheet, { ITimesheet } from '../models/timesheet.model';
+import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
-import mongoose from 'mongoose';
+import {createTimesheet} from "../services/timesheet.service";
 
 // --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
-  const parsed = createTimesheetSchema.parse(req.body);
-  const { weekStartDate, categories } = parsed;
+  const {  weekStartDate, data } = req.body;
+  console.log(data);
+  const parsed = createTimesheetSchema.parse({ weekStartDate,categories: data });
+  console.log(parsed);
+  const result =createTimesheet({userId,weekStartDate,data});
 
-  const convertedCategories = categories.map(cat => ({
-    ...cat,
-    items: cat.items.map(item => ({
-      ...item,
-      projectId: item.projectId ? new mongoose.Types.ObjectId(item.projectId) : undefined
-    }))
-  }));
-
-  const timesheet = new Timesheet({
-    userId,
-    weekStartDate: new Date(weekStartDate),
-    status: TimesheetStatus.Draft,
-    categories: convertedCategories,
-  });
-
-  const result = await timesheet.save();
   return res.status(CREATED).json(result);
 });
 
@@ -84,16 +71,7 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
 
   const updateData: Partial<ITimesheet> = {};
   if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
-  if (categories) {
-    const convertedCategories = categories.map(cat => ({
-      ...cat,
-      items: cat.items.map(item => ({
-        ...item,
-        projectId: item.projectId ? new mongoose.Types.ObjectId(item.projectId) : undefined
-      }))
-    }));
-    updateData.categories = convertedCategories;
-  }
+  //if (categories) updateData.categories = categories;
   if (status) updateData.status = status;
 
   const updated = await Timesheet.findOneAndUpdate(

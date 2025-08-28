@@ -1,7 +1,7 @@
 export enum absenceActivity {
     Sick = "Sick",
     Vacation = "Vacation",
-    VolunteerWrok = "Volunteer Wrok",
+    VolunteerWrok = "Volunteer Work",
     EnternalLabor = "Enternal Labor - Non Billable",
     PublicHoliday = "Public Holiday",
     LeaveOfAbsence = "Leave of Absence",
