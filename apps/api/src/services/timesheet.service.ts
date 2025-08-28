@@ -3,7 +3,7 @@ import { TimesheetStatus } from '@tms/shared';
 import { Timesheet } from '../models/timesheet.model';
 
 interface ITimesheetItem {
-  work: string;
+  work?: string;
   projectId?: string; // only for Project category
   hours: string[]; // e.g. ["08.00", "00.00", ...]
   descriptions: string[]; // e.g. ["dev work", "", ...]

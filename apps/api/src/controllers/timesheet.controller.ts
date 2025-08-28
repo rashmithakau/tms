@@ -1,7 +1,7 @@
 // controllers/timesheet.controller.ts
 import { Request, Response } from 'express';
 import catchErrors from '../utils/catchErrors';
-import { OK, CREATED, BAD_REQUEST } from '../constants/http';
+import { OK, CREATED, BAD_REQUEST, FORBIDDEN, NOT_FOUND } from '../constants/http';
 import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
@@ -11,9 +11,9 @@ import {createTimesheet,submitDraftTimesheets} from "../services/timesheet.servi
 // --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
-  const {  weekStartDate, data } = req.body;
-  console.log(weekStartDate);
-  const result =createTimesheet({userId,weekStartDate,data});
+  const parsed = createTimesheetSchema.parse(req.body);
+  const { weekStartDate, data } = parsed;
+  const result = await createTimesheet({ userId, weekStartDate, data });
 
   return res.status(CREATED).json(result);
 });
@@ -22,7 +22,7 @@ export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Re
 export const listMyTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const timesheets = await Timesheet.find({ userId }).sort({ weekStartDate: -1 });
-  return res.status(OK).json(timesheets);
+  return res.status(OK).json({ timesheets });
 });
 
 // --- List supervised timesheets ---
@@ -38,9 +38,10 @@ export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, 
   );
 
   const timesheets = await Timesheet.find({ userId: { $in: supervisedUserIds } })
+    .populate('userId', 'firstName lastName email contactNumber designation')
     .sort({ weekStartDate: -1 });
 
-  return res.status(OK).json(timesheets);
+  return res.status(OK).json({ timesheets });
 });
 
 // --- Update status of supervised timesheets ---
@@ -65,11 +66,11 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   const timesheetId = req.params.id;
 
   const parsed = updateTimesheetSchema.parse(req.body);
-  const { weekStartDate, categories, status } = parsed;
+  const { weekStartDate, data, status } = parsed;
 
   const updateData: Partial<ITimesheet> = {};
   if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
-  //if (categories) updateData.categories = categories;
+  if (data) (updateData as any).data = data;
   if (status) updateData.status = status;
 
   const updated = await Timesheet.findOneAndUpdate(
@@ -95,7 +96,22 @@ export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res
   const parsed = submitTimesheetsSchema.parse(req.body);
   const { ids } = parsed;
 
-  const result=submitDraftTimesheets(userId,ids);
+  const result = await submitDraftTimesheets(userId, ids);
 
   return res.status(OK).json(result);
+});
+
+// --- Get or create my timesheet for a given week ---
+export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Request, res: Response) => {
+  const userId = req.userId as string;
+  const weekStartDateRaw = (req.query.weekStartDate as string) || '';
+  const weekStartDate = weekStartDateRaw ? new Date(weekStartDateRaw) : new Date();
+  weekStartDate.setHours(0, 0, 0, 0);
+
+  let ts = await Timesheet.findOne({ userId, weekStartDate });
+  if (!ts) {
+    const created = await createTimesheet({ userId, weekStartDate, data: [] });
+    return res.status(CREATED).json(created);
+  }
+  return res.status(OK).json({ timesheet: ts });
 });

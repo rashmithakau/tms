@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { absenceActivity } from '@tms/shared';
+import { TimesheetStatus, absenceActivity } from '@tms/shared';
 import { TimesheetData } from '../../components/organisms/TimeSheetTableCalander';
 
 interface ITimesheetState {
@@ -8,6 +8,9 @@ interface ITimesheetState {
   timesheetData: TimesheetData[];
   weekStartDate: string | null;
   weekEndDate: string | null;
+  currentTimesheetId: string | null;
+  status: TimesheetStatus | null;
+  originalDataHash: string | null;
 }
 
 const initialState: ITimesheetState = {
@@ -15,6 +18,9 @@ const initialState: ITimesheetState = {
   timesheetData: [],
   weekStartDate: null,
   weekEndDate: null,
+  currentTimesheetId: null,
+  status: null,
+  originalDataHash: null,
 };
 
 const timesheetSlice = createSlice({
@@ -36,9 +42,18 @@ const timesheetSlice = createSlice({
     setWeekEndDate: (state, action: PayloadAction<string | null>) => {
       state.weekEndDate = action.payload;
     },
+    setCurrentTimesheetId: (state, action: PayloadAction<string | null>) => {
+      state.currentTimesheetId = action.payload;
+    },
+    setTimesheetStatus: (state, action: PayloadAction<TimesheetStatus | null>) => {
+      state.status = action.payload;
+    },
+    setOriginalDataHash: (state, action: PayloadAction<string | null>) => {
+      state.originalDataHash = action.payload;
+    },
   },
 });
 
 export default timesheetSlice.reducer;
-export const { setSelectedActivities, setTimesheetData, setWeekStartDate,setWeekEndDate } =
+export const { setSelectedActivities, setTimesheetData, setWeekStartDate, setWeekEndDate, setCurrentTimesheetId, setTimesheetStatus, setOriginalDataHash } =
   timesheetSlice.actions;

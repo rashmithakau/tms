@@ -47,27 +47,27 @@ export const createProject = async (data: CreateProjectParams) => {
   };
 };
 
-export const listProjects = async (userId:string,userRole:UserRole) => {
-  switch(userRole){
-    case UserRole.Emp||UserRole.Supervisor:{
+export const listProjects = async (userId: string, userRole: UserRole) => {
+  switch (userRole) {
+    case UserRole.Emp:
+    case UserRole.Supervisor: {
       const projects = await ProjectModel.find({ status: true, employees: userId })
-      .sort({ createdAt: -1 })
-      .populate({ path: 'employees', select: 'firstName lastName email designation' })
-      .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
-      console.log("projects",projects);
-      return projects;
+        .sort({ createdAt: -1 })
+        .populate({ path: 'employees', select: 'firstName lastName email designation' })
+        .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
+      return { projects };
     }
-    case UserRole.Admin||UserRole.SuperAdmin:{
+    case UserRole.Admin:
+    case UserRole.SuperAdmin: {
       const projects = await ProjectModel.find({ status: true })
-      .sort({ createdAt: -1 })
-      .populate({ path: 'employees', select: 'firstName lastName email designation' })
-      .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
-    return { projects };
+        .sort({ createdAt: -1 })
+        .populate({ path: 'employees', select: 'firstName lastName email designation' })
+        .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
+      return { projects };
     }
     default:
-      return [];
+      return { projects: [] };
   }
-
 };
 
 export const updateProjectStaff = async (
