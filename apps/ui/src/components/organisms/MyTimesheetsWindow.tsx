@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import {useState} from 'react';
+import { Box, CircularProgress, IconButton } from '@mui/material';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useTimesheets } from '../../hooks/useTimesheets';
-import { Dayjs } from 'dayjs';
 import {
   deleteMyTimesheet,
   submitMyDraftTimesheets,
@@ -11,23 +10,22 @@ import {
 import ConfirmDialog from '../molecules/ConfirmDialog';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
-import FilterMenu, { DateRange } from './EmpTimeSheetFilterMenu';
-import { TimesheetStatus } from '@tms/shared';
 import { useToast } from '../contexts/ToastContext';
 import TimeSheetTableCalander from './TimeSheetTableCalander';
 import SelectActivityPopup from './SelectActivityPopup';
 import SaveIcon from '@mui/icons-material/Save';
-import {createMyTimesheet} from '../../api/timesheet'
-import { useSelector } from 'react-redux';
-import { setWeekStartDate } from '../../store/slices/timesheetSlice';
-import { data } from 'react-router';
+import { createMyTimesheet } from '../../api/timesheet';
+import { useDispatch, useSelector } from 'react-redux';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { getWeekRangeAndUpdateRedux } from '../../utils/getWeekRangeAndUpdateRedux';
 
 const MyTimesheetsWindow: React.FC = () => {
-  const timesheetData = useSelector((state:any) => state.timesheet);
-  const payload={
-      weekStartDate:timesheetData.weekStartDate,
-      data:timesheetData.timesheetData
-  }
+  const timesheetData = useSelector((state: any) => state.timesheet);
+  const payload = {
+    weekStartDate: timesheetData.weekStartDate,
+    data: timesheetData.timesheetData,
+  };
   const [isActivityPopupOpen, setActivityPopupOpen] = useState(false);
 
   const handleActivityOpenPopup = () => {
@@ -39,134 +37,38 @@ const MyTimesheetsWindow: React.FC = () => {
   };
   const { rows, isLoading, refresh } = useTimesheets();
   const toast = useToast();
-  const [open, setOpen] = useState(false);
+
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
-  const [editing, setEditing] = useState<{ open: boolean; id?: string }>({
-    open: false,
-  });
 
-  // Filters
-  const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>(
-    'All'
-  );
-  const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>('All');
-  const [specificDay, setSpecificDay] = useState<Dayjs | null>(null);
-  const [specificMonth, setSpecificMonth] = useState<Dayjs | null>(null);
-  const [specificYear, setSpecificYear] = useState<Dayjs | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const handleSubmit = async () => {
 
-  const handleFilterByDate = (range: DateRange) => setDateRangeFilter(range);
-  const handleFilterByStatus = (status: TimesheetStatus | 'All') =>
-    setStatusFilter(status);
-
-  const filteredRows = useMemo(() => {
-    const now = new Date();
-    const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-    const isInDateRange = (dateIso: string): boolean => {
-      const date = new Date(dateIso);
-
-      // Specific selections take precedence
-      if (specificDay) {
-        return (
-          date.getFullYear() === specificDay.year() &&
-          date.getMonth() === specificDay.month() &&
-          date.getDate() === specificDay.date()
-        );
-      }
-      if (specificMonth) {
-        return (
-          date.getFullYear() === specificMonth.year() &&
-          date.getMonth() === specificMonth.month()
-        );
-      }
-      if (specificYear) {
-        return date.getFullYear() === specificYear.year();
-      }
-
-      if (dateRangeFilter === 'All') return true;
-      if (dateRangeFilter === 'Today') {
-        return (
-          date >= startOfDay &&
-          date < new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000)
-        );
-      }
-      if (dateRangeFilter === 'This Week') {
-        const dayOfWeek = startOfDay.getDay();
-        const diffToMonday = (dayOfWeek + 6) % 7; // Monday as start
-        const startOfWeek = new Date(startOfDay);
-        startOfWeek.setDate(startOfDay.getDate() - diffToMonday);
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 7);
-        return date >= startOfWeek && date < endOfWeek;
-      }
-      if (dateRangeFilter === 'This Month') {
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        return date >= startOfMonth && date < endOfMonth;
-      }
-      return true;
-    };
-
-    return rows.filter((r) => {
-      const statusOk =
-        statusFilter === 'All' ? true : r.status === statusFilter;
-      const dateOk = isInDateRange(r.date);
-      return statusOk && dateOk;
-    });
-  }, [
-    rows,
-    statusFilter,
-    dateRangeFilter,
-    specificDay,
-    specificMonth,
-    specificYear,
-  ]);
-
-  const draftIdsInFiltered = useMemo(
-    () =>
-      filteredRows
-        .filter((r) => r.status === TimesheetStatus.Draft)
-        .map((r) => r._id),
-    [filteredRows]
-  );
-
-  const toggleOne = (id: string, checked: boolean) => {
-    setSelectedIds((prev) =>
-      checked
-        ? Array.from(new Set([...prev, id]))
-        : prev.filter((x) => x !== id)
-    );
-  };
-
-  const toggleAllDrafts = (checked: boolean, ids: string[]) => {
-    setSelectedIds((prev) =>
-      checked
-        ? Array.from(new Set([...prev, ...ids]))
-        : prev.filter((x) => !ids.includes(x))
-    );
-  };
-
-  const sendSelected = async () => {
-    const idsToSend = selectedIds.filter((id) =>
-      draftIdsInFiltered.includes(id)
-    );
-    if (idsToSend.length === 0) return;
     try {
-      await submitMyDraftTimesheets(idsToSend);
+      await submitMyDraftTimesheets(["ids"]);
       toast.success('Draft timesheets submitted');
-      setSelectedIds((prev) => prev.filter((id) => !idsToSend.includes(id)));
       await refresh();
     } catch (e) {
       toast.error('Failed to submit drafts');
     }
   };
+
+  const dispatch = useDispatch();
+  const currentWeekStartDate = useSelector((state: any) => state.timesheet.weekStartDate);
+
+  const handleNextWeek = () => {
+    getWeekRangeAndUpdateRedux(1, currentWeekStartDate, dispatch);
+  };
+
+  const handlePreviousWeek = () => {
+    getWeekRangeAndUpdateRedux(-1, currentWeekStartDate, dispatch);
+  };
+
+  const handleSaveAsDraft=() => {
+    console.log(payload);
+    createMyTimesheet(payload);
+    toast.success('Timesheet saved as draft');
+  }
 
   return (
     <Box sx={{ padding: 2, height: '93%' }}>
@@ -189,49 +91,39 @@ const MyTimesheetsWindow: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              <FilterMenu
-                selectedDateRange={dateRangeFilter}
-                selectedStatus={statusFilter}
-                onFilterByDate={handleFilterByDate}
-                onFilterByStatus={handleFilterByStatus}
-                selectedDay={specificDay}
-                selectedMonth={specificMonth}
-                selectedYear={specificYear}
-                onChangeDay={setSpecificDay}
-                onChangeMonth={setSpecificMonth}
-                onChangeYear={setSpecificYear}
-                onClear={() => {
-                  setDateRangeFilter('All');
-                  setStatusFilter('All');
-                  setSpecificDay(null);
-                  setSpecificMonth(null);
-                  setSpecificYear(null);
-                }}
-              />
 
+              <IconButton onClick={handlePreviousWeek}>
+                <ArrowBackIcon sx={{ color: (theme) => theme.palette.primary.main }}/>
+              </IconButton>
+              {new Date(timesheetData.weekStartDate).toLocaleDateString(
+                'en-US',
+                { weekday: 'short', month: 'short', day: '2-digit' }
+              )}
+              &nbsp;to&nbsp;
+              {new Date(timesheetData.weekEndDate).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+              })}
+              <IconButton onClick={handleNextWeek}>
+              <ArrowForwardIcon sx={{ color: (theme) => theme.palette.primary.main }} />
+              </IconButton>
               <BaseBtn
                 variant="text"
-                disabled={
-                  draftIdsInFiltered.length === 0 ||
-                  selectedIds.filter((id) => draftIdsInFiltered.includes(id))
-                    .length === 0
-                }
-                onClick={sendSelected}
+                disabled={false}
+                onClick={handleSubmit}
                 startIcon={<SendOutlinedIcon />}
               >
                 Sign And Submit
               </BaseBtn>
               <BaseBtn
-                onClick={()=>{
-                  console.log(payload)
-                  createMyTimesheet(payload);
-                }}
+                onClick={handleSaveAsDraft}
                 variant="text"
                 startIcon={<SaveIcon />}
               >
                 Save as Draft
               </BaseBtn>
-
               <BaseBtn
                 onClick={handleActivityOpenPopup}
                 variant="contained"

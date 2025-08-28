@@ -6,15 +6,13 @@ import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
-import {createTimesheet} from "../services/timesheet.service";
+import {createTimesheet,submitDraftTimesheets} from "../services/timesheet.service";
 
 // --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const {  weekStartDate, data } = req.body;
-  console.log(data);
-  const parsed = createTimesheetSchema.parse({ weekStartDate,categories: data });
-  console.log(parsed);
+  console.log(weekStartDate);
   const result =createTimesheet({userId,weekStartDate,data});
 
   return res.status(CREATED).json(result);
@@ -97,10 +95,7 @@ export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res
   const parsed = submitTimesheetsSchema.parse(req.body);
   const { ids } = parsed;
 
-  const result = await Timesheet.updateMany(
-    { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
-    { $set: { status: TimesheetStatus.Pending } }
-  );
+  const result=submitDraftTimesheets(userId,ids);
 
   return res.status(OK).json(result);
 });

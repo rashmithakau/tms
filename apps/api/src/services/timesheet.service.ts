@@ -30,7 +30,7 @@ export const createTimesheet = async (params: CreateTimesheetParams) => {
     userId: params.userId,
     weekStartDate: params.weekStartDate,
     status: TimesheetStatus.Draft,
-    categories: params.data,
+    data: params.data,
   });
   return { timesheet: doc };
 };
@@ -86,15 +86,15 @@ export const createTimesheet = async (params: CreateTimesheetParams) => {
 //   return { success: true };
 // };
 
-// // --- Submit draft timesheets ---
-// export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
-//   const result = await Timesheet.updateMany(
-//     { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
-//     { $set: { status: TimesheetStatus.Pending } }
-//   );
+// --- Submit draft timesheets ---
+export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
+  const result = await Timesheet.updateMany(
+    { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
+    { $set: { status: TimesheetStatus.Pending } }
+  );
 
-//   return { matched: (result as any).matchedCount, modified: (result as any).modifiedCount };
-// };
+  return { matched: (result as any).matchedCount, modified: (result as any).modifiedCount };
+};
 
 // // --- Update status of supervised timesheets ---
 // export const updateSupervisedTimesheetsStatus = async (
