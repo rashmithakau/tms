@@ -1,40 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Table,
-  TableHead,
-  TableRow,
-  TableCell,
   TableBody,
   TableContainer,
-  IconButton,
-  Tooltip,
   Box,
-  InputBase,
-  Popover,
+  CircularProgress,
+  Alert,
+  Typography,
 } from '@mui/material';
-import { EditNote as EditNoteIcon } from '@mui/icons-material';
-import theme from '../../styles/theme';
-import { startOfWeek, addDays, format, isSameWeek, isSameDay } from 'date-fns';
-import { getOrCreateMyTimesheetForWeek, Timesheet } from '../../api/timesheet';
-import { listProjects } from '../../api/project';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../store/store';
-import {
-  setTimesheetData,
-  setWeekEndDate,
-  setWeekStartDate,
-  setCurrentTimesheetId,
-  setTimesheetStatus,
-  setOriginalDataHash,
-} from '../../store/slices/timesheetSlice';
-
-const buildWeekFrom = (startDate: Date) => {
-  const start = startOfWeek(startDate, { weekStartsOn: 1 });
-  return Array.from({ length: 7 }).map((_, i) => ({
-    day: format(addDays(start, i), 'EEE dd'),
-    date: addDays(start, i),
-  }));
-};
+import TimesheetWeekHeader from '../molecules/TimesheetWeekHeader';
+import TimesheetRow from '../molecules/TimesheetRow';
+import TimesheetTotalRow from '../molecules/TimesheetTotalRow';
+import DescriptionPopover from '../molecules/DescriptionPopover';
+import { useTimesheetCalendar } from '../../hooks/useTimesheetCalendar';
+import { useTimesheetCalculations } from '../../hooks/useTimesheetCalculations';
 
 export interface TimesheetItem {
   work?: string;
@@ -49,9 +28,14 @@ export interface TimesheetData {
 }
 
 const TimeSheetTableCalendar: React.FC = () => {
-  const dispatch = useDispatch();
-  const [data, setData] = useState<TimesheetData[]>([]);
-  const [editCell, setEditCell] = useState<{ cat: number; row: number; col: number } | null>(null);
+  const { data, days, loading, error, timesheetStatus, updateTimesheetData, isCreatingTimesheet } = useTimesheetCalendar();
+  const { getColumnTotals, calcGrandTotal } = useTimesheetCalculations(data);
+  
+  const [editCell, setEditCell] = useState<{
+    cat: number;
+    row: number;
+    col: number;
+  } | null>(null);
 
   const [editDescription, setEditDescription] = useState<{
     cat: number;
@@ -60,112 +44,16 @@ const TimeSheetTableCalendar: React.FC = () => {
   } | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const selectedWeekStartIso = useSelector((state: RootState) => state.timesheet.weekStartDate);
-  const selectedWeekStart = useMemo(() => selectedWeekStartIso ? new Date(selectedWeekStartIso) : startOfWeek(new Date(), { weekStartsOn: 1 }), [selectedWeekStartIso]);
-  const days = useMemo(() => buildWeekFrom(selectedWeekStart), [selectedWeekStart]);
-  const timesheetStatus = useSelector((state: RootState) => state.timesheet.status);
-  const selectedActivities = useSelector(
-    (state: RootState) => state.timesheet.selectedActivities
-  );
-
-  const absenceRows: TimesheetItem[] = selectedActivities.map(
-    (activity: string) => ({
-      work: activity,
-      hours: Array(7).fill('00.00'),
-      descriptions: Array(7).fill(''),
-    })
-  );
-
-  useEffect(() => {
-    dispatch(setTimesheetData(data));
-  }, [data, dispatch]);
-
-  useEffect(() => {
-    // keep redux week range in ISO
-    dispatch(setWeekStartDate(days[0].date.toISOString()));
-    dispatch(setWeekEndDate(days[6].date.toISOString()));
-  }, [dispatch, days]);
-
-  // --- Fetch projects + timesheet ---
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const projectsResponse = await listProjects();
-        const fetchedProjects = (projectsResponse.data as any)?.projects || [];
-
-        // Build project rows
-        const projectRows: TimesheetItem[] = fetchedProjects.map((project: any) => ({
-          work: project.projectName,
-          projectId: project._id,
-          hours: Array(7).fill('00.00'),
-          descriptions: Array(7).fill(''),
-        }));
-
-        // Fetch or create timesheet for current week
-        const resp = await getOrCreateMyTimesheetForWeek(days[0].date.toISOString());
-        const existing: Timesheet | undefined = (resp.data as any).timesheet;
-        if (existing) {
-          dispatch(setCurrentTimesheetId(existing._id));
-          dispatch(setTimesheetStatus(existing.status as any));
-          const existingData: any[] = (existing as any).data || [];
-          // ensure Absence category includes newly selected activities (if Draft)
-          let nextData = existingData;
-          if ((existing.status as any) === 'Draft') {
-            // Merge in missing Project rows
-            const projectCatIndex = nextData.findIndex((c) => c.category === 'Project');
-            if (projectCatIndex >= 0) {
-              const presentProjectIds = new Set(
-                (nextData[projectCatIndex].items || []).map((it: any) => it.projectId)
-              );
-              const newProjectItems = projectRows.filter(
-                (row) => row.projectId && !presentProjectIds.has(row.projectId)
-              );
-              if (newProjectItems.length > 0) {
-                nextData = nextData.map((c, i) =>
-                  i === projectCatIndex ? { ...c, items: [...c.items, ...newProjectItems] } : c
-                );
-              }
-            } else if (projectRows.length > 0) {
-              nextData = [{ category: 'Project', items: projectRows }, ...nextData];
-            }
-            const absenceCatIndex = nextData.findIndex((c) => c.category === 'Absence');
-            if (absenceCatIndex >= 0) {
-              const presentWorks = new Set(
-                (nextData[absenceCatIndex].items || []).map((it: any) => it.work)
-              );
-              const newItems = absenceRows.filter((row) => row.work && !presentWorks.has(row.work));
-              if (newItems.length > 0) {
-                nextData = nextData.map((c, i) =>
-                  i === absenceCatIndex ? { ...c, items: [...c.items, ...newItems] } : c
-                );
-              }
-            } else if (absenceRows.length > 0) {
-              nextData = [...nextData, { category: 'Absence', items: absenceRows }];
-            }
-          }
-          setData(nextData);
-          dispatch(setOriginalDataHash(JSON.stringify(nextData)));
-        } else {
-          setData([
-            { category: 'Project', items: projectRows },
-            { category: 'Absence', items: absenceRows },
-          ]);
-          const initial = [
-            { category: 'Project', items: projectRows },
-            { category: 'Absence', items: absenceRows },
-          ];
-          dispatch(setOriginalDataHash(JSON.stringify(initial)));
-        }
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      }
-    };
-    fetchData();
-  }, [selectedActivities, days, dispatch]);
+  // Read-only state
+  const isReadOnly = timesheetStatus !== 'Draft';
 
   // --- Hours edit ---
-  const handleCellClick = (catIndex: number, rowIndex: number, colIndex: number) => {
-    if (timesheetStatus && timesheetStatus !== 'Draft') return; // read-only when not Draft
+  const handleCellClick = (
+    catIndex: number,
+    rowIndex: number,
+    colIndex: number
+  ) => {
+    if (isReadOnly) return;
     setEditCell({ cat: catIndex, row: rowIndex, col: colIndex });
   };
 
@@ -175,13 +63,22 @@ const TimeSheetTableCalendar: React.FC = () => {
     colIndex: number,
     value: string
   ) => {
-    if (value && !/^\d{0,2}(\.\d{0,2})?$/.test(value)) return;
+    updateTimesheetData(data.map((category, catIdx) => {
+      if (catIdx !== catIndex) return category;
+      return {
+        ...category,
+        items: category.items.map((item, rowIdx) => {
+          if (rowIdx !== rowIndex) return item;
+          const newHours = [...item.hours];
+          newHours[colIndex] = value.trim() === '' ? '00.00' : value;
+          return { ...item, hours: newHours };
+        })
+      };
+    }));
+  };
 
-    setData((prev) => {
-      const newData = structuredClone(prev);
-      newData[catIndex].items[rowIndex].hours[colIndex] = value.trim() === '' ? '00.00' : value;
-      return newData;
-    });
+  const handleHourBlur = () => {
+    setEditCell(null);
   };
 
   // --- Description edit ---
@@ -191,183 +88,118 @@ const TimeSheetTableCalendar: React.FC = () => {
     rowIndex: number,
     colIndex: number
   ) => {
+    if (isReadOnly) return;
     setAnchorEl(e.currentTarget);
     setEditDescription({ cat: catIndex, row: rowIndex, col: colIndex });
   };
 
-  const handleDescriptionChange = (
-    catIndex: number,
-    rowIndex: number,
-    colIndex: number,
-    value: string
-  ) => {
-    setData((prev) => {
-      const newData = structuredClone(prev);
-      newData[catIndex].items[rowIndex].descriptions[colIndex] = value;
-      return newData;
-    });
+  const handleDescriptionChange = (value: string) => {
+    if (!editDescription) return;
+    
+    const { cat: catIndex, row: rowIndex, col: colIndex } = editDescription;
+    updateTimesheetData(data.map((category, catIdx) => {
+      if (catIdx !== catIndex) return category;
+      return {
+        ...category,
+        items: category.items.map((item, rowIdx) => {
+          if (rowIdx !== rowIndex) return item;
+          const newDescriptions = [...item.descriptions];
+          newDescriptions[colIndex] = value;
+          return { ...item, descriptions: newDescriptions };
+        })
+      };
+    }));
   };
 
-  // --- Calculations ---
-  const calcRowTotal = (hours: string[]) =>
-    hours.reduce((sum, h) => sum + parseFloat(h || '0'), 0).toFixed(2);
+  const handleDescriptionClose = () => {
+    setAnchorEl(null);
+    setEditDescription(null);
+  };
 
-  const calcColTotal = (colIndex: number) =>
-    data
-      .flatMap((cat) => cat.items)
-      .reduce((sum, row) => sum + parseFloat(row.hours[colIndex] || '0'), 0)
-      .toFixed(2);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setEditCell(null);
+    }
+  };
 
-  const calcGrandTotal = () =>
-    data
-      .flatMap((cat) => cat.items)
-      .reduce(
-        (sum, row) => sum + row.hours.reduce((s, h) => s + parseFloat(h || '0'), 0),
-        0
-      )
-      .toFixed(2);
+  // Show loading state
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+        <CircularProgress />
+        {isCreatingTimesheet && (
+          <Box ml={2}>
+            <Typography variant="body2" color="text.secondary">
+              Creating timesheet for this week...
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <Box p={2}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  const columnTotals = getColumnTotals(7);
+  const grandTotal = calcGrandTotal();
 
   return (
     <Box>
       <TableContainer>
         <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: theme.palette.background.paper }}>
-              <TableCell />
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                Work/Project
-              </TableCell>
-              {days.map((day) => (
-                <TableCell
-                  key={day.day}
-                  align="center"
-                  sx={{
-                    fontWeight: 'bold',
-                    backgroundColor: isSameDay(day.date, new Date())
-                      ? theme.palette.action.hover
-                      : 'inherit',
-                  }}
-                >
-                  {day.day}
-                </TableCell>
-              ))}
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                Total
-              </TableCell>
-            </TableRow>
-          </TableHead>
-
+          <TimesheetWeekHeader days={days} />
+          
           <TableBody>
-            {data.map((cat, catIndex) => (
+            {data.map((category, catIndex) => (
               <React.Fragment key={catIndex}>
-                {cat.items.map((row: TimesheetItem, rowIndex: number) => (
-                  <TableRow key={rowIndex} >
-                    {rowIndex === 0 && (
-                      <TableCell
-                        rowSpan={cat.items.length}
-                        sx={{ fontWeight: 'bold', verticalAlign: 'middle' }}
-                       
-                      >
-                        {cat.category}
-                      </TableCell>
-                    )}
-                    <TableCell>{row.work}</TableCell>
-                    {row.hours.map((hour: string, colIndex: number) => (
-                      <TableCell key={colIndex} align="center">
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {editCell &&
-                          editCell.cat === catIndex &&
-                          editCell.row === rowIndex &&
-                          editCell.col === colIndex ? (
-                            <InputBase
-                              value={hour}
-                              onChange={(e) =>
-                                handleCellChange(catIndex, rowIndex, colIndex, e.target.value)
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') setEditCell(null);
-                              }}
-                              autoFocus
-                              sx={{
-                                width: 35,
-                                borderRadius: 1,
-                                textAlign: 'center',
-                                fontSize: '14px',
-                                backgroundColor: '#fff',
-                              }}
-                              placeholder="00.00"
-                            />
-                          ) : (
-                            <div
-                              onClick={() => handleCellClick(catIndex, rowIndex, colIndex)}
-                              style={{ cursor: 'pointer', marginRight: 4 }}
-                            >
-                              {hour}
-                            </div>
-                          )}
-
-                          <Tooltip title={row.descriptions[colIndex] || 'Add description'}>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => handleDescriptionClick(e, catIndex, rowIndex, colIndex)}
-                            >
-                             <EditNoteIcon fontSize="small" sx={{ color: 'lightgray' }} />
-                            </IconButton>
-                          </Tooltip>
-                        </div>
-                      </TableCell>
-                    ))}
-                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                      {calcRowTotal(row.hours)}
-                    </TableCell>
-                  </TableRow>
+                {category.items.map((item: TimesheetItem, rowIndex: number) => (
+                  <TimesheetRow
+                    key={rowIndex}
+                    item={item}
+                    categoryIndex={catIndex}
+                    rowIndex={rowIndex}
+                    isFirstRowInCategory={rowIndex === 0}
+                    categoryName={category.category}
+                    categoryRowSpan={category.items.length}
+                    editCell={editCell}
+                    readOnly={isReadOnly}
+                    onCellClick={handleCellClick}
+                    onHourChange={handleCellChange}
+                    onHourBlur={handleHourBlur}
+                    onDescriptionClick={handleDescriptionClick}
+                    onKeyDown={handleKeyDown}
+                  />
                 ))}
               </React.Fragment>
             ))}
 
-            {/* Total Row */}
-            <TableRow sx={{ backgroundColor: theme.palette.grey[200] }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
-              <TableCell />
-              {days.map((_, colIndex) => (
-                <TableCell key={colIndex} align="center" sx={{ fontWeight: 'bold' }}>
-                  {calcColTotal(colIndex)}
-                </TableCell>
-              ))}
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                {calcGrandTotal()}
-              </TableCell>
-            </TableRow>
+            <TimesheetTotalRow
+              days={7}
+              columnTotals={columnTotals}
+              grandTotal={grandTotal}
+            />
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Description Popover */}
-      <Popover
+      <DescriptionPopover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        {editDescription && (
-          <InputBase
-            value={
-              data[editDescription.cat].items[editDescription.row].descriptions[editDescription.col]
-            }
-            placeholder="Enter description"
-            onChange={(e) =>
-              handleDescriptionChange(
-                editDescription.cat,
-                editDescription.row,
-                editDescription.col,
-                e.target.value
-              )
-            }
-            autoFocus
-            sx={{ p: 1, width: 250 }}
-          />
-        )}
-      </Popover>
+        description={
+          editDescription
+            ? data[editDescription.cat]?.items[editDescription.row]?.descriptions[editDescription.col] || ''
+            : ''
+        }
+        onClose={handleDescriptionClose}
+        onChange={handleDescriptionChange}
+      />
     </Box>
   );
 };

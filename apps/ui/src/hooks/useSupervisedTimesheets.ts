@@ -12,6 +12,7 @@ export const useSupervisedTimesheets = () => {
       setIsLoading(true);
       setError(null);
       const resp = await listSupervisedTimesheets();
+      console.log('Supervised timesheets response:', resp);
       const data = resp.data?.timesheets || [];
       const mapped: TimeSheetRow[] = data.map((t: any) => ({
         _id: t._id,

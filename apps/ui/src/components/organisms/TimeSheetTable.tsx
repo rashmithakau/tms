@@ -36,6 +36,7 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({
   showEmployee = false,
   onEmployeeClick
 }) => {
+  console.log('Rendering TimeSheetTable with rows:', rows);
   const [openRow, setOpenRow] = useState<number | null>(null);
 
   // Check if timesheet can be edited (only Draft status allows editing)

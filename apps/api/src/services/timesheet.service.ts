@@ -26,13 +26,32 @@ export type UpdateTimesheetParams = Partial<CreateTimesheetParams> & {
 
 // --- Create a new timesheet ---
 export const createTimesheet = async (params: CreateTimesheetParams) => {
-  const doc = await Timesheet.create({
-    userId: params.userId,
-    weekStartDate: params.weekStartDate,
-    status: TimesheetStatus.Draft,
-    data: params.data,
-  });
-  return { timesheet: doc };
+  try {
+    // Calculate weekEndDate (6 days after weekStartDate)
+    const weekStartDate = new Date(params.weekStartDate);
+    const weekEndDate = new Date(weekStartDate);
+    weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+    const doc = await Timesheet.create({
+      userId: params.userId,
+      weekStartDate: weekStartDate,
+      weekEndDate: weekEndDate,
+      status: TimesheetStatus.Draft,
+      data: params.data,
+    });
+    return { timesheet: doc };
+  } catch (error: any) {
+    // Log the error for debugging
+    console.error('Error creating timesheet:', {
+      userId: params.userId,
+      weekStartDate: params.weekStartDate,
+      error: error.message,
+      code: error.code
+    });
+    
+    // Re-throw the error to be handled by the controller
+    throw error;
+  }
 };
 
 // // --- List my timesheets ---

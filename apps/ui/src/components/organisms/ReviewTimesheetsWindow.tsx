@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography, Tabs, Tab } from '@mui/material';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import TimeSheetTable from './TimeSheetTable';
+import TimeSheetTableCalendar from './TimeSheetTableCalander';
 import { useSupervisedTimesheets } from '../../hooks/useSupervisedTimesheets';
 import { Dayjs } from 'dayjs';
 import { deleteMyTimesheet } from '../../api/timesheet';
-import TimesheetFormPopup from './TimesheetFormPopup';
 import ConfirmDialog from '../molecules/ConfirmDialog';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
@@ -21,22 +21,53 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
+
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
-  const [open, setOpen] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
-  const [editing, setEditing] = useState<{ open: boolean; id?: string }>({
-    open: false,
-  });
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   // Expanded employee row index
   const [openRow, setOpenRow] = useState<number | null>(null);
-
-  const handleOpenPopup = () => setOpen(true);
-  const handleClosePopup = () => setOpen(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>('All');
@@ -90,7 +121,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
     }
 
     return filtered;
-  }, [rows, statusFilter, dateRangeFilter, specificDay, specificMonth, specificYear]);
+  }, [rows, statusFilter, dateRangeFilter]);
 
   // Group timesheets by employee for the employee table
   const employeeGroups = useMemo(() => {
@@ -209,6 +240,31 @@ const ReviewTimesheetsWindow: React.FC = () => {
     </Table>
   );
 
+  const mainContent = (
+    <Box>
+      <Tabs value={tabValue} onChange={handleTabChange} aria-label="timesheet review tabs">
+        <Tab label="Employee List View" {...a11yProps(0)} />
+        <Tab label="Calendar View" {...a11yProps(1)} />
+      </Tabs>
+      
+      <TabPanel value={tabValue} index={0}>
+        {employeeTable}
+      </TabPanel>
+      
+      <TabPanel value={tabValue} index={1}>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Timesheet Calendar Review
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Review timesheets in calendar format. Select a week to view detailed timesheet data.
+          </Typography>
+          <TimeSheetTableCalendar />
+        </Box>
+      </TabPanel>
+    </Box>
+  );
+
   return (
     <Box sx={{ padding: 2, height: '93%' }}>
       <TableWindowLayout
@@ -243,34 +299,32 @@ const ReviewTimesheetsWindow: React.FC = () => {
               }}
               statusOptions={['All', TimesheetStatus.Pending, TimesheetStatus.Approved, TimesheetStatus.Rejected]}
             />
-            <BaseBtn
-              variant="text"
-              disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
-              onClick={() => applyStatusToSelected(TimesheetStatus.Approved)}
-              startIcon={<ThumbUpAltOutlinedIcon />}
-            >
-              Approve selected
-            </BaseBtn>
+            {tabValue === 0 && (
+              <>
+                <BaseBtn
+                  variant="text"
+                  disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
+                  onClick={() => applyStatusToSelected(TimesheetStatus.Approved)}
+                  startIcon={<ThumbUpAltOutlinedIcon />}
+                >
+                  Approve selected
+                </BaseBtn>
 
-            <BaseBtn
-              variant="text"
-              disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
-              onClick={() => applyStatusToSelected(TimesheetStatus.Rejected)}
-              startIcon={<ThumbDownAltOutlinedIcon />}
-            >
-              Reject selected
-            </BaseBtn>
+                <BaseBtn
+                  variant="text"
+                  disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
+                  onClick={() => applyStatusToSelected(TimesheetStatus.Rejected)}
+                  startIcon={<ThumbDownAltOutlinedIcon />}
+                >
+                  Reject selected
+                </BaseBtn>
+              </>
+            )}
           </Box>,
         ]}
-        table={employeeTable}
+        table={mainContent}
       />
 
-      <TimesheetFormPopup
-        open={open}
-        mode="create"
-        onClose={handleClosePopup}
-        onSuccess={refresh}
-      />
 
       <ConfirmDialog
         open={confirm.open}
@@ -283,7 +337,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
               await deleteMyTimesheet(confirm.id);
               toast.success('Timesheet deleted');
               await refresh();
-            } catch (e) {
+            } catch {
               toast.error('Failed to delete timesheet');
             }
           }
@@ -291,31 +345,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
         }}
       />
 
-      {editing.open && (() => {
-        const row = rows.find((r) => r._id === editing.id);
-        if (!row) return null;
-        return (
-          <TimesheetFormPopup
-            open={editing.open}
-            mode="edit"
-            id={editing.id}
-            onClose={() => setEditing({ open: false })}
-            onSuccess={async () => {
-              setEditing({ open: false });
-              await refresh();
-            }}
-            initial={{
-              date: row.date,
-              projectId: row.projectId,
-              taskTitle: row.task,
-              description: row.description,
-              plannedHours: row.plannedHours !== undefined ? String(row.plannedHours) : undefined,
-              hoursSpent: row.hoursSpent !== undefined ? String(row.hoursSpent) : undefined,
-              billableType: row.billableType,
-            }}
-          />
-        );
-      })()}
+    
     </Box>
   );
 };

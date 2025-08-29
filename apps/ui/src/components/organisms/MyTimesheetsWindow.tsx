@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { getWeekRangeAndUpdateRedux } from '../../utils/getWeekRangeAndUpdateRedux';
+import { navigateToWeekAndCreateTimesheet } from '../../utils/weekNavigation';
 import { setCurrentTimesheetId, setTimesheetStatus, setWeekEndDate, setWeekStartDate } from '../../store/slices/timesheetSlice';
 
 const MyTimesheetsWindow: React.FC = () => {
@@ -24,6 +25,7 @@ const MyTimesheetsWindow: React.FC = () => {
     data: timesheetData.timesheetData,
   };
   const [isActivityPopupOpen, setActivityPopupOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleActivityOpenPopup = () => {
     setActivityPopupOpen(true);
@@ -62,12 +64,46 @@ const MyTimesheetsWindow: React.FC = () => {
   const dispatch = useDispatch();
   const currentWeekStartDate = useSelector((state: any) => state.timesheet.weekStartDate);
 
-  const handleNextWeek = () => {
-    getWeekRangeAndUpdateRedux(1, currentWeekStartDate, dispatch);
+  const handleNextWeek = async () => {
+    setIsNavigating(true);
+    await navigateToWeekAndCreateTimesheet(
+      1, 
+      currentWeekStartDate, 
+      dispatch,
+      (wasCreated) => {
+        if (wasCreated) {
+          toast.success('New timesheet created for the week');
+        }
+        // Refresh the timesheet data
+        refresh();
+      },
+      (error) => {
+        console.error('Failed to navigate to next week:', error);
+        toast.error('Failed to load timesheet for the selected week');
+      }
+    );
+    setIsNavigating(false);
   };
 
-  const handlePreviousWeek = () => {
-    getWeekRangeAndUpdateRedux(-1, currentWeekStartDate, dispatch);
+  const handlePreviousWeek = async () => {
+    setIsNavigating(true);
+    await navigateToWeekAndCreateTimesheet(
+      -1, 
+      currentWeekStartDate, 
+      dispatch,
+      (wasCreated) => {
+        if (wasCreated) {
+          toast.success('New timesheet created for the week');
+        }
+        // Refresh the timesheet data
+        refresh();
+      },
+      (error) => {
+        console.error('Failed to navigate to previous week:', error);
+        toast.error('Failed to load timesheet for the selected week');
+      }
+    );
+    setIsNavigating(false);
   };
 
   const handleSaveAsDraft = async () => {
@@ -139,7 +175,7 @@ const MyTimesheetsWindow: React.FC = () => {
               }}
             >
 
-              <IconButton onClick={handlePreviousWeek}>
+              <IconButton onClick={handlePreviousWeek} disabled={isNavigating}>
                 <ArrowBackIcon sx={{ color: (theme) => theme.palette.primary.main }}/>
               </IconButton>
               {new Date(timesheetData.weekStartDate).toLocaleDateString(
@@ -153,7 +189,7 @@ const MyTimesheetsWindow: React.FC = () => {
                 day: '2-digit',
                 year: 'numeric',
               })}
-              <IconButton onClick={handleNextWeek}>
+              <IconButton onClick={handleNextWeek} disabled={isNavigating}>
               <ArrowForwardIcon sx={{ color: (theme) => theme.palette.primary.main }} />
               </IconButton>
               <BaseBtn
