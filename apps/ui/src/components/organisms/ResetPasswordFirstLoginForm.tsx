@@ -9,7 +9,6 @@ import ResetPasswordFirstLoginSchema from '../../validations/ResetPasswordFirstL
 import { changePwdFirstLogin } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@tms/shared';
-import { useToast } from '../contexts/ToastContext';
 
 type SetPasswordData = {
   newPassword: string;
@@ -17,7 +16,7 @@ type SetPasswordData = {
 };
 const ResetPasswordFirstLoginForm: React.FC = () => {
   const navigate = useNavigate();
-  const toast = useToast();
+
   const {
     register,
     handleSubmit,
@@ -26,15 +25,17 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
     resolver: yupResolver(ResetPasswordFirstLoginSchema),
     mode: 'onChange',
   });
-  const onSubmit = async(data: SetPasswordData) => {
-    const role= localStorage.getItem('role');
+  const onSubmit = async (data: SetPasswordData) => {
+    const role = localStorage.getItem('role');
     const userId = localStorage.getItem('_id');
     if (!userId) {
       console.error('User ID not found in local storage');
       return;
     }
-    const response=await changePwdFirstLogin({userId , newPassword: data.newPassword});
-    toast.success('Password set successfully');
+    const response = await changePwdFirstLogin({
+      userId,
+      newPassword: data.newPassword,
+    });
 
     switch (role) {
       case UserRole.Admin:

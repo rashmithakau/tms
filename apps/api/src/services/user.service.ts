@@ -1,4 +1,4 @@
-import { CONFLICT, INTERNAL_SERVER_ERROR,UNAUTHORIZED } from '../constants/http';
+import { CONFLICT, INTERNAL_SERVER_ERROR,UNAUTHORIZED,NOT_FOUND } from '../constants/http';
 import UserModel from '../models/user.model';
 import appAssert from '../utils/appAssert';
 import { UserRole } from '@tms/shared';
@@ -75,6 +75,37 @@ export const getUsersByRole = async (role: UserRole| UserRole[]) => {
   const roles = Array.isArray(role) ? role : [role];
   const data = await UserModel.findAllByRoles(roles);
   const users = data.map(user => user.omitPassword());
+  return {
+    users,
+  };
+};
+
+export const deleteUser = async (id: string) => {
+  const user = await UserModel.findById(id);
+  appAssert(user, NOT_FOUND, 'User not found');
+
+  user.status = false;
+  await user.save();
+
+  return {
+    user: user.omitPassword(),
+    message: 'User status set to inactive',
+  };
+};
+
+//for components that need to show available users
+export const getAllActiveUsers = async () => {
+  const data = await UserModel.findAllActive();
+  const users = data.map((user) => user.omitPassword());
+  return {
+    users,
+  };
+};
+
+//for EmpTable to show all users including inactive ones
+export const getAllUsersIncludingInactive = async (roles: UserRole[]) => {
+  const data = await UserModel.findAllIncludingInactive(roles);
+  const users = data.map((user) => user.omitPassword());
   return {
     users,
   };

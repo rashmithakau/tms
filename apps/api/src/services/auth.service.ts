@@ -40,6 +40,9 @@ export const loginUser = async ({
   const user = await UserModel.findOne({ email });
   appAssert(user, UNAUTHORIZED, 'Invalid email');
 
+  // Check if user is active
+  appAssert(user.status !== false, UNAUTHORIZED, 'Account is deactivated. Please contact administrator.');
+
   //validate password
   const isValid = await user.comparePassword(password);
   appAssert(isValid, UNAUTHORIZED, 'Invalid password');
@@ -108,8 +111,11 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
     : undefined;
 
   // Include role in refreshed access token to satisfy auth middleware checks
-  const user = await UserModel.findById(session.userId).select('role');
+  const user = await UserModel.findById(session.userId).select('role status');
   appAssert(user, UNAUTHORIZED, 'User not found');
+  
+  // Check if user is active
+  appAssert(user.status !== false, UNAUTHORIZED, 'Account is deactivated. Please contact administrator.');
 
   const accessToken = signToken({
     userId: session.userId,
@@ -127,6 +133,9 @@ export const sendPasswordResetEmail = async (email: string) => {
   //get the user by email
   const user = await UserModel.findOne({ email });
   appAssert(user, NOT_FOUND, 'User not found');
+
+  // Check if user is active
+  appAssert(user.status !== false, UNAUTHORIZED, 'Account is deactivated. Please contact administrator.');
 
   //check email rate limit
   const fiveMinAgo = fiveMinutesAgo();

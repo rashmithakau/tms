@@ -9,6 +9,7 @@ import {
   submitMyDraftTimesheets,
 } from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import FilterMenu, { DateRange } from './EmpTimeSheetFilterMenu';
@@ -233,6 +234,10 @@ const MyTimesheetsWindow: React.FC = () => {
         open={confirm.open}
         title="Delete timesheet"
         message="Are you sure you want to delete this timesheet? This action cannot be undone."
+        icon={<DeleteRoundedIcon />}
+        iconColor="error.main"
+        confirmButtonColor="error"
+        confirmText="Delete"
         onCancel={() => setConfirm({ open: false })}
         onConfirm={async () => {
           if (confirm.id) {

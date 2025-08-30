@@ -13,7 +13,7 @@ import TableWindowLayout, {
   EmpRow,
   ProjectRow,
 } from '../components/templates/TableWindowLayout';
-import { useUsersByRoles } from '../hooks/useUsers';
+import { useAllUsersIncludingInactive } from '../hooks/useUsers';
 import { listProjects, ProjectListItem } from '../api/project';
 import { select_btn } from '../store/slices/dashboardNavSlice';
 import EmpTable from '../components/organisms/EmpTable';
@@ -24,13 +24,14 @@ import EmpTableToolbar, { EmpRoleFilter } from '../components/molecules/EmpTable
 
 const AdminPage = () => {
   const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor] as const, []);
-  const { users, isLoading, error, refreshUsers } = useUsersByRoles(roles as unknown as UserRole[]);
+  const { users, isLoading, error, refreshUsers } = useAllUsersIncludingInactive(roles as unknown as UserRole[]);
 
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [empRoleFilter, setEmpRoleFilter] = useState<EmpRoleFilter>('all');
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Active' | 'Inactive'>('all');
   const dispatch = useDispatch();
 
   const selectedBtn = useSelector(
@@ -82,7 +83,7 @@ const AdminPage = () => {
       }
     });
 
-    return users.map((user) => {
+    const mappedRows = users.map((user) => {
       const uid = (user as any)._id as string;
       const supervisedSet = supervisedByUserId.get(uid);
       const memberSet = memberByUserId.get(uid);
@@ -95,25 +96,51 @@ const AdminPage = () => {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         designation: user.designation || '',
-        role: user.role || '',
+        // Derive role based on whether the user supervises any projects
+        role: supervisedIds.length > 0 ? 'supervisor' : 'emp',
         supervisedProjects: supervisedIds.map((id) => idToName.get(id) || id).sort(),
         memberProjects: memberIds.map((id) => idToName.get(id) || id).sort(),
-        status: user.status || '',
+        status: typeof user.status === 'boolean'
+          ? user.status
+            ? 'Active'
+            : 'Inactive'
+          : (user.status === 'Active' || user.status === 'Inactive'
+            ? user.status
+            : 'Active'),
         contactNumber: user.contactNumber || '',
         createdAt: user.createdAt || '',
-        // attach raw ids for filtering
-        // @ts-ignore
         supervisedProjectIds: supervisedIds,
-        // @ts-ignore
         memberProjectIds: memberIds,
       } as EmpRow & { supervisedProjectIds: string[]; memberProjectIds: string[] };
     });
+
+    console.log('Mapped rows:', {
+      totalUsers: users.length,
+      sampleUsers: users.slice(0, 3).map(u => ({ 
+        id: u._id, 
+        email: u.email, 
+        status: u.status,
+        mappedStatus: mappedRows.find(r => r.id === u._id)?.status
+      }))
+    });
+
+    return mappedRows;
   }, [users, projects]);
 
   const filteredRows: EmpRow[] = useMemo(() => {
     let res: (EmpRow & { supervisedProjectIds?: string[]; memberProjectIds?: string[] })[] = rows as any;
+    
+    console.log('Filtering rows:', { 
+      totalRows: res.length, 
+      empRoleFilter, 
+      selectedProjectIds, 
+      statusFilter,
+      sampleStatuses: res.slice(0, 3).map(r => ({ id: r.id, status: r.status }))
+    });
+    
     if (empRoleFilter !== 'all') {
       res = res.filter((r) => (r.role || '').toLowerCase() === (empRoleFilter === 'employee' ? 'emp' : 'supervisor'));
+      console.log('After role filter:', res.length);
     }
     if (selectedProjectIds.length > 0) {
       const set = new Set(selectedProjectIds);
@@ -122,9 +149,14 @@ const AdminPage = () => {
         const mp = r.memberProjectIds || [];
         return sp.some((id) => set.has(id)) || mp.some((id) => set.has(id));
       });
+      console.log('After project filter:', res.length);
+    }
+    if (statusFilter !== 'all') {
+      res = res.filter((r) => r.status === statusFilter);
+      console.log('After status filter:', res.length);
     }
     return res;
-  }, [rows, empRoleFilter, selectedProjectIds]);
+  }, [rows, empRoleFilter, selectedProjectIds, statusFilter]);
 
   // Project rows
   const projectRows: ProjectRow[] = useMemo(() => projects.map((p) => ({
@@ -136,6 +168,7 @@ const AdminPage = () => {
       id: e._id,
       name: `${e.firstName} ${e.lastName}`.trim(),
       designation: e.designation,
+      email: e.email,
     })),
     supervisor: p.supervisor
       ? {
@@ -190,7 +223,15 @@ const AdminPage = () => {
           ) : (
             <TableWindowLayout
               title="Employee Accounts"
-              filter={<EmpTableToolbar roleFilter={empRoleFilter} onRoleFilterChange={setEmpRoleFilter} projectsOptions={projectOptions} selectedProjectIds={selectedProjectIds} onSelectedProjectIdsChange={setSelectedProjectIds} />}
+              filter={<EmpTableToolbar 
+                roleFilter={empRoleFilter} 
+                onRoleFilterChange={setEmpRoleFilter} 
+                projectsOptions={projectOptions} 
+                selectedProjectIds={selectedProjectIds} 
+                onSelectedProjectIdsChange={setSelectedProjectIds}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+              />}
               buttons={[
                 <Box sx={{ mt: 2, ml: 2 }}>
                   <BaseBtn

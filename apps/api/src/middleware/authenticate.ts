@@ -7,6 +7,7 @@ import { UserRole } from "@tms/shared"; // Assuming you have a UserRole type def
 
 const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
   return (req, res, next) => {
+    console.log('Auth middleware: checking authentication for path:', req.path);
     const accessToken = req.cookies?.accessToken as string | undefined;
 
     // Ensure the access token exists
@@ -40,9 +41,11 @@ const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
     req.sessionId = payload.sessionId;
 
     const userRole = payload.role as UserRole;
+    console.log('Auth middleware: user authenticated with role:', userRole, 'required roles:', requiredRoles);
 
     // If roles are required, check if the user's role is allowed
     if (requiredRoles && !requiredRoles.includes(userRole)) {
+      console.log('Auth middleware: access denied - user role:', userRole, 'not in required roles:', requiredRoles);
       appAssert(
         false,
         FORBIDDEN,
@@ -50,6 +53,7 @@ const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
       );
     }
 
+    console.log('Auth middleware: authentication successful');
     next();
   };
 };

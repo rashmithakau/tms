@@ -1,42 +1,105 @@
 import React from 'react';
-import { ListItem, ListItemText, ListItemIcon, Checkbox } from '@mui/material';
+import {
+  ListItem,
+  ListItemIcon,
+  Checkbox,
+  Box,
+  Typography,
+} from '@mui/material';
 import { IEmployeeListItemProps } from '../../interfaces/IEmployeeListItemProps';
-import theme from '../../styles/theme';
+import { useTheme } from '@mui/material/styles';
 
 const EmployeeListItem: React.FC<IEmployeeListItemProps> = ({
   employee,
   isSelected,
   onToggle,
 }) => {
+  const theme = useTheme();
+
   return (
     <ListItem
       component="button"
       onClick={() => onToggle(employee)}
       sx={{
         mb: 1,
-        border: '1px solid',
+        border: '2px solid',
         borderRadius: 3,
-        borderColor: theme.palette.background.paper,
-        backgroundColor: isSelected ? theme.palette.background.paper : theme.palette.background.default,
+        borderColor: isSelected
+          ? theme.palette.secondary.main
+          : theme.palette.secondary.main,
+        backgroundColor: isSelected
+          ? 'rgba(1, 50, 130, 0.05)'
+          : theme.palette.background.default,
+        p: 2,
         '&:hover': {
-          backgroundColor: isSelected ? theme.palette.background.paper : theme.palette.action.hover,
-          borderColor: theme.palette.primary.main,
+          backgroundColor: isSelected
+            ? 'rgba(1, 50, 130, 0.08)'
+            : theme.palette.background.paper,
+          borderColor: theme.palette.text.secondary,
         },
       }}
     >
-      <ListItemIcon>
+      <ListItemIcon sx={{ minWidth: 48 }}>
         <Checkbox
           checked={isSelected}
           onClick={(e) => {
             e.stopPropagation();
             onToggle(employee);
           }}
+          sx={{
+            color: theme.palette.text.secondary,
+          }}
         />
       </ListItemIcon>
-      <ListItemText
-        primary={employee.name}
-        secondary={`${employee.email} • ${employee.designation}`}
-      />
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+        {/* Employee Information */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {employee.name}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: theme.palette.text.secondary,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {employee.email}
+            </Typography>
+          </Box>
+
+          {employee.designation && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: theme.palette.text.secondary,
+
+                  fontWeight: 500,
+                }}
+              >
+                {employee.designation}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </Box>
     </ListItem>
   );
 };
