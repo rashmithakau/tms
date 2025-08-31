@@ -81,13 +81,17 @@ const TimeSheetTableCalendar: React.FC = () => {
   }, [data, dispatch]);
 
   useEffect(() => {
-    // keep redux week range in ISO
-    dispatch(setWeekStartDate(days[0].date.toISOString()));
-    dispatch(setWeekEndDate(days[6].date.toISOString()));
-  }, [dispatch, days]);
+    // Only set weekStartDate if not already set to prevent infinite loop
+    if (!selectedWeekStartIso) {
+      const weekStart = days[0].date.toISOString().slice(0, 10);
+      dispatch(setWeekStartDate(weekStart));
+    }
+    // Optionally, set weekEndDate similarly if needed
+  }, [dispatch, days, selectedWeekStartIso]);
 
   // --- Fetch projects + timesheet ---
   useEffect(() => {
+    if (!selectedWeekStartIso) return;
     const fetchData = async () => {
       try {
         const projectsResponse = await listProjects();
@@ -102,7 +106,7 @@ const TimeSheetTableCalendar: React.FC = () => {
         }));
 
         // Fetch or create timesheet for current week
-        const resp = await getOrCreateMyTimesheetForWeek(days[0].date.toISOString());
+        const resp = await getOrCreateMyTimesheetForWeek(selectedWeekStartIso);
         const existing: Timesheet | undefined = (resp.data as any).timesheet;
         if (existing) {
           dispatch(setCurrentTimesheetId(existing._id));
@@ -161,7 +165,7 @@ const TimeSheetTableCalendar: React.FC = () => {
       }
     };
     fetchData();
-  }, [selectedActivities, days, dispatch]);
+  }, [selectedActivities, selectedWeekStartIso, dispatch]);
 
   // --- Hours edit ---
   const handleCellClick = (catIndex: number, rowIndex: number, colIndex: number) => {

@@ -2,17 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
-import TimeSheetTable from './TimeSheetTable';
 import { useSupervisedTimesheets } from '../../hooks/useSupervisedTimesheets';
 import { Dayjs } from 'dayjs';
 import { deleteMyTimesheet } from '../../api/timesheet';
-import TimesheetFormPopup from './TimesheetFormPopup';
 import ConfirmDialog from '../molecules/ConfirmDialog';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
 import FilterMenu from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
 import { TimeSheetRow } from '../../types/timesheet';
+import EmployeeTimesheetCalendar from './EmployeeTimesheetCalendar';
 import {
   Table, TableHead, TableRow, TableCell, TableBody, IconButton, Collapse
 } from '@mui/material';
@@ -24,19 +23,15 @@ import { useToast } from '../contexts/ToastContext';
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
-  const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
-  const [editing, setEditing] = useState<{ open: boolean; id?: string }>({
-    open: false,
-  });
+
 
   // Expanded employee row index
   const [openRow, setOpenRow] = useState<number | null>(null);
 
-  const handleOpenPopup = () => setOpen(true);
-  const handleClosePopup = () => setOpen(false);
+
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>('All');
@@ -106,21 +101,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
     return Array.from(map.values());
   }, [filteredRows]);
 
-  const toggleOne = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedIds((prev) => [...prev, id]);
-    } else {
-      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
-    }
-  };
 
-  const toggleAllDrafts = (checked: boolean, ids: string[]) => {
-    if (checked) {
-      setSelectedIds(ids);
-    } else {
-      setSelectedIds([]);
-    }
-  };
 
   const pendingIdsInFiltered = filteredRows
     .filter((row) => row.status === TimesheetStatus.Pending)
@@ -187,17 +168,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
               <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
                 <Collapse in={openRow === index}>
                   <Box sx={{ m: 2, backgroundColor: theme.palette.background.paper }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Timesheets
-                    </Typography>
-                    <TimeSheetTable
-                      rows={group.timesheets}
-                      selectableStatus={[TimesheetStatus.Pending]}
-                      selectedIds={selectedIds}
-                      onToggleOne={toggleOne}
-                      onToggleAll={toggleAllDrafts}
-                      showActions={false}
-                      showEmployee={false}
+                    <EmployeeTimesheetCalendar
+                      employeeId={group.employee._id}
+                      employeeName={`${group.employee.firstName} ${group.employee.lastName}`}
+                      timesheets={group.timesheets}
                     />
                   </Box>
                 </Collapse>
@@ -265,12 +239,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
         table={employeeTable}
       />
 
-      <TimesheetFormPopup
-        open={open}
-        mode="create"
-        onClose={handleClosePopup}
-        onSuccess={refresh}
-      />
+
 
       <ConfirmDialog
         open={confirm.open}
@@ -291,31 +260,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
         }}
       />
 
-      {editing.open && (() => {
-        const row = rows.find((r) => r._id === editing.id);
-        if (!row) return null;
-        return (
-          <TimesheetFormPopup
-            open={editing.open}
-            mode="edit"
-            id={editing.id}
-            onClose={() => setEditing({ open: false })}
-            onSuccess={async () => {
-              setEditing({ open: false });
-              await refresh();
-            }}
-            initial={{
-              date: row.date,
-              projectId: row.projectId,
-              taskTitle: row.task,
-              description: row.description,
-              plannedHours: row.plannedHours !== undefined ? String(row.plannedHours) : undefined,
-              hoursSpent: row.hoursSpent !== undefined ? String(row.hoursSpent) : undefined,
-              billableType: row.billableType,
-            }}
-          />
-        );
-      })()}
+
     </Box>
   );
 };

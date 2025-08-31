@@ -16,3 +16,6 @@ export { useApiCall } from '../hooks/useApiCall';
 // Inputs
 export { default as DatePickerField } from './atoms/inputFields/DatePickerField';
 export { default as TimeField } from './atoms/inputFields/TimeField';
+
+// Timesheet Components
+export { default as EmployeeTimesheetCalendar } from './organisms/EmployeeTimesheetCalendar';

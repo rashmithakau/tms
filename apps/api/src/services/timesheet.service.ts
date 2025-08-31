@@ -26,11 +26,27 @@ export type UpdateTimesheetParams = Partial<CreateTimesheetParams> & {
 
 // --- Create a new timesheet ---
 export const createTimesheet = async (params: CreateTimesheetParams) => {
+  // Ensure each item in each category has dailyStatus set to Draft for 7 days
+
+  const dataWithDailyStatus = params.data.map(category => ({
+    ...category,
+    items: category.items.map(item => ({
+      ...item,
+      dailyStatus: Array(7).fill(TimesheetStatus.Draft)
+    }))
+  }));
+
+  console.log(params.weekStartDate+" is week start date in service");
+
+  // Normalize weekStartDate to midnight UTC
+  let weekStartDate = new Date(params.weekStartDate);
+  weekStartDate.setUTCHours(0, 0, 0, 0);
+
   const doc = await Timesheet.create({
     userId: params.userId,
-    weekStartDate: params.weekStartDate,
+    weekStartDate,
     status: TimesheetStatus.Draft,
-    data: params.data,
+    data: dataWithDailyStatus,
   });
   return { timesheet: doc };
 };

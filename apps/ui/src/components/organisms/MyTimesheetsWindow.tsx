@@ -90,15 +90,12 @@ const MyTimesheetsWindow: React.FC = () => {
     // initialize week range once if not set
     if (!timesheetData.weekStartDate || !timesheetData.weekEndDate) {
       const now = new Date();
-      const day = now.getDay(); // 0=Sun..6=Sat
-      const diffToMonday = (day + 6) % 7; // days since Monday
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - diffToMonday);
-      monday.setHours(0, 0, 0, 0);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      dispatch(setWeekStartDate(monday.toISOString()));
-      dispatch(setWeekEndDate(sunday.toISOString()));
+      const utcDay = now.getUTCDay(); // 0=Sun..6=Sat
+      const diffToMonday = (utcDay + 6) % 7;
+      const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - diffToMonday));
+      const sunday = new Date(Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate() + 6));
+      dispatch(setWeekStartDate(monday.toISOString().slice(0, 10)));
+      dispatch(setWeekEndDate(sunday.toISOString().slice(0, 10)));
     }
 
     const load = async () => {

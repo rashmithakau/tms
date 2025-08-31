@@ -1,3 +1,24 @@
+// Helper to get Monday of the week for a given date (UTC)
+function getMondayUTC(dateInput: Date | string): Date {
+  // Always parse as UTC: if string is 'YYYY-MM-DD', treat as UTC midnight
+  let date: Date;
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+    date = new Date(dateInput + 'T00:00:00Z');
+  } else {
+    date = new Date(dateInput);
+  }
+  const day = date.getUTCDay();
+  // If already Monday, just normalize to UTC midnight
+  if (day === 1) {
+    date.setUTCHours(0, 0, 0, 0);
+    return date;
+  }
+  // getUTCDay: 0=Sunday, 1=Monday, ..., 6=Saturday
+  const diff = (day === 0 ? -6 : 1 - day); // If Sunday, go back 6 days; else, back to Monday
+  date.setUTCDate(date.getUTCDate() + diff);
+  date.setUTCHours(0, 0, 0, 0);
+  return date;
+}
 // controllers/timesheet.controller.ts
 import { Request, Response } from 'express';
 import catchErrors from '../utils/catchErrors';
@@ -12,9 +33,11 @@ import {createTimesheet,submitDraftTimesheets} from "../services/timesheet.servi
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = createTimesheetSchema.parse(req.body);
-  const { weekStartDate, data } = parsed;
+  let { weekStartDate, data } = parsed;
+  console.log(weekStartDate+" is week start date");
+  // Always use Monday as week start (UTC)
+  weekStartDate = getMondayUTC(weekStartDate);
   const result = await createTimesheet({ userId, weekStartDate, data });
-
   return res.status(CREATED).json(result);
 });
 
@@ -105,13 +128,13 @@ export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res
 export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const weekStartDateRaw = (req.query.weekStartDate as string) || '';
-  const weekStartDate = weekStartDateRaw ? new Date(weekStartDateRaw) : new Date();
-  weekStartDate.setHours(0, 0, 0, 0);
+  let weekStartDate = getMondayUTC(weekStartDateRaw ? weekStartDateRaw : new Date());
 
-  let ts = await Timesheet.findOne({ userId, weekStartDate });
-  if (!ts) {
-    const created = await createTimesheet({ userId, weekStartDate, data: [] });
-    return res.status(CREATED).json(created);
-  }
+  // Atomic upsert: create if not exists, else return existing
+  const ts = await Timesheet.findOneAndUpdate(
+    { userId, weekStartDate },
+    { $setOnInsert: { userId, weekStartDate, status: TimesheetStatus.Draft, data: [] } },
+    { new: true, upsert: true }
+  );
   return res.status(OK).json({ timesheet: ts });
 });
