@@ -27,11 +27,8 @@ const ReviewTimesheetsWindow: React.FC = () => {
     open: false,
   });
 
-
   // Expanded employee row index
   const [openRow, setOpenRow] = useState<number | null>(null);
-
-
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<TimesheetStatus | 'All'>('All');
@@ -98,10 +95,9 @@ const ReviewTimesheetsWindow: React.FC = () => {
       }
       map.get(id)!.timesheets.push(r);
     }
-    return Array.from(map.values());
+    const groups = Array.from(map.values());
+    return groups;
   }, [filteredRows]);
-
-
 
   const pendingIdsInFiltered = filteredRows
     .filter((row) => row.status === TimesheetStatus.Pending)
@@ -150,35 +146,45 @@ const ReviewTimesheetsWindow: React.FC = () => {
           <TableCell>Designation</TableCell>
         </TableRow>
       </TableHead>
-      <TableBody >
-        {employeeGroups.map((group, index) => (
-          <React.Fragment key={group.employee._id}>
-            <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
-              <TableCell>
-                <IconButton onClick={() => setOpenRow(openRow === index ? null : index)}>
-                  {openRow === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                </IconButton>
-              </TableCell>
-              <TableCell>{group.employee.firstName} {group.employee.lastName}</TableCell>
-              <TableCell>{group.employee.email}</TableCell>
-              <TableCell>{group.employee.contactNumber || '-'}</TableCell>
-              <TableCell>{group.employee.designation || '-'}</TableCell>
-            </TableRow>
-            <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
-              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
-                <Collapse in={openRow === index}>
-                  <Box sx={{ m: 2, backgroundColor: theme.palette.background.paper }}>
-                    <EmployeeTimesheetCalendar
-                      employeeId={group.employee._id}
-                      employeeName={`${group.employee.firstName} ${group.employee.lastName}`}
-                      timesheets={group.timesheets}
-                    />
-                  </Box>
-                </Collapse>
-              </TableCell>
-            </TableRow>
-          </React.Fragment>
-        ))}
+      <TableBody>
+        {employeeGroups.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+              <Typography color="textSecondary">
+                No timesheets to review. Employees may not have submitted any timesheets yet.
+              </Typography>
+            </TableCell>
+          </TableRow>
+        ) : (
+          employeeGroups.map((group, index) => (
+            <React.Fragment key={group.employee._id}>
+              <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
+                <TableCell>
+                  <IconButton onClick={() => setOpenRow(openRow === index ? null : index)}>
+                    {openRow === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                  </IconButton>
+                </TableCell>
+                <TableCell>{group.employee.firstName} {group.employee.lastName}</TableCell>
+                <TableCell>{group.employee.email}</TableCell>
+                <TableCell>{group.employee.contactNumber || '-'}</TableCell>
+                <TableCell>{group.employee.designation || '-'}</TableCell>
+              </TableRow>
+              <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+                  <Collapse in={openRow === index}>
+                    <Box sx={{ m: 2, backgroundColor: theme.palette.background.paper }}>
+                      <EmployeeTimesheetCalendar
+                        employeeId={group.employee._id}
+                        employeeName={`${group.employee.firstName} ${group.employee.lastName}`}
+                        timesheets={group.timesheets}
+                      />
+                    </Box>
+                  </Collapse>
+                </TableCell>
+              </TableRow>
+            </React.Fragment>
+          ))
+        )}
       </TableBody>
     </Table>
   );
@@ -239,8 +245,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
         table={employeeTable}
       />
 
-
-
       <ConfirmDialog
         open={confirm.open}
         title="Delete timesheet"
@@ -259,12 +263,8 @@ const ReviewTimesheetsWindow: React.FC = () => {
           setConfirm({ open: false });
         }}
       />
-
-
     </Box>
   );
 };
 
 export default ReviewTimesheetsWindow;
-
-

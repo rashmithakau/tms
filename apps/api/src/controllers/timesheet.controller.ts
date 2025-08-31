@@ -54,15 +54,46 @@ export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, 
 
   // Fetch supervised employees from Projects
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  
   const supervisedUserIds = Array.from(
     new Set(
       supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
     )
   );
 
+  if (supervisedUserIds.length === 0) {
+    return res.status(OK).json({ timesheets: [] });
+  }
+
   const timesheets = await Timesheet.find({ userId: { $in: supervisedUserIds } })
     .populate('userId', 'firstName lastName email contactNumber designation')
     .sort({ weekStartDate: -1 });
+
+  // Manually populate project names since projectId is stored as string
+  const projectIds = new Set<string>();
+  timesheets.forEach(ts => {
+    ts.data?.forEach(category => {
+      category.items?.forEach(item => {
+        if (item.projectId) {
+          projectIds.add(item.projectId);
+        }
+      });
+    });
+  });
+
+  const projects = await ProjectModel.find({ _id: { $in: Array.from(projectIds) } });
+  const projectMap = new Map(projects.map(p => [p._id.toString(), p.projectName]));
+
+  // Add project names to timesheet items
+  timesheets.forEach(ts => {
+    ts.data?.forEach(category => {
+      category.items?.forEach(item => {
+        if (item.projectId && projectMap.has(item.projectId)) {
+          (item as any).projectName = projectMap.get(item.projectId);
+        }
+      });
+    });
+  });
 
   return res.status(OK).json({ timesheets });
 });

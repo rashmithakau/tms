@@ -39,7 +39,7 @@ export const listMyTimesheets = async () => {
 };
 
 export const listSupervisedTimesheets = async () => {
-  return API.get<Timesheet[]>('/api/timesheets/supervised');
+  return API.get<{ timesheets: Timesheet[] }>('/api/timesheets/supervised');
 };
 
 export type CreateTimesheetPayload = {
