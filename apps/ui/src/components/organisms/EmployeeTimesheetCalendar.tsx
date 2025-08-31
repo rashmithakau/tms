@@ -13,6 +13,7 @@ import {
   Popover,
   Typography,
   CircularProgress,
+  Checkbox,
 } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -22,6 +23,8 @@ import { startOfWeek, addDays, format, isSameDay } from 'date-fns';
 import { Timesheet } from '../../api/timesheet';
 import { listProjects } from '../../api/project';
 import { TimeSheetRow } from '../../types/timesheet';
+import { TimesheetStatus } from '@tms/shared';
+import DayCheckbox from '../atoms/DayCheckbox';
 
 const buildWeekFrom = (startDate: Date) => {
   const start = startOfWeek(startDate, { weekStartsOn: 1 });
@@ -36,6 +39,7 @@ export interface TimesheetItem {
   projectId?: string;
   hours: string[];
   descriptions: string[];
+  dailyStatus?: TimesheetStatus[]; // Add daily status tracking
 }
 
 export interface TimesheetData {
@@ -43,25 +47,57 @@ export interface TimesheetData {
   items: TimesheetItem[];
 }
 
+export interface DaySelection {
+  timesheetId: string;
+  categoryIndex: number;
+  itemIndex: number;
+  dayIndex: number;
+}
+
 interface EmployeeTimesheetCalendarProps {
   employeeId: string;
   employeeName: string;
   timesheets: TimeSheetRow[];
+  originalTimesheets?: any[]; // Add original timesheet data
+  onDaySelectionChange?: (selections: DaySelection[]) => void;
+  selectedDays?: DaySelection[];
+  isSelectionMode?: boolean;
 }
 
 const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
   employeeId,
   employeeName,
   timesheets,
+  originalTimesheets = [],
+  onDaySelectionChange,
+  selectedDays = [],
+  isSelectionMode = false,
 }) => {
   const [data, setData] = useState<TimesheetData[]>([]);
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
-    startOfWeek(new Date(), { weekStartsOn: 1 })
-  );
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
+    // Calculate Monday of current week using UTC (same logic as MyTimesheetsWindow)
+    const now = new Date();
+    const utcDay = now.getUTCDay(); // 0=Sun..6=Sat
+    const diffToMonday = (utcDay + 6) % 7;
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - diffToMonday));
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [projects, setProjects] = useState<any[]>([]);
 
   const days = useMemo(() => buildWeekFrom(currentWeekStart), [currentWeekStart]);
+
+  // Get original timesheet for current week
+  const weekOriginalTimesheet = useMemo(() => {
+    if (!originalTimesheets || originalTimesheets.length === 0) return null;
+    
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    
+    return originalTimesheets.find(ts => {
+      const tsDate = new Date(ts.weekStartDate);
+      return tsDate >= currentWeekStart && tsDate < weekEnd;
+    });
+  }, [originalTimesheets, currentWeekStart]);
 
   // Get timesheets for current week
   const weekTimesheets = useMemo(() => {
@@ -104,6 +140,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
         projectId: project._id,
         hours: Array(7).fill('0.00'),
         descriptions: Array(7).fill(''),
+        dailyStatus: Array(7).fill(TimesheetStatus.Draft), // Initialize daily status
       });
     });
 
@@ -118,6 +155,10 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
           const item = projectMap.get(ts.projectId)!;
           item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
           item.descriptions[dayIndex] = ts.description || '';
+          // Set daily status from timesheet data if available
+          if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
+            item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
+          }
         } else if (ts.task) {
           // Handle absence/work type
           if (!absenceMap.has(ts.task)) {
@@ -125,11 +166,16 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
               work: ts.task,
               hours: Array(7).fill('0.00'),
               descriptions: Array(7).fill(''),
+              dailyStatus: Array(7).fill(TimesheetStatus.Draft),
             });
           }
           const item = absenceMap.get(ts.task)!;
           item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
           item.descriptions[dayIndex] = ts.description || '';
+          // Set daily status from timesheet data if available
+          if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
+            item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
+          }
         }
       }
     });
@@ -154,14 +200,56 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
   // Navigation handlers
   const handlePreviousWeek = () => {
     const previousWeek = new Date(currentWeekStart);
-    previousWeek.setDate(previousWeek.getDate() - 7);
+    previousWeek.setUTCDate(previousWeek.getUTCDate() - 7);
     setCurrentWeekStart(previousWeek);
   };
 
   const handleNextWeek = () => {
     const nextWeek = new Date(currentWeekStart);
-    nextWeek.setDate(nextWeek.getDate() + 7);
+    nextWeek.setUTCDate(nextWeek.getUTCDate() + 7);
     setCurrentWeekStart(nextWeek);
+  };
+
+  // Day selection handlers
+  const isDaySelected = (categoryIndex: number, itemIndex: number, dayIndex: number) => {
+    if (!isSelectionMode) return false;
+    return selectedDays.some(selection => 
+      selection.categoryIndex === categoryIndex &&
+      selection.itemIndex === itemIndex &&
+      selection.dayIndex === dayIndex
+    );
+  };
+
+  const handleDaySelectionChange = (categoryIndex: number, itemIndex: number, dayIndex: number, selected: boolean) => {
+    if (!isSelectionMode || !onDaySelectionChange) return;
+
+    // Use the actual timesheet ID from the original timesheet for this week
+    const actualTimesheetId = weekOriginalTimesheet?._id;
+    
+    if (!actualTimesheetId) {
+      console.error('No timesheet ID found for current week');
+      return;
+    }
+
+    const selectionKey = { 
+      timesheetId: actualTimesheetId,
+      categoryIndex, 
+      itemIndex, 
+      dayIndex 
+    };
+
+    let newSelections: DaySelection[];
+    if (selected) {
+      newSelections = [...selectedDays, selectionKey];
+    } else {
+      newSelections = selectedDays.filter(selection => 
+        !(selection.categoryIndex === categoryIndex &&
+          selection.itemIndex === itemIndex &&
+          selection.dayIndex === dayIndex)
+      );
+    }
+    
+    onDaySelectionChange(newSelections);
   };
 
   // Calculations
@@ -184,7 +272,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
       .toFixed(2);
 
   const weekEndDate = new Date(currentWeekStart);
-  weekEndDate.setDate(weekEndDate.getDate() + 6);
+  weekEndDate.setUTCDate(weekEndDate.getUTCDate() + 6);
 
   return (
     <Box>
@@ -209,7 +297,8 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
             {currentWeekStart.toLocaleDateString('en-US', { 
               weekday: 'short', 
               month: 'short', 
-              day: '2-digit' 
+              day: '2-digit',
+              timeZone: 'UTC'
             })}
             &nbsp;to&nbsp;
             {weekEndDate.toLocaleDateString('en-US', {
@@ -217,6 +306,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
               month: 'short',
               day: '2-digit',
               year: 'numeric',
+              timeZone: 'UTC'
             })}
           </Typography>
           <IconButton onClick={handleNextWeek} size="small">
@@ -281,27 +371,49 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
                           </TableCell>
                         )}
                         <TableCell>{row.work}</TableCell>
-                        {row.hours.map((hour: string, colIndex: number) => (
-                          <TableCell key={colIndex} align="center">
-                            <div style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center' 
-                            }}>
-                              <div style={{ marginRight: 4 }}>
-                                {hour}
-                              </div>
-                              {row.descriptions[colIndex] && (
-                                <Tooltip title={row.descriptions[colIndex]}>
-                                  <EditNoteIcon 
-                                    fontSize="small" 
-                                    sx={{ color: 'text.secondary' }} 
+                        {row.hours.map((hour: string, colIndex: number) => {
+                          const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
+                          const isSelected = isDaySelected(catIndex, rowIndex, colIndex);
+                          const hasHours = parseFloat(hour) > 0;
+                          
+                          return (
+                            <TableCell key={colIndex} align="center">
+                              <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                gap: '4px'
+                              }}>
+                                {isSelectionMode && hasHours && (
+                                  <Checkbox
+                                    size="small"
+                                    checked={isSelected}
+                                    onChange={(e) => handleDaySelectionChange(catIndex, rowIndex, colIndex, e.target.checked)}
+                                    sx={{ p: 0, mb: 0.5 }}
                                   />
-                                </Tooltip>
-                              )}
-                            </div>
-                          </TableCell>
-                        ))}
+                                )}
+                                <div style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center' 
+                                }}>
+                                  <div style={{ marginRight: 4 }}>
+                                    {hour}
+                                  </div>
+                                  {row.descriptions[colIndex] && (
+                                    <Tooltip title={row.descriptions[colIndex]}>
+                                      <EditNoteIcon 
+                                        fontSize="small" 
+                                        sx={{ color: 'text.secondary' }} 
+                                      />
+                                    </Tooltip>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                          );
+                        })}
                         <TableCell align="center" sx={{ fontWeight: 'bold' }}>
                           {calcRowTotal(row.hours)}
                         </TableCell>

@@ -8,6 +8,7 @@ export interface TimeSheetRow {
   task: string;
   billableType: 'Billable' | 'Non Billable';
   status: TimesheetStatus;
+  dailyStatus?: TimesheetStatus[]; // Array of 7 daily statuses
   description?: string;
   plannedHours?: number;
   hoursSpent?: number;

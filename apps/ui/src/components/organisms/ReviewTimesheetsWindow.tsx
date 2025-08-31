@@ -11,7 +11,7 @@ import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
 import FilterMenu from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
 import { TimeSheetRow } from '../../types/timesheet';
-import EmployeeTimesheetCalendar from './EmployeeTimesheetCalendar';
+import EmployeeTimesheetCalendar, { DaySelection } from './EmployeeTimesheetCalendar';
 import {
   Table, TableHead, TableRow, TableCell, TableBody, IconButton, Collapse
 } from '@mui/material';
@@ -19,9 +19,10 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
+import { updateDailyTimesheetStatusApi } from '../../api/timesheet';
 
 const ReviewTimesheetsWindow: React.FC = () => {
-  const { rows, isLoading, refresh } = useSupervisedTimesheets();
+  const { rows, timesheets, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -37,6 +38,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const [specificMonth, setSpecificMonth] = useState<Dayjs | null>(null);
   const [specificYear, setSpecificYear] = useState<Dayjs | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  // Day selection for granular approval
+  const [selectedDays, setSelectedDays] = useState<DaySelection[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const handleFilterByDate = (range: 'All' | 'Today' | 'This Week' | 'This Month') => setDateRangeFilter(range);
   const handleFilterByStatus = (status: TimesheetStatus | 'All') => setStatusFilter(status);
@@ -120,6 +125,74 @@ const ReviewTimesheetsWindow: React.FC = () => {
     }
   };
 
+  const applyDailyStatusToSelected = async (status: TimesheetStatus.Approved | TimesheetStatus.Rejected) => {
+    if (selectedDays.length === 0) {
+      toast.error('No days selected for approval');
+      return;
+    }
+
+    try {
+      // Group selections by timesheet and item
+      const groupedSelections = new Map<string, Map<string, DaySelection[]>>();
+      
+      selectedDays.forEach(selection => {
+        const timesheetKey = selection.timesheetId;
+        const itemKey = `${selection.categoryIndex}-${selection.itemIndex}`;
+        
+        if (!groupedSelections.has(timesheetKey)) {
+          groupedSelections.set(timesheetKey, new Map());
+        }
+        
+        const timesheetGroup = groupedSelections.get(timesheetKey)!;
+        if (!timesheetGroup.has(itemKey)) {
+          timesheetGroup.set(itemKey, []);
+        }
+        
+        timesheetGroup.get(itemKey)!.push(selection);
+      });
+
+      // Process each grouped selection
+      const promises: Promise<any>[] = [];
+      
+      groupedSelections.forEach((itemGroups, timesheetId) => {
+        itemGroups.forEach((selections, itemKey) => {
+          const [categoryIndex, itemIndex] = itemKey.split('-').map(Number);
+          const dayIndices = selections.map(s => s.dayIndex);
+          
+          promises.push(
+            updateDailyTimesheetStatusApi({
+              timesheetId,
+              categoryIndex,
+              itemIndex,
+              dayIndices,
+              status
+            })
+          );
+        });
+      });
+
+      await Promise.all(promises);
+      await refresh();
+      setSelectedDays([]);
+      setIsSelectionMode(false);
+      toast.success(`Selected days ${status.toLowerCase()}`);
+    } catch (e) {
+      console.error('Failed to update daily status', e);
+      toast.error('Failed to update daily status');
+    }
+  };
+
+  const handleDaySelectionChange = (selections: DaySelection[]) => {
+    setSelectedDays(selections);
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    if (isSelectionMode) {
+      setSelectedDays([]);
+    }
+  };
+
   if (isLoading) {
     return (
       <Box
@@ -177,6 +250,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
                         employeeId={group.employee._id}
                         employeeName={`${group.employee.firstName} ${group.employee.lastName}`}
                         timesheets={group.timesheets}
+                        originalTimesheets={timesheets.filter(ts => ts.userId?._id === group.employee._id)}
+                        onDaySelectionChange={handleDaySelectionChange}
+                        selectedDays={selectedDays}
+                        isSelectionMode={isSelectionMode}
                       />
                     </Box>
                   </Collapse>
@@ -223,23 +300,60 @@ const ReviewTimesheetsWindow: React.FC = () => {
               }}
               statusOptions={['All', TimesheetStatus.Pending, TimesheetStatus.Approved, TimesheetStatus.Rejected]}
             />
+            
+            {/* Selection Mode Toggle */}
             <BaseBtn
-              variant="text"
-              disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
-              onClick={() => applyStatusToSelected(TimesheetStatus.Approved)}
-              startIcon={<ThumbUpAltOutlinedIcon />}
+              variant={"text"}
+              onClick={toggleSelectionMode}
             >
-              Approve selected
+              {isSelectionMode ? 'Exit Selection' : 'Select Days'}
             </BaseBtn>
 
-            <BaseBtn
-              variant="text"
-              disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
-              onClick={() => applyStatusToSelected(TimesheetStatus.Rejected)}
-              startIcon={<ThumbDownAltOutlinedIcon />}
-            >
-              Reject selected
-            </BaseBtn>
+            {/* Day-based approval buttons */}
+            {isSelectionMode && (
+              <>
+                <BaseBtn
+                  variant="text"
+                  disabled={selectedDays.length === 0}
+                  onClick={() => applyDailyStatusToSelected(TimesheetStatus.Approved)}
+                  startIcon={<ThumbUpAltOutlinedIcon />}
+                >
+                  Approve selected
+                </BaseBtn>
+
+                <BaseBtn
+                  variant="text"
+                  disabled={selectedDays.length === 0}
+                  onClick={() => applyDailyStatusToSelected(TimesheetStatus.Rejected)}
+                  startIcon={<ThumbDownAltOutlinedIcon />}
+                >
+                    Reject selected
+                </BaseBtn>
+              </>
+            )}
+
+            {/* Week-based approval buttons */}
+            {!isSelectionMode && (
+              <>
+                <BaseBtn
+                  variant="text"
+                  disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
+                  onClick={() => applyStatusToSelected(TimesheetStatus.Approved)}
+                  startIcon={<ThumbUpAltOutlinedIcon />}
+                >
+                  Approve selected
+                </BaseBtn>
+
+                <BaseBtn
+                  variant="text"
+                  disabled={pendingIdsInFiltered.length === 0 || selectedIds.filter(id => pendingIdsInFiltered.includes(id)).length === 0}
+                  onClick={() => applyStatusToSelected(TimesheetStatus.Rejected)}
+                  startIcon={<ThumbDownAltOutlinedIcon />}
+                >
+                  Reject selected
+                </BaseBtn>
+              </>
+            )}
           </Box>,
         ]}
         table={employeeTable}

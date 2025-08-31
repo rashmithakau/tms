@@ -51,6 +51,10 @@ const MyTimesheetsWindow: React.FC = () => {
         toast.error('Only draft timesheets can be submitted');
         return;
       }
+      if (isUnderMinimumHours) {
+        toast.error(`Minimum 40 hours required. Current total: ${totalHours.toFixed(2)} hours`);
+        return;
+      }
       await submitMyDraftTimesheets([currentId]);
       toast.success('Timesheet submitted for approval');
       await refresh();
@@ -61,6 +65,23 @@ const MyTimesheetsWindow: React.FC = () => {
 
   const dispatch = useDispatch();
   const currentWeekStartDate = useSelector((state: any) => state.timesheet.weekStartDate);
+
+  // Calculate total hours from timesheet data
+  const calculateTotalHours = () => {
+    if (!timesheetData.timesheetData || timesheetData.timesheetData.length === 0) {
+      return 0;
+    }
+    
+    return timesheetData.timesheetData
+      .flatMap((cat: any) => cat.items)
+      .reduce(
+        (sum: number, row: any) => sum + row.hours.reduce((s: number, h: string) => s + parseFloat(h || '0'), 0),
+        0
+      );
+  };
+
+  const totalHours = calculateTotalHours();
+  const isUnderMinimumHours = totalHours < 40.0;
 
   const handleNextWeek = () => {
     getWeekRangeAndUpdateRedux(1, currentWeekStartDate, dispatch);
@@ -139,23 +160,24 @@ const MyTimesheetsWindow: React.FC = () => {
               <IconButton onClick={handlePreviousWeek}>
                 <ArrowBackIcon sx={{ color: (theme) => theme.palette.primary.main }}/>
               </IconButton>
-              {new Date(timesheetData.weekStartDate).toLocaleDateString(
+              {timesheetData.weekStartDate ? new Date(timesheetData.weekStartDate + 'T00:00:00Z').toLocaleDateString(
                 'en-US',
-                { weekday: 'short', month: 'short', day: '2-digit' }
-              )}
+                { weekday: 'short', month: 'short', day: '2-digit', timeZone: 'UTC' }
+              ) : 'Loading...'}
               &nbsp;to&nbsp;
-              {new Date(timesheetData.weekEndDate).toLocaleDateString('en-US', {
+              {timesheetData.weekEndDate ? new Date(timesheetData.weekEndDate + 'T00:00:00Z').toLocaleDateString('en-US', {
                 weekday: 'short',
                 month: 'short',
                 day: '2-digit',
                 year: 'numeric',
-              })}
+                timeZone: 'UTC'
+              }) : 'Loading...'}
               <IconButton onClick={handleNextWeek}>
               <ArrowForwardIcon sx={{ color: (theme) => theme.palette.primary.main }} />
               </IconButton>
               <BaseBtn
                 variant="text"
-                disabled={timesheetData.status !== 'Draft'}
+                disabled={timesheetData.status !== 'Draft' || isUnderMinimumHours}
                 onClick={handleSubmit}
                 startIcon={<SendOutlinedIcon />}
               >

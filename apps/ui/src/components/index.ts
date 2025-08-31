@@ -19,3 +19,4 @@ export { default as TimeField } from './atoms/inputFields/TimeField';
 
 // Timesheet Components
 export { default as EmployeeTimesheetCalendar } from './organisms/EmployeeTimesheetCalendar';
+export { default as DayCheckbox } from './atoms/DayCheckbox';

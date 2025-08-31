@@ -27,7 +27,7 @@ import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
-import {createTimesheet,submitDraftTimesheets} from "../services/timesheet.service";
+import {createTimesheet,submitDraftTimesheets,updateDailyTimesheetStatus} from "../services/timesheet.service";
 
 // --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
@@ -168,4 +168,31 @@ export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Requ
     { new: true, upsert: true }
   );
   return res.status(OK).json({ timesheet: ts });
+});
+
+// --- Update daily status of specific timesheet items ---
+export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
+  const { timesheetId, categoryIndex, itemIndex, dayIndices, status } = req.body as {
+    timesheetId: string;
+    categoryIndex: number;
+    itemIndex: number;
+    dayIndices: number[];
+    status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+  };
+
+  if (![TimesheetStatus.Approved, TimesheetStatus.Rejected].includes(status)) {
+    return res.status(BAD_REQUEST).json({ message: 'Invalid status. Must be Approved or Rejected' });
+  }
+
+  const result = await updateDailyTimesheetStatus(
+    supervisorId,
+    timesheetId,
+    categoryIndex,
+    itemIndex,
+    dayIndices,
+    status
+  );
+
+  return res.status(OK).json({ timesheet: result });
 });

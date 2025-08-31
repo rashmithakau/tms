@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listSupervisedTimesheets } from '../api/timesheet';
+import { listSupervisedTimesheets, Timesheet } from '../api/timesheet';
 import { TimeSheetRow } from '../types/timesheet';
 
 export const useSupervisedTimesheets = () => {
   const [rows, setRows] = useState<TimeSheetRow[]>([]);
+  const [timesheets, setTimesheets] = useState<Timesheet[]>([]); // Add original timesheet data
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,6 +14,9 @@ export const useSupervisedTimesheets = () => {
       setError(null);
       const resp = await listSupervisedTimesheets();
       const data = resp.data?.timesheets || [];
+      
+      // Store original timesheets for calendar component
+      setTimesheets(data);
       
       // Flatten the timesheet structure into individual rows
       const mapped: TimeSheetRow[] = [];
@@ -39,6 +43,7 @@ export const useSupervisedTimesheets = () => {
                   task: item.work || 'Task',
                   billableType: category.category === 'Project' ? 'Billable' : 'Non Billable',
                   status: item.dailyStatus?.[dayIndex] || timesheet.status,
+                  dailyStatus: item.dailyStatus || [], // Include full daily status array
                   plannedHours: 0, // Not available in current structure
                   hoursSpent: parseFloat(hours) || 0,
                   description: item.descriptions?.[dayIndex] || '',
@@ -71,5 +76,5 @@ export const useSupervisedTimesheets = () => {
     fetchData();
   }, [fetchData]);
 
-  return { rows, isLoading, error, refresh: fetchData };
+  return { rows, timesheets, isLoading, error, refresh: fetchData };
 };
