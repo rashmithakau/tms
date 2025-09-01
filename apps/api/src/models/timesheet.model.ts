@@ -7,6 +7,7 @@ interface ITimesheetItem {
   projectId?: string;       
   hours: string[];
   descriptions: string[];
+  dailyStatus: TimesheetStatus[]; // status for each day
 }
 
 interface ITimesheetCategory {
@@ -25,7 +26,11 @@ const TimesheetItemSchema = new Schema<ITimesheetItem>({
   work: { type: String, required: true },
   projectId: { type: String },
   hours: [{ type: String }],
-  descriptions: [{ type: String }]
+  descriptions: [{ type: String }],
+  dailyStatus: {
+    type: [{ type: String, enum: Object.values(TimesheetStatus), default: TimesheetStatus.Draft }],
+    default: Array(7).fill(TimesheetStatus.Draft)
+  }
 });
 
 const TimesheetCategorySchema = new Schema<ITimesheetCategory>({

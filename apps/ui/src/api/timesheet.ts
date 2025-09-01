@@ -39,7 +39,7 @@ export const listMyTimesheets = async () => {
 };
 
 export const listSupervisedTimesheets = async () => {
-  return API.get<Timesheet[]>('/api/timesheets/supervised');
+  return API.get<{ timesheets: Timesheet[] }>('/api/timesheets/supervised');
 };
 
 export type CreateTimesheetPayload = {
@@ -73,4 +73,36 @@ export const updateSupervisedTimesheetsStatusApi = async (
 export const getOrCreateMyTimesheetForWeek = async (weekStartDateIso?: string) => {
   const params = weekStartDateIso ? { params: { weekStartDate: weekStartDateIso } } : undefined;
   return API.get<{ timesheet?: Timesheet; timesheetId?: string; timesheets?: Timesheet[] }>('/api/timesheets/week', params as any);
+};
+
+export const updateDailyTimesheetStatusApi = async ({
+  timesheetId,
+  categoryIndex,
+  itemIndex,
+  dayIndices,
+  status
+}: {
+  timesheetId: string;
+  categoryIndex: number;
+  itemIndex: number;
+  dayIndices: number[];
+  status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+}) => {
+  return API.post('/api/timesheets/supervised/daily-status', {
+    timesheetId,
+    categoryIndex,
+    itemIndex,
+    dayIndices,
+    status
+  });
+};
+
+export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
+  timesheetId: string;
+  categoryIndex: number;
+  itemIndex: number;
+  dayIndices: number[];
+  status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+}>) => {
+  return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
 };

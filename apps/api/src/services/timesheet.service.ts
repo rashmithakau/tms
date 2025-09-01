@@ -26,11 +26,27 @@ export type UpdateTimesheetParams = Partial<CreateTimesheetParams> & {
 
 // --- Create a new timesheet ---
 export const createTimesheet = async (params: CreateTimesheetParams) => {
+  // Ensure each item in each category has dailyStatus set to Draft for 7 days
+
+  const dataWithDailyStatus = params.data.map(category => ({
+    ...category,
+    items: category.items.map(item => ({
+      ...item,
+      dailyStatus: Array(7).fill(TimesheetStatus.Draft)
+    }))
+  }));
+
+  console.log(params.weekStartDate+" is week start date in service");
+
+  // Normalize weekStartDate to midnight UTC
+  let weekStartDate = new Date(params.weekStartDate);
+  weekStartDate.setUTCHours(0, 0, 0, 0);
+
   const doc = await Timesheet.create({
     userId: params.userId,
-    weekStartDate: params.weekStartDate,
+    weekStartDate,
     status: TimesheetStatus.Draft,
-    data: params.data,
+    data: dataWithDailyStatus,
   });
   return { timesheet: doc };
 };
@@ -88,12 +104,289 @@ export const createTimesheet = async (params: CreateTimesheetParams) => {
 
 // --- Submit draft timesheets ---
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
-  const result = await Timesheet.updateMany(
-    { _id: { $in: ids }, userId, status: TimesheetStatus.Draft },
-    { $set: { status: TimesheetStatus.Pending } }
-  );
+  console.log('Starting submitDraftTimesheets for user:', userId, 'ids:', ids);
+  
+  const results = [];
+  
+  for (const id of ids) {
+    try {
+      // Find the timesheet
+      const timesheet = await Timesheet.findOne({
+        _id: id,
+        userId,
+        status: TimesheetStatus.Draft
+      });
+      
+      if (!timesheet) {
+        console.log('Timesheet not found or not Draft:', id);
+        continue;
+      }
+      
+      console.log('Processing timesheet:', id);
+      console.log('Before update - dailyStatus:', timesheet.data[0]?.items[0]?.dailyStatus);
+      
+      // Modify the timesheet data directly
+      timesheet.data.forEach((category, categoryIndex) => {
+        category.items.forEach((item, itemIndex) => {
+          console.log(`Updating category ${categoryIndex}, item ${itemIndex}`);
+          console.log('Original dailyStatus:', item.dailyStatus);
+          
+          // Set all 7 days to Pending
+          item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+          console.log('New dailyStatus:', item.dailyStatus);
+        });
+      });
+      
+      // Mark the nested documents as modified to ensure Mongoose tracks the changes
+      timesheet.markModified('data');
+      
+      // Update the overall status
+      timesheet.status = TimesheetStatus.Pending;
+      
+      console.log('About to save timesheet with data:', JSON.stringify(timesheet.data, null, 2));
+      
+      // Save the modified timesheet
+      const savedTimesheet = await timesheet.save();
+      
+      console.log('Timesheet saved successfully:', id);
+      console.log('Final saved dailyStatus:', savedTimesheet.data[0]?.items[0]?.dailyStatus);
+      
+      // Verify the saved data by fetching again
+      const verifyTimesheet = await Timesheet.findById(id);
+      console.log('Verification - dailyStatus from DB:', verifyTimesheet?.data[0]?.items[0]?.dailyStatus);
+      
+      results.push(savedTimesheet);
+    } catch (error) {
+      console.error('Error updating timesheet', id, ':', error);
+    }
+  }
+  
+  console.log('Submission completed. Updated:', results.length, 'out of', ids.length);
+  return { matched: ids.length, modified: results.length };
+};
 
-  return { matched: (result as any).matchedCount, modified: (result as any).modifiedCount };
+// --- Update daily status of specific timesheet items ---
+export const updateDailyTimesheetStatus = async (
+  supervisorId: string, 
+  timesheetId: string, 
+  categoryIndex: number, 
+  itemIndex: number, 
+  dayIndices: number[], 
+  status: TimesheetStatus.Approved | TimesheetStatus.Rejected,
+  retryCount: number = 0
+) => {
+  console.log('Starting updateDailyTimesheetStatus:', {
+    supervisorId,
+    timesheetId,
+    categoryIndex,
+    itemIndex,
+    dayIndices,
+    status,
+    retryCount
+  });
+
+  try {
+    // Validate ObjectId format
+    if (!timesheetId || timesheetId.length !== 24) {
+      throw new Error(`Invalid timesheet ID format: ${timesheetId}`);
+    }
+
+    // Find the timesheet and verify supervisor has access
+    const timesheet = await Timesheet.findById(timesheetId)
+      .populate('userId', 'firstName lastName email');
+    
+    if (!timesheet) {
+      throw new Error('Timesheet not found');
+    }
+
+    // Verify the timesheet belongs to a supervised user
+    // TODO: Add proper supervisor verification logic here
+    
+    // Validate indices
+    if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
+      throw new Error(`Invalid category index: ${categoryIndex}. Available categories: ${timesheet.data.length}`);
+    }
+    
+    const category = timesheet.data[categoryIndex];
+    console.log('Category found:', { category: category.category, itemsCount: category.items.length });
+    
+    if (itemIndex < 0 || itemIndex >= category.items.length) {
+      throw new Error(`Invalid item index: ${itemIndex}. Available items in category '${category.category}': ${category.items.length}`);
+    }
+    
+    const item = category.items[itemIndex];
+    console.log('Item before update:', {
+      work: item.work,
+      projectId: item.projectId,
+      dailyStatus: item.dailyStatus,
+      dailyStatusLength: item.dailyStatus?.length
+    });
+    
+    // Ensure dailyStatus array exists and has correct length
+    if (!item.dailyStatus || item.dailyStatus.length !== 7) {
+      console.log('Initializing missing or invalid dailyStatus array for item:', item);
+      item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+    }
+    
+    // Update the specified days
+    dayIndices.forEach(dayIndex => {
+      if (dayIndex >= 0 && dayIndex < 7) {
+        item.dailyStatus[dayIndex] = status;
+      }
+    });
+    
+    // Mark the nested documents as modified
+    timesheet.markModified('data');
+    
+    // Check if all days for all items are now approved/rejected
+    const allItemsProcessed = timesheet.data.every(cat => 
+      cat.items.every(itm => 
+        itm.dailyStatus.every(dayStatus => 
+          dayStatus === TimesheetStatus.Approved || dayStatus === TimesheetStatus.Rejected
+        )
+      )
+    );
+    
+    // If all items are processed, update overall status
+    if (allItemsProcessed) {
+      const allApproved = timesheet.data.every(cat => 
+        cat.items.every(itm => 
+          itm.dailyStatus.every(dayStatus => dayStatus === TimesheetStatus.Approved)
+        )
+      );
+      
+      timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
+    }
+    
+    // Save the timesheet
+    const savedTimesheet = await timesheet.save();
+    
+    console.log('Daily status updated successfully:', {
+      timesheetId,
+      updatedDailyStatus: savedTimesheet.data[categoryIndex].items[itemIndex].dailyStatus,
+      overallStatus: savedTimesheet.status
+    });
+    
+    return savedTimesheet;
+  } catch (error: any) {
+    console.error('Error updating daily timesheet status:', error);
+    
+    // Handle version conflicts with retry logic
+    if (error.name === 'VersionError' && retryCount < 3) {
+      console.log(`Retrying update due to version conflict (attempt ${retryCount + 1}/3)`);
+      // Wait a small random time before retrying to reduce contention
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
+      return updateDailyTimesheetStatus(supervisorId, timesheetId, categoryIndex, itemIndex, dayIndices, status, retryCount + 1);
+    }
+    
+    throw error;
+  }
+};
+
+// --- Batch update daily status of multiple timesheet items ---
+export const batchUpdateDailyTimesheetStatus = async (
+  supervisorId: string,
+  updates: Array<{
+    timesheetId: string;
+    categoryIndex: number;
+    itemIndex: number;
+    dayIndices: number[];
+    status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+  }>
+) => {
+  console.log('Starting batchUpdateDailyTimesheetStatus:', { supervisorId, updatesCount: updates.length });
+
+  // Group updates by timesheetId to process each timesheet once
+  const groupedUpdates = new Map<string, typeof updates>();
+  updates.forEach(update => {
+    if (!groupedUpdates.has(update.timesheetId)) {
+      groupedUpdates.set(update.timesheetId, []);
+    }
+    groupedUpdates.get(update.timesheetId)!.push(update);
+  });
+
+  const results = [];
+
+  // Process each timesheet sequentially to avoid version conflicts
+  for (const [timesheetId, timesheetUpdates] of groupedUpdates) {
+    try {
+      // Validate ObjectId format
+      if (!timesheetId || timesheetId.length !== 24) {
+        throw new Error(`Invalid timesheet ID format: ${timesheetId}`);
+      }
+
+      // Find the timesheet
+      const timesheet = await Timesheet.findById(timesheetId)
+        .populate('userId', 'firstName lastName email');
+      
+      if (!timesheet) {
+        throw new Error(`Timesheet not found: ${timesheetId}`);
+      }
+
+      // Apply all updates for this timesheet
+      timesheetUpdates.forEach(update => {
+        const { categoryIndex, itemIndex, dayIndices, status } = update;
+        
+        // Validate indices
+        if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
+          throw new Error(`Invalid category index: ${categoryIndex}`);
+        }
+        
+        const category = timesheet.data[categoryIndex];
+        if (itemIndex < 0 || itemIndex >= category.items.length) {
+          throw new Error(`Invalid item index: ${itemIndex}`);
+        }
+        
+        const item = category.items[itemIndex];
+        
+        // Ensure dailyStatus array exists
+        if (!item.dailyStatus || item.dailyStatus.length !== 7) {
+          item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+        }
+        
+        // Update the specified days
+        dayIndices.forEach(dayIndex => {
+          if (dayIndex >= 0 && dayIndex < 7) {
+            item.dailyStatus[dayIndex] = status;
+          }
+        });
+      });
+      
+      // Mark as modified
+      timesheet.markModified('data');
+      
+      // Check if all days for all items are now approved/rejected
+      const allItemsProcessed = timesheet.data.every(cat => 
+        cat.items.every(itm => 
+          itm.dailyStatus.every(dayStatus => 
+            dayStatus === TimesheetStatus.Approved || dayStatus === TimesheetStatus.Rejected
+          )
+        )
+      );
+      
+      // If all items are processed, update overall status
+      if (allItemsProcessed) {
+        const allApproved = timesheet.data.every(cat => 
+          cat.items.every(itm => 
+            itm.dailyStatus.every(dayStatus => dayStatus === TimesheetStatus.Approved)
+          )
+        );
+        
+        timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
+      }
+      
+      // Save the timesheet
+      const savedTimesheet = await timesheet.save();
+      results.push(savedTimesheet);
+      
+    } catch (error) {
+      console.error(`Error updating timesheet ${timesheetId}:`, error);
+      throw error;
+    }
+  }
+
+  console.log('Batch update completed successfully');
+  return results;
 };
 
 // // --- Update status of supervised timesheets ---

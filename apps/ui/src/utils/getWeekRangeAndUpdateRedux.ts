@@ -7,13 +7,14 @@ export const getWeekRangeAndUpdateRedux = (
   dispatch: Dispatch
 ): void => {
   const weekStartDate = new Date(currentWeekStartDate);
-  weekStartDate.setDate(weekStartDate.getDate() + offset * 7);
-  weekStartDate.setHours(0, 0, 0, 0);
+  // Use UTC methods to prevent timezone-related date shifts
+  weekStartDate.setUTCDate(weekStartDate.getUTCDate() + offset * 7);
+  weekStartDate.setUTCHours(0, 0, 0, 0);
 
   const weekEndDate = new Date(weekStartDate);
-  weekEndDate.setDate(weekStartDate.getDate() + 6);
+  weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
 
-  dispatch(setWeekStartDate(weekStartDate.toISOString()));
-  dispatch(setWeekEndDate(weekEndDate.toISOString()));
+  dispatch(setWeekStartDate(weekStartDate.toISOString().slice(0, 10)));
+  dispatch(setWeekEndDate(weekEndDate.toISOString().slice(0, 10)));
 };
 
