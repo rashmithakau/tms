@@ -43,3 +43,37 @@ import { UserRole } from "@tms/shared";
       throw error;
     }
   };
+
+  export const getAllActiveUsers = async () => {
+    try {
+      const response = await API.get("/api/user/active");
+      return response;
+    } catch (error) {
+      console.error('Get all active users failed:', error);
+      throw error;
+    }
+  };
+
+  export const getAllUsersIncludingInactive = async (roles: string[]) => {
+    try {
+      const queryParams = roles.map(role => `roles=${role}`).join('&');
+      const response = await API.get(`/api/user/all?${queryParams}`);
+      return response;
+    } catch (error) {
+      console.error('Get all users including inactive failed:', error);
+      throw error;
+    }
+  };
+
+
+export const deleteUser = async (userId: string) => {
+  console.log('Making delete request to:', `/api/user/${userId}`);
+  try {
+    const response = await API.delete(`/api/user/${userId}`);
+    console.log('Delete response:', response);
+    return response;
+  } catch (error) {
+    console.error('Delete API error:', error);
+    throw error;
+  }
+};

@@ -1,15 +1,44 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
-import { useSnackbar, VariantType, SnackbarKey, SnackbarProvider } from 'notistack';
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useState,
+} from 'react';
+import { Snackbar, Alert, AlertTitle, IconButton, Box } from '@mui/material';
+import {
+  Close as CloseIcon,
+  CheckCircle as CheckIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon,
+ 
+} from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
+type ToastVariant = 'success' | 'warning' | 'error' | 'info' | 'tip';
 
-type ToastVariant = Extract<VariantType, 'default' | 'success' | 'error' | 'warning' | 'info'>;
+
+interface ToastMessage {
+  id: string;
+  message: string;
+  variant: ToastVariant;
+  title?: string;
+  autoHideDuration?: number;
+}
 
 interface ToastApi {
-  show: (message: string, options?: { variant?: ToastVariant; actionLabel?: string; onAction?: () => void; persist?: boolean }) => SnackbarKey;
-  success: (message: string) => SnackbarKey;
-  error: (message: string) => SnackbarKey;
-  info: (message: string) => SnackbarKey;
-  warning: (message: string) => SnackbarKey;
-  close: (key?: SnackbarKey) => void;
+  show: (
+    message: string,
+    variant?: ToastVariant,
+    title?: string,
+    autoHideDuration?: number
+  ) => void;
+  success: (message: string, title?: string) => void;
+  warning: (message: string, title?: string) => void;
+  error: (message: string, title?: string) => void;
+  info: (message: string, title?: string) => void;
+  tip: (message: string, title?: string) => void;
+  close: (id: string) => void;
 }
 
 const ToastContext = createContext<ToastApi | undefined>(undefined);
@@ -20,58 +49,152 @@ export const useToast = (): ToastApi => {
   return ctx;
 };
 
-export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Use a child component to access notistack hook
-  const InnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+export const ToastProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-    const api = useMemo<ToastApi>(() => ({
-      show: (message, options) =>
-        enqueueSnackbar(message, {
-          variant: options?.variant ?? 'default',
-          persist: options?.persist,
-          action: options?.actionLabel
-            ? (key) => (
-                <button
-                  onClick={() => {
-                    options.onAction?.();
-                    closeSnackbar(key);
-                  }}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                  }}
-                >
-                  {options.actionLabel}
-                </button>
-              )
-            : undefined,
-        }),
-      success: (message) => enqueueSnackbar(message, { variant: 'success' }),
-      error: (message) => enqueueSnackbar(message, { variant: 'error' }),
-      info: (message) => enqueueSnackbar(message, { variant: 'info' }),
-      warning: (message) => enqueueSnackbar(message, { variant: 'warning' }),
-      close: (key) => closeSnackbar(key),
-    }), [enqueueSnackbar, closeSnackbar]);
-
-    return <ToastContext.Provider value={api}>{children}</ToastContext.Provider>;
+  const addToast = (
+    message: string,
+    variant: ToastVariant = 'info',
+    title?: string,
+    autoHideDuration = 2500
+  ) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const newToast: ToastMessage = {
+      id,
+      message,
+      variant,
+      title,
+      autoHideDuration,
+    };
+    setToasts((prev) => [...prev, newToast]);
   };
 
-  
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
+  const api = useMemo<ToastApi>(
+    () => ({
+      show: (
+        message: string,
+        variant: ToastVariant = 'info',
+        title?: string,
+        autoHideDuration?: number
+      ) => {
+        addToast(message, variant, title, autoHideDuration);
+      },
+      success: (message: string, title?: string) =>
+        addToast(message, 'success', title),
+      warning: (message: string, title?: string) =>
+        addToast(message, 'warning', title),
+      error: (message: string, title?: string) =>
+        addToast(message, 'error', title),
+      info: (message: string, title?: string) =>
+        addToast(message, 'info', title),
+      tip: (message: string, title?: string) => addToast(message, 'tip', title),
+      close: (id: string) => removeToast(id),
+    }),
+    []
+  );
+  const theme = useTheme();
+  const getToastStyles = (variant: ToastVariant) => {
+    switch (variant) {
+      case 'success':
+        return {
+          backgroundColor: theme.palette.background.default,
+          Opacity: 10,
+          borderColor: '#21bd26ff',
+          color: theme.palette.text.primary,
+          icon: <CheckIcon sx={{ color: '#21bd26ff' }} />,
+        };
+      case 'warning':
+        return {
+          backgroundColor: theme.palette.background.default,
+          borderColor: '#ff9800',
+          color: theme.palette.text.primary,
+          icon: <WarningIcon sx={{ color: '#ff9800' }} />,
+        };
+      case 'error':
+        return {
+          backgroundColor: theme.palette.background.default,
+          borderColor: '#f44336',
+          color: theme.palette.text.primary,
+          icon: <ErrorIcon sx={{ color: '#f44336' }} />,
+        };
+      default:
+        return {
+          backgroundColor: theme.palette.background.default,
+          borderColor: '#2196f3',
+          color: theme.palette.text.primary,
+          icon: <InfoIcon sx={{ color: '#2196f3' }} />,
+        };
+    }
+  };
+
   return (
-    <SnackbarProvider
-      maxSnack={3}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      autoHideDuration={1500}
-      preventDuplicate
-    >
-      <InnerProvider>{children}</InnerProvider>
-    </SnackbarProvider>
+    <ToastContext.Provider value={api}>
+      {children}
+      {toasts.map((toast) => {
+        const styles = getToastStyles(toast.variant);
+        return (
+          <Snackbar
+            key={toast.id}
+            open={true}
+            autoHideDuration={toast.autoHideDuration}
+            onClose={() => removeToast(toast.id)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            sx={{ mt: 8 }}
+          >
+            <Alert
+              severity={toast.variant === 'tip' ? 'info' : toast.variant}
+              onClose={() => removeToast(toast.id)}
+              icon={styles.icon}
+              sx={{
+                backgroundColor: styles.backgroundColor,
+                color: styles.color,
+                minWidth: 250,
+                border: styles.borderColor
+                  ? `2px solid ${styles.borderColor}`
+                  : undefined,
+                '& .MuiAlert-icon': {
+                  color: styles.color,
+                },
+                '& .MuiAlert-message': {
+                  color: styles.color,
+                },
+                '& .MuiAlert-action': {
+                  color: styles.color,
+                },
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                borderRadius: 2,
+              }}
+              action={
+                <IconButton
+                  size="small"
+                  onClick={() => removeToast(toast.id)}
+                  sx={{ color: styles.color }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              }
+            >
+              <Box>
+                {toast.title && (
+                  <AlertTitle
+                    sx={{ color: styles.color, fontWeight: 600, mb: 0.5 }}
+                  >
+                    {toast.title}
+                  </AlertTitle>
+                )}
+                {toast.message}
+              </Box>
+            </Alert>
+          </Snackbar>
+        );
+      })}
+    </ToastContext.Provider>
   );
 };
-
-
 

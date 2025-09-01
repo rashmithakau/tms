@@ -6,6 +6,7 @@ import { useSupervisedTimesheets } from '../../hooks/useSupervisedTimesheets';
 import { Dayjs } from 'dayjs';
 import { deleteMyTimesheet } from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
 import FilterMenu from './EmpTimeSheetFilterMenu';
@@ -349,6 +350,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
         open={confirm.open}
         title="Delete timesheet"
         message="Are you sure you want to delete this timesheet? This action cannot be undone."
+        icon={<DeleteRoundedIcon />}
+        iconColor="error.main"
+        confirmButtonColor="error"
+        confirmText="Delete"
         onCancel={() => setConfirm({ open: false })}
         onConfirm={async () => {
           if (confirm.id) {

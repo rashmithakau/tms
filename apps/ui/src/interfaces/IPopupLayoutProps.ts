@@ -4,7 +4,6 @@ export interface IPopupLayoutProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  actions?: React.ReactNode;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   minHeight?: string | number;
   maxHeight?: string | number;
@@ -13,5 +12,4 @@ export interface IPopupLayoutProps {
   contentPadding?: number | string;
   titleProps?: Record<string, any>;
   contentProps?: { sx?: object } & Record<string, any>;
-  actionsProps?: Record<string, any>;
 }

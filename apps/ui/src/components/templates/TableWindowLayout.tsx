@@ -21,8 +21,8 @@ export interface ProjectRow {
   projectName: string;
   billable: 'Yes' | 'No';
   createdAt?: string;
-  employees?: { id: string; name: string; designation?: string;  }[];
-  supervisor?: { id: string; name: string; designation?: string; email?: string } | null;
+  employees?: { id: string; name: string; designation?: string; email?: string }[];
+  supervisor?: { id: string; name: string; designation?: string; email?: string ;} | null;
 }
 
 interface TableWindowLayoutProps {

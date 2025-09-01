@@ -37,7 +37,9 @@ export interface UserDocument extends mongoose.Document {
 
 interface UserModel extends Model<UserDocument> {
   findAllByRole(role: UserRole): Promise<UserDocument[]>;
-   findAllByRoles(roles: UserRole[]): Promise<UserDocument[]>;
+  findAllByRoles(roles: UserRole[]): Promise<UserDocument[]>;
+  findAllActive(): Promise<UserDocument[]>;
+  findAllIncludingInactive(roles: UserRole[]): Promise<UserDocument[]>;
 }
 
 const userSchema = new mongoose.Schema<UserDocument>(
@@ -65,6 +67,14 @@ userSchema.statics.findAllByRole = function (role: UserRole) {
 
 userSchema.statics.findAllByRoles = function (roles: UserRole[]) {
   return this.find({ role: { $in: roles } });
+};
+
+userSchema.statics.findAllActive = function () {
+  return this.find({ status: { $ne: false } });
+};
+
+userSchema.statics.findAllIncludingInactive = function (roles: UserRole[]) {
+  return this.find({ role: { $in: roles } }).sort({ status: -1, firstName: 1, lastName: 1 });
 };
 // Middleware to hash the password before saving
 userSchema.pre('save', async function (next) {

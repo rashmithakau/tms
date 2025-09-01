@@ -18,7 +18,6 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   title,
   subtitle,
   children,
-  actions,
   maxWidth = 'xs',
   minHeight = '520px',
   maxHeight = '80vh',
@@ -27,7 +26,6 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   contentPadding = 3,
   titleProps = {},
   contentProps = {},
-  actionsProps = {},
   onClose,
 }) => {
   const theme = useTheme();
@@ -94,25 +92,18 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
       <DialogContent
         sx={{
           p: contentPadding,
-          flex: 1, 
-          overflow: 'auto', 
+          flex: 1,
+          overflow: 'auto',
           ...contentProps.sx,
         }}
         {...contentProps}
       >
         {children}
+        
       </DialogContent>
-
-      {/* Dialog Actions */}
-      {actions && (
-        <>
-          <Divider />
-          <DialogActions sx={{ p: 3, ...actionsProps.sx }} {...actionsProps}>
-            {actions}
-          </DialogActions>
-        </>
-      )}
+       
     </Dialog>
+    
   );
 };
 

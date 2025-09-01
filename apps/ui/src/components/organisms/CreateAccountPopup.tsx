@@ -11,6 +11,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Box } from '@mui/material';
 import { useApiCall } from '../../hooks/useApiCall';
 import PageLoading from '../molecules/PageLoading';
+import Divider from '@mui/material/Divider'
 
 type CreateAccountData = {
   firstName: string;
@@ -118,6 +119,7 @@ function CreateAccountPopup({
             fullWidth
             disabled={isLoading}
           />
+
           <BaseTextField
             variant="outlined"
             label="First Name"
@@ -160,6 +162,10 @@ function CreateAccountPopup({
             disabled={isLoading}
           />
 
+          <Box>
+            <Divider />
+          </Box>
+
           <Box
             sx={{
               display: 'flex',
@@ -177,7 +183,11 @@ function CreateAccountPopup({
             >
               Cancel
             </BaseBtn>
-            <BaseBtn sx={{ mt: 2 }} type="submit" disabled={!isValid || isLoading}>
+            <BaseBtn
+              sx={{ mt: 2 }}
+              type="submit"
+              disabled={!isValid || isLoading}
+            >
               {isLoading ? 'Creating...' : 'Create'}
             </BaseBtn>
           </Box>

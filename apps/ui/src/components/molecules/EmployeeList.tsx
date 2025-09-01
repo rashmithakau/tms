@@ -1,9 +1,9 @@
 import React from 'react';
+import { Box, List, Typography, Avatar, Chip } from '@mui/material';
 import {
-  Box,
-  List,
-  Typography,
-} from '@mui/material';
+  SearchOff as SearchOffIcon,
+  Group as GroupIcon,
+} from '@mui/icons-material';
 import EmployeeListItem from './EmployeeListItem';
 import { IEmployeeListProps } from '../../interfaces/IEmployeeListProps';
 import { useTheme } from '@mui/material/styles';
@@ -12,51 +12,82 @@ const EmployeeList: React.FC<IEmployeeListProps> = ({
   employees,
   selectedEmployees,
   onEmployeeToggle,
-  title ,
-  emptyMessage ,
+  emptyMessage = 'No employees available',
   searchTerm,
-  maxHeight = 300,
+  maxHeight = 400,
 }) => {
   const theme = useTheme();
+
   return (
-    <>
-      <Typography variant="h6" >
-        {title}
-      </Typography>
-      <Box
-        sx={{
-          maxHeight,
-          
-        }}
-      >
-        <List>
-          {employees.map((employee) => {
+    <Box sx={{ maxHeight, overflow: 'auto' }}>
+      {employees.length > 0 ? (
+        <List sx={{ p: 0 }}>
+          {employees.map((employee, index) => {
             const isSelected = selectedEmployees.find(
               (emp) => emp.id === employee.id
             );
             return (
-              <EmployeeListItem
-                key={employee.id}
-                employee={employee}
-                isSelected={!!isSelected}
-                onToggle={onEmployeeToggle}
-              />
+              <Box>
+                <EmployeeListItem
+                  employee={employee}
+                  isSelected={!!isSelected}
+                  onToggle={onEmployeeToggle}
+                />
+              </Box>
             );
           })}
         </List>
+      ) : (
+        <Box
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: 600,
+                mb: 1,
+              }}
+            >
+              {searchTerm ? 'No Results Found' : 'No Employees Available'}
+            </Typography>
 
-        {employees.length === 0 && (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color={theme.palette.text.secondary}>
-              {searchTerm 
-                ? `No employees found matching "${searchTerm}"`
-                : emptyMessage
-              }
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.text.secondary,
+                maxWidth: 300,
+                lineHeight: 1.5,
+              }}
+            >
+              {searchTerm
+                ? `No employees found matching "${searchTerm}". Try adjusting your search terms.`
+                : emptyMessage}
             </Typography>
           </Box>
-        )}
-      </Box>
-    </>
+
+          {searchTerm && (
+            <Chip
+              label={`Search: "${searchTerm}"`}
+              size="small"
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                color: theme.palette.text.primary,
+                fontWeight: 500,
+              }}
+            />
+          )}
+        </Box>
+      )}
+    </Box>
   );
 };
 

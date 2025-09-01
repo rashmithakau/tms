@@ -5,6 +5,7 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useTimesheets } from '../../hooks/useTimesheets';
 import { deleteMyTimesheet, submitMyDraftTimesheets, getOrCreateMyTimesheetForWeek, createMyTimesheet, updateMyTimesheet } from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import { useToast } from '../contexts/ToastContext';
@@ -215,6 +216,10 @@ const MyTimesheetsWindow: React.FC = () => {
         open={confirm.open}
         title="Delete timesheet"
         message="Are you sure you want to delete this timesheet? This action cannot be undone."
+        icon={<DeleteRoundedIcon />}
+        iconColor="error.main"
+        confirmButtonColor="error"
+        confirmText="Delete"
         onCancel={() => setConfirm({ open: false })}
         onConfirm={async () => {
           if (confirm.id) {

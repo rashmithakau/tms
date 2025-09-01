@@ -19,6 +19,7 @@ import { useTheme } from '@mui/material/styles';
 import PopupLayout from '../templates/PopUpLayout';
 import { createProject } from '../../api/project';
 import { useToast } from '../contexts/ToastContext';
+import Divider from '@mui/material/Divider';
 
 interface CreateProjectFormData {
   projectName: string;
@@ -64,6 +65,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
       setSelectedEmployees([]); // Clear selected employees
     } catch (error) {
       toast.error('Failed to create project');
+      setSelectedEmployees([]); // Clear selected employees
     }
   };
 
@@ -92,12 +94,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
 
   return (
     <>
-      <PopupLayout
-        open={open}
-        title="Create Project"
-        onClose={handleCancel}
-        actions={null} // Submit button is inside the form
-      >
+      <PopupLayout open={open} title="Create Project" onClose={handleCancel}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box
             style={{
@@ -193,15 +190,15 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
               onRemoveEmployee={handleRemoveEmployee}
             />
             {/* Supervisor Dropdown */}
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ mb: 1 }}>
               <Controller
                 name="supervisor"
                 control={control}
                 render={({ field }) => (
-                  <FormControl fullWidth variant="outlined" size="small">
-                    <InputLabel id="supervisor-label">Supervisor</InputLabel>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="supervisor-select">Supervisor</InputLabel>
                     <Select
-                      labelId="supervisor-label"
+                      labelId="supervisor-select"
                       label="Supervisor"
                       MenuProps={{
                         PaperProps: {
@@ -215,17 +212,11 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                       onChange={(e) =>
                         field.onChange((e.target.value as string) || null)
                       }
-                      displayEmpty
                       disabled={selectedEmployees.length === 0}
                     >
                       {selectedEmployees.map((emp) => (
                         <MenuItem
-                          sx={{
-                            backgroundColor: theme.palette.background.default,
-                            '&:hover': {
-                              backgroundColor: theme.palette.background.paper,
-                            },
-                          }}
+                          sx={{ bgcolor: theme.palette.background.default }}
                           key={emp.id}
                           value={emp.id}
                         >
@@ -235,16 +226,16 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                         </MenuItem>
                       ))}
                     </Select>
-                    <FormHelperText>
-                      Choose a supervisor from selected employees. You can add
-                      employees above.
+                    <FormHelperText sx={{ m: 0, mt: 0.5 }}>
+                      <span style={{ fontSize: '0.75rem' }}>Choose a supervisor from selected employees</span>
                     </FormHelperText>
                   </FormControl>
                 )}
               />
             </Box>
-
-            {/* Submit Button */}
+            <Box>
+              <Divider />
+            </Box>
             <Box
               sx={{
                 display: 'flex',

@@ -42,6 +42,7 @@ export default function ProjectStaffManager({
     []
   );
   const [supervisor, setSupervisor] = useState<string | ''>('');
+  const toast = useToast();
 
   const employeeOptions: IEmployeeProps[] = useMemo(
     () =>
@@ -53,7 +54,6 @@ export default function ProjectStaffManager({
       })),
     [users]
   );
-  const toast = useToast();
 
   useEffect(() => {
     if (open) {
@@ -119,16 +119,6 @@ export default function ProjectStaffManager({
       onClose={onClose}
       title="Manage Team Members"
       subtitle="Add or remove team members and set a supervisor"
-      actions={
-        <>
-          <BaseBtn onClick={onClose} variant="outlined">
-            Cancel
-          </BaseBtn>
-          <BaseBtn onClick={handleSave} variant="contained">
-            Save
-          </BaseBtn>
-        </>
-      }
     >
       <Box>
         <SelectedEmployeeChips
@@ -138,7 +128,7 @@ export default function ProjectStaffManager({
           sx={{ mb: 2 }}
         />
 
-        <FormControl fullWidth size='small'>
+        <FormControl fullWidth size="small">
           <InputLabel id="supervisor-select">Supervisor</InputLabel>
           <Select
             labelId="supervisor-select"
@@ -146,14 +136,14 @@ export default function ProjectStaffManager({
             label="Supervisor"
             onChange={(e) => setSupervisor((e.target.value as string) || '')}
             disabled={selectedEmployees.length === 0}
-             MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 200,
-                            backgroundColor: theme.palette.background.default,
-                          },
-                        },
-                      }}
+            MenuProps={{
+              PaperProps: {
+                style: {
+                  maxHeight: 200,
+                  backgroundColor: theme.palette.background.default,
+                },
+              },
+            }}
           >
             {selectedEmployees.map((e) => (
               <MenuItem
@@ -171,7 +161,7 @@ export default function ProjectStaffManager({
         </FormControl>
 
         <Divider sx={{ my: 2 }} />
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        <Typography variant="h6" sx={{ mb: 1,fontWeight:600 }}>
           Add more employees
         </Typography>
 
@@ -192,6 +182,25 @@ export default function ProjectStaffManager({
           searchTerm={searchTerm}
           title="Available Employees"
         />
+      </Box>
+      <Box>
+        <Divider sx={{ mt: 2 }} />
+      </Box>
+      <Box
+        sx={{
+          mt: 3,
+          display: 'flex',
+          flexDirection: 'row',
+          gap: 2,
+          justifyContent: 'flex-end',
+        }}
+      >
+        <BaseBtn onClick={onClose} variant="outlined">
+          Cancel
+        </BaseBtn>
+        <BaseBtn onClick={handleSave} variant="contained">
+          Save
+        </BaseBtn>
       </Box>
     </PopupLayout>
   );

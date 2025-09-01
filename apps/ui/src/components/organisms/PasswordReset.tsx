@@ -11,6 +11,7 @@ import { sendPasswordResetEmail } from '../../api/auth';
 import { useState } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
+
 type SetPasswordData = {
   email: string;
 };
@@ -38,12 +39,12 @@ const PasswordReset: React.FC = () => {
       try {
         await sendPasswordResetEmail(data.email);
         setMessage('Password reset email sent successfully! Check your email for the reset link.');
-        toast.success('Reset email sent');
-        // Don't navigate immediately, let user see the success message
+       
+      
       } catch (err: any) {
         const msg = err.response?.data?.message || 'Failed to send password reset email. Please try again.';
         setError(msg);
-        toast.error(msg);
+       
       } finally {
         setIsLoading(false);
       }
