@@ -21,6 +21,8 @@ import ProjectTable from '../components/organisms/ProjectTable';
 import ProjectTableToolbar from '../components/molecules/ProjectTableToolbar';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import EmpTableToolbar, { EmpRoleFilter } from '../components/molecules/EmpTableToolbar';
+import { he } from 'zod/v4/locales/index.cjs';
+import { Height } from '@mui/icons-material';
 
 const AdminPage = () => {
   const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor] as const, []);
@@ -221,7 +223,8 @@ const AdminPage = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableWindowLayout
+            <Box sx={{ padding: 2, height: '93%' }}>
+<TableWindowLayout
               title="Employee Accounts"
               filter={<EmpTableToolbar 
                 roleFilter={empRoleFilter} 
@@ -245,6 +248,8 @@ const AdminPage = () => {
               ]}
               table={<EmpTable rows={filteredRows} />}
             />
+            </Box>
+            
           )}
 
           <CreateAccountPopup
@@ -271,7 +276,8 @@ const AdminPage = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableWindowLayout
+            <Box sx={{ padding: 2 ,height:'100%'}}>
+              <TableWindowLayout
               title="Projects"
               filter={
                 <ProjectTableToolbar
@@ -306,6 +312,8 @@ const AdminPage = () => {
                 />
               }
             />
+            </Box>
+            
           )}
 
           <CreateProjectPopUp
