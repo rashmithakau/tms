@@ -96,3 +96,13 @@ export const updateDailyTimesheetStatusApi = async ({
     status
   });
 };
+
+export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
+  timesheetId: string;
+  categoryIndex: number;
+  itemIndex: number;
+  dayIndices: number[];
+  status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+}>) => {
+  return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
+};

@@ -27,7 +27,7 @@ import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
-import {createTimesheet,submitDraftTimesheets,updateDailyTimesheetStatus} from "../services/timesheet.service";
+import {createTimesheet,submitDraftTimesheets,updateDailyTimesheetStatus,batchUpdateDailyTimesheetStatus} from "../services/timesheet.service";
 
 // --- Create new timesheet ---
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
@@ -37,7 +37,17 @@ export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   console.log(weekStartDate+" is week start date");
   // Always use Monday as week start (UTC)
   weekStartDate = getMondayUTC(weekStartDate);
-  const result = await createTimesheet({ userId, weekStartDate, data });
+  
+  // Ensure all items have dailyStatus arrays initialized
+  const dataWithDailyStatus = data.map(category => ({
+    ...category,
+    items: category.items.map(item => ({
+      ...item,
+      dailyStatus: Array(7).fill(TimesheetStatus.Draft)
+    }))
+  }));
+  
+  const result = await createTimesheet({ userId, weekStartDate, data: dataWithDailyStatus });
   return res.status(CREATED).json(result);
 });
 
@@ -124,7 +134,19 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
 
   const updateData: Partial<ITimesheet> = {};
   if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
-  if (data) (updateData as any).data = data;
+  if (data) {
+    // Ensure all items have dailyStatus arrays initialized
+    const dataWithDailyStatus = data.map(category => ({
+      ...category,
+      items: category.items.map(item => ({
+        ...item,
+        dailyStatus: (item as any).dailyStatus && (item as any).dailyStatus.length === 7 
+          ? (item as any).dailyStatus 
+          : Array(7).fill(TimesheetStatus.Draft)
+      }))
+    }));
+    (updateData as any).data = dataWithDailyStatus;
+  }
   if (status) updateData.status = status;
 
   const updated = await Timesheet.findOneAndUpdate(
@@ -195,4 +217,32 @@ export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request
   );
 
   return res.status(OK).json({ timesheet: result });
+});
+
+// --- Batch update daily status of multiple timesheet items ---
+export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
+  const { updates } = req.body as {
+    updates: Array<{
+      timesheetId: string;
+      categoryIndex: number;
+      itemIndex: number;
+      dayIndices: number[];
+      status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+    }>;
+  };
+
+  // Validate all statuses
+  const validStatuses = [TimesheetStatus.Approved, TimesheetStatus.Rejected];
+  for (const update of updates) {
+    if (!validStatuses.includes(update.status)) {
+      return res.status(BAD_REQUEST).json({ 
+        message: `Invalid status '${update.status}'. Must be Approved or Rejected` 
+      });
+    }
+  }
+
+  const results = await batchUpdateDailyTimesheetStatus(supervisorId, updates);
+
+  return res.status(OK).json({ timesheets: results });
 });

@@ -19,7 +19,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
-import { updateDailyTimesheetStatusApi } from '../../api/timesheet';
+import { updateDailyTimesheetStatusApi, batchUpdateDailyTimesheetStatusApi } from '../../api/timesheet';
+import ChecklistOutlinedIcon from '@mui/icons-material/ChecklistOutlined';
 
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, timesheets, isLoading, refresh } = useSupervisedTimesheets();
@@ -132,46 +133,30 @@ const ReviewTimesheetsWindow: React.FC = () => {
     }
 
     try {
-      // Group selections by timesheet and item
-      const groupedSelections = new Map<string, Map<string, DaySelection[]>>();
+      // Prepare batch updates
+      const updates = selectedDays.map(selection => ({
+        timesheetId: selection.timesheetId,
+        categoryIndex: selection.categoryIndex,
+        itemIndex: selection.itemIndex,
+        dayIndices: [selection.dayIndex],
+        status
+      }));
+
+      // Group by timesheet and item to consolidate day indices
+      const groupedUpdates = new Map<string, typeof updates[0] & { dayIndices: number[] }>();
       
-      selectedDays.forEach(selection => {
-        const timesheetKey = selection.timesheetId;
-        const itemKey = `${selection.categoryIndex}-${selection.itemIndex}`;
-        
-        if (!groupedSelections.has(timesheetKey)) {
-          groupedSelections.set(timesheetKey, new Map());
+      updates.forEach(update => {
+        const key = `${update.timesheetId}-${update.categoryIndex}-${update.itemIndex}`;
+        if (groupedUpdates.has(key)) {
+          groupedUpdates.get(key)!.dayIndices.push(...update.dayIndices);
+        } else {
+          groupedUpdates.set(key, { ...update });
         }
-        
-        const timesheetGroup = groupedSelections.get(timesheetKey)!;
-        if (!timesheetGroup.has(itemKey)) {
-          timesheetGroup.set(itemKey, []);
-        }
-        
-        timesheetGroup.get(itemKey)!.push(selection);
       });
 
-      // Process each grouped selection
-      const promises: Promise<any>[] = [];
+      // Use batch API for better concurrency handling
+      await batchUpdateDailyTimesheetStatusApi(Array.from(groupedUpdates.values()));
       
-      groupedSelections.forEach((itemGroups, timesheetId) => {
-        itemGroups.forEach((selections, itemKey) => {
-          const [categoryIndex, itemIndex] = itemKey.split('-').map(Number);
-          const dayIndices = selections.map(s => s.dayIndex);
-          
-          promises.push(
-            updateDailyTimesheetStatusApi({
-              timesheetId,
-              categoryIndex,
-              itemIndex,
-              dayIndices,
-              status
-            })
-          );
-        });
-      });
-
-      await Promise.all(promises);
       await refresh();
       setSelectedDays([]);
       setIsSelectionMode(false);
@@ -305,6 +290,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
             <BaseBtn
               variant={"text"}
               onClick={toggleSelectionMode}
+              startIcon={<ChecklistOutlinedIcon/>}
             >
               {isSelectionMode ? 'Exit Selection' : 'Select Days'}
             </BaseBtn>
