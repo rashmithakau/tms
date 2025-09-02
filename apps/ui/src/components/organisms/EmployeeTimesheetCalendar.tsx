@@ -59,6 +59,7 @@ interface EmployeeTimesheetCalendarProps {
   employeeName: string;
   timesheets: TimeSheetRow[];
   originalTimesheets?: any[]; // Add original timesheet data
+  supervisedProjectIds?: string[]; // Add supervised project IDs for authorization
   onDaySelectionChange?: (selections: DaySelection[]) => void;
   selectedDays?: DaySelection[];
   isSelectionMode?: boolean;
@@ -69,6 +70,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
   employeeName,
   timesheets,
   originalTimesheets = [],
+  supervisedProjectIds = [],
   onDaySelectionChange,
   selectedDays = [],
   isSelectionMode = false,
@@ -375,6 +377,19 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
                           const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
                           const isSelected = isDaySelected(catIndex, rowIndex, colIndex);
                           const hasHours = parseFloat(hour) > 0;
+                          const isDisabled = dailyStatus === TimesheetStatus.Approved || dailyStatus === TimesheetStatus.Rejected;
+                          
+                          // Check if the supervisor can approve this item
+                          const canApprove = (() => {
+                            // If it's a project item, check if supervisor supervises this project
+                            if (row.projectId) {
+                              return supervisedProjectIds.includes(row.projectId);
+                            }
+                            // For absence items (no projectId), supervisor can approve
+                            return true;
+                          })();
+                          
+                          const isCheckboxDisabled = isDisabled || !canApprove;
                           
                           return (
                             <TableCell key={colIndex} align="center">
@@ -389,14 +404,18 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
                                   <Checkbox
                                     size="small"
                                     checked={isSelected}
+                                    disabled={isCheckboxDisabled}
                                     onChange={(e) => handleDaySelectionChange(catIndex, rowIndex, colIndex, e.target.checked)}
                                     sx={{ p: 0, mb: 0.5 }}
+                                    title={!canApprove ? 'You can only approve projects you supervise' : undefined}
                                   />
                                 )}
                                 <div style={{ 
                                   display: 'flex', 
                                   alignItems: 'center', 
-                                  justifyContent: 'center' 
+                                  justifyContent: 'center',
+                                  opacity: isDisabled ? 0.6 : (!canApprove ? 0.4 : 1),
+                                  position: 'relative'
                                 }}>
                                   <div style={{ marginRight: 4 }}>
                                     {hour}
@@ -410,6 +429,18 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
                                     </Tooltip>
                                   )}
                                 </div>
+                                {/* Status indicator */}
+                                {hasHours && dailyStatus !== TimesheetStatus.Draft && (
+                                  <div style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    backgroundColor: 
+                                      dailyStatus === TimesheetStatus.Approved ? '#4caf50' :
+                                      dailyStatus === TimesheetStatus.Rejected ? '#f44336' :
+                                      dailyStatus === TimesheetStatus.Pending ? '#ff9800' : '#9e9e9e'
+                                  }} />
+                                )}
                               </div>
                             </TableCell>
                           );

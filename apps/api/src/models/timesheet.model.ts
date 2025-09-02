@@ -20,6 +20,7 @@ export interface ITimesheet extends Document {
   weekStartDate: Date;    
   data: ITimesheetCategory[];
   status: TimesheetStatus; 
+  rejectionReason?: string; // Add rejection reason field
 }
 
 const TimesheetItemSchema = new Schema<ITimesheetItem>({
@@ -43,6 +44,7 @@ const TimesheetSchema = new Schema<ITimesheet>({
   status: { type: String, enum: Object.values(TimesheetStatus), default: TimesheetStatus.Draft },
   weekStartDate: { type: Date, required: true }, // store as ISO
   data: [TimesheetCategorySchema],
+  rejectionReason: { type: String }, // Add rejection reason field
 });
 
 export const Timesheet = mongoose.model<ITimesheet>(

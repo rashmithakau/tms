@@ -110,14 +110,32 @@ export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, 
 
 // --- Update status of supervised timesheets ---
 export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
   const { ids, status } = req.body as { ids: string[]; status: TimesheetStatus };
 
   if (![TimesheetStatus.Approved, TimesheetStatus.Rejected].includes(status)) {
     return res.status(BAD_REQUEST).json({ message: 'Invalid status. Must be Approved or Rejected' });
   }
 
+  // Get supervisor's projects for authorization
+  const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedUserIds = Array.from(
+    new Set(
+      supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+    )
+  );
+
+  if (supervisedUserIds.length === 0) {
+    return res.status(FORBIDDEN).json({ message: 'You have no supervised employees' });
+  }
+
+  // Only update timesheets from supervised employees
   const result = await Timesheet.updateMany(
-    { _id: { $in: ids }, status: TimesheetStatus.Pending },
+    { 
+      _id: { $in: ids }, 
+      userId: { $in: supervisedUserIds },
+      status: TimesheetStatus.Pending 
+    },
     { $set: { status } }
   );
 
@@ -195,12 +213,13 @@ export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Requ
 // --- Update daily status of specific timesheet items ---
 export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
-  const { timesheetId, categoryIndex, itemIndex, dayIndices, status } = req.body as {
+  const { timesheetId, categoryIndex, itemIndex, dayIndices, status, rejectionReason } = req.body as {
     timesheetId: string;
     categoryIndex: number;
     itemIndex: number;
     dayIndices: number[];
     status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+    rejectionReason?: string;
   };
 
   if (![TimesheetStatus.Approved, TimesheetStatus.Rejected].includes(status)) {
@@ -213,7 +232,8 @@ export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request
     categoryIndex,
     itemIndex,
     dayIndices,
-    status
+    status,
+    rejectionReason
   );
 
   return res.status(OK).json({ timesheet: result });
@@ -229,13 +249,29 @@ export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Re
       itemIndex: number;
       dayIndices: number[];
       status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+      rejectionReason?: string;
     }>;
   };
+
+  console.log('Batch update request received:', {
+    supervisorId,
+    updatesCount: updates?.length || 0,
+    updates: JSON.stringify(updates, null, 2)
+  });
+
+  // Validate request body
+  if (!updates || !Array.isArray(updates) || updates.length === 0) {
+    console.error('Invalid updates array:', updates);
+    return res.status(BAD_REQUEST).json({ 
+      message: 'Updates array is required and must not be empty' 
+    });
+  }
 
   // Validate all statuses
   const validStatuses = [TimesheetStatus.Approved, TimesheetStatus.Rejected];
   for (const update of updates) {
     if (!validStatuses.includes(update.status)) {
+      console.error('Invalid status in update:', update);
       return res.status(BAD_REQUEST).json({ 
         message: `Invalid status '${update.status}'. Must be Approved or Rejected` 
       });
@@ -243,6 +279,6 @@ export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Re
   }
 
   const results = await batchUpdateDailyTimesheetStatus(supervisorId, updates);
-
+  console.log('Batch update completed successfully:', { resultsCount: results.length });
   return res.status(OK).json({ timesheets: results });
 });

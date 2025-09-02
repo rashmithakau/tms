@@ -157,3 +157,14 @@ export const softDeleteProject = async (projectId: string) => {
 
   return { projectId };
 };
+
+export const listSupervisedProjects = async (supervisorId: string) => {
+  const projects = await ProjectModel.find({ 
+    supervisor: supervisorId, 
+    status: true 
+  })
+    .select('_id projectName')
+    .sort({ projectName: 1 });
+  
+  return { projects };
+};

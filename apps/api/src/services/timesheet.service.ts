@@ -1,6 +1,7 @@
 // services/timesheet.service.ts
 import { TimesheetStatus } from '@tms/shared';
 import { Timesheet } from '../models/timesheet.model';
+import ProjectModel from '../models/project.model';
 
 interface ITimesheetItem {
   work?: string;
@@ -173,6 +174,7 @@ export const updateDailyTimesheetStatus = async (
   itemIndex: number, 
   dayIndices: number[], 
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected,
+  rejectionReason?: string,
   retryCount: number = 0
 ) => {
   console.log('Starting updateDailyTimesheetStatus:', {
@@ -199,8 +201,26 @@ export const updateDailyTimesheetStatus = async (
       throw new Error('Timesheet not found');
     }
 
-    // Verify the timesheet belongs to a supervised user
-    // TODO: Add proper supervisor verification logic here
+    // Verify the timesheet belongs to a supervised user AND the specific item is for a supervised project
+    const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+    const supervisedProjectIds = supervisedProjects.map(p => p._id.toString());
+    const supervisedUserIds = Array.from(
+      new Set(
+        supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+      )
+    );
+    
+    // Check if timesheet owner is supervised
+    const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
+    if (!supervisedUserIds.includes(timesheetUserId)) {
+      throw new Error('Unauthorized: You can only approve timesheets from your supervised employees');
+    }
+    
+    // Check if the specific item is for a project the supervisor supervises
+    const item = timesheet.data[categoryIndex].items[itemIndex];
+    if (item.projectId && !supervisedProjectIds.includes(item.projectId)) {
+      throw new Error('Unauthorized: You can only approve timesheet items for projects you supervise');
+    }
     
     // Validate indices
     if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
@@ -214,24 +234,24 @@ export const updateDailyTimesheetStatus = async (
       throw new Error(`Invalid item index: ${itemIndex}. Available items in category '${category.category}': ${category.items.length}`);
     }
     
-    const item = category.items[itemIndex];
+    const categoryItem = category.items[itemIndex];
     console.log('Item before update:', {
-      work: item.work,
-      projectId: item.projectId,
-      dailyStatus: item.dailyStatus,
-      dailyStatusLength: item.dailyStatus?.length
+      work: categoryItem.work,
+      projectId: categoryItem.projectId,
+      dailyStatus: categoryItem.dailyStatus,
+      dailyStatusLength: categoryItem.dailyStatus?.length
     });
     
     // Ensure dailyStatus array exists and has correct length
-    if (!item.dailyStatus || item.dailyStatus.length !== 7) {
-      console.log('Initializing missing or invalid dailyStatus array for item:', item);
-      item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+    if (!categoryItem.dailyStatus || categoryItem.dailyStatus.length !== 7) {
+      console.log('Initializing missing or invalid dailyStatus array for item:', categoryItem);
+      categoryItem.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
     }
     
     // Update the specified days
     dayIndices.forEach(dayIndex => {
       if (dayIndex >= 0 && dayIndex < 7) {
-        item.dailyStatus[dayIndex] = status;
+        categoryItem.dailyStatus[dayIndex] = status;
       }
     });
     
@@ -256,6 +276,11 @@ export const updateDailyTimesheetStatus = async (
       );
       
       timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
+      
+      // If rejected and reason provided, save it
+      if (timesheet.status === TimesheetStatus.Rejected && rejectionReason) {
+        timesheet.rejectionReason = rejectionReason;
+      }
     }
     
     // Save the timesheet
@@ -276,7 +301,7 @@ export const updateDailyTimesheetStatus = async (
       console.log(`Retrying update due to version conflict (attempt ${retryCount + 1}/3)`);
       // Wait a small random time before retrying to reduce contention
       await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
-      return updateDailyTimesheetStatus(supervisorId, timesheetId, categoryIndex, itemIndex, dayIndices, status, retryCount + 1);
+      return updateDailyTimesheetStatus(supervisorId, timesheetId, categoryIndex, itemIndex, dayIndices, status, rejectionReason, retryCount + 1);
     }
     
     throw error;
@@ -292,9 +317,11 @@ export const batchUpdateDailyTimesheetStatus = async (
     itemIndex: number;
     dayIndices: number[];
     status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+    rejectionReason?: string;
   }>
 ) => {
   console.log('Starting batchUpdateDailyTimesheetStatus:', { supervisorId, updatesCount: updates.length });
+  console.log('Updates received:', JSON.stringify(updates, null, 2));
 
   // Group updates by timesheetId to process each timesheet once
   const groupedUpdates = new Map<string, typeof updates>();
@@ -307,12 +334,32 @@ export const batchUpdateDailyTimesheetStatus = async (
 
   const results = [];
 
+  // Get supervisor's projects once for authorization
+  const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedProjectIds = supervisedProjects.map(p => p._id.toString());
+  const supervisedUserIds = Array.from(
+    new Set(
+      supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+    )
+  );
+
+  console.log('Authorization data:', {
+    supervisorId,
+    supervisedProjectsCount: supervisedProjects.length,
+    supervisedProjectIds,
+    supervisedUserIds
+  });
+
   // Process each timesheet sequentially to avoid version conflicts
   for (const [timesheetId, timesheetUpdates] of groupedUpdates) {
     try {
+      console.log('Processing timesheet:', { timesheetId, updatesCount: timesheetUpdates.length });
+      
       // Validate ObjectId format
       if (!timesheetId || timesheetId.length !== 24) {
-        throw new Error(`Invalid timesheet ID format: ${timesheetId}`);
+        const error = `Invalid timesheet ID format: ${timesheetId}`;
+        console.error(error);
+        throw new Error(error);
       }
 
       // Find the timesheet
@@ -320,40 +367,135 @@ export const batchUpdateDailyTimesheetStatus = async (
         .populate('userId', 'firstName lastName email');
       
       if (!timesheet) {
-        throw new Error(`Timesheet not found: ${timesheetId}`);
+        const error = `Timesheet not found: ${timesheetId}`;
+        console.error(error);
+        throw new Error(error);
       }
 
-      // Apply all updates for this timesheet
-      timesheetUpdates.forEach(update => {
-        const { categoryIndex, itemIndex, dayIndices, status } = update;
+      console.log('Timesheet found:', {
+        timesheetId,
+        userId: timesheet.userId,
+        status: timesheet.status,
+        dataLength: timesheet.data?.length || 0
+      });
+
+      // Verify the timesheet belongs to a supervised user
+      const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
+      console.log('Authorization check:', {
+        timesheetUserId,
+        supervisedUserIds,
+        isIncluded: supervisedUserIds.includes(timesheetUserId)
+      });
+      
+      if (!supervisedUserIds.includes(timesheetUserId)) {
+        const error = 'Unauthorized: You can only approve timesheets from your supervised employees';
+        console.error(error, {
+          timesheetUserId,
+          supervisedUserIds
+        });
+        throw new Error(error);
+      }
+
+      // Pre-validate all project items before making any changes
+      for (const update of timesheetUpdates) {
+        const { categoryIndex, itemIndex } = update;
         
-        // Validate indices
+        console.log('Validating update:', { timesheetId, categoryIndex, itemIndex });
+        
         if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
+          console.error('Invalid category index:', { categoryIndex, availableCategories: timesheet.data.length });
           throw new Error(`Invalid category index: ${categoryIndex}`);
         }
         
         const category = timesheet.data[categoryIndex];
         if (itemIndex < 0 || itemIndex >= category.items.length) {
+          console.error('Invalid item index:', { itemIndex, availableItems: category.items.length });
           throw new Error(`Invalid item index: ${itemIndex}`);
         }
         
         const item = category.items[itemIndex];
         
+        console.log('Item validation:', {
+          timesheetId,
+          categoryIndex,
+          itemIndex,
+          itemProjectId: item.projectId,
+          supervisedProjectIds,
+          isProjectItem: !!item.projectId,
+          isAuthorized: !item.projectId || supervisedProjectIds.includes(item.projectId)
+        });
+        
+        // Check if the specific item is for a project the supervisor supervises
+        if (item.projectId && !supervisedProjectIds.includes(item.projectId)) {
+          console.error('Authorization failed:', {
+            itemProjectId: item.projectId,
+            supervisedProjectIds,
+            message: 'You can only approve timesheet items for projects you supervise'
+          });
+          throw new Error('Unauthorized: You can only approve timesheet items for projects you supervise');
+        }
+      }
+
+      // Apply all updates for this timesheet
+      timesheetUpdates.forEach((update, updateIndex) => {
+        const { categoryIndex, itemIndex, dayIndices, status, rejectionReason } = update;
+        
+        console.log(`Applying update ${updateIndex + 1}/${timesheetUpdates.length}:`, {
+          timesheetId,
+          categoryIndex,
+          itemIndex,
+          dayIndices,
+          status
+        });
+        
+        // Validate indices
+        if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
+          const error = `Invalid category index: ${categoryIndex}. Available: 0-${timesheet.data.length - 1}`;
+          console.error(error);
+          throw new Error(error);
+        }
+        
+        const category = timesheet.data[categoryIndex];
+        if (itemIndex < 0 || itemIndex >= category.items.length) {
+          const error = `Invalid item index: ${itemIndex}. Available: 0-${category.items.length - 1}`;
+          console.error(error);
+          throw new Error(error);
+        }
+        
+        const item = category.items[itemIndex];
+        
+        console.log('Item details:', {
+          categoryName: category.category,
+          itemWork: item.work,
+          itemProjectId: item.projectId,
+          currentDailyStatus: item.dailyStatus
+        });
+        
         // Ensure dailyStatus array exists
         if (!item.dailyStatus || item.dailyStatus.length !== 7) {
+          console.log('Initializing dailyStatus array for item');
           item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
         }
         
         // Update the specified days
-        dayIndices.forEach(dayIndex => {
+        dayIndices.forEach((dayIndex, dayIdx) => {
           if (dayIndex >= 0 && dayIndex < 7) {
+            console.log(`Updating day ${dayIndex} from ${item.dailyStatus[dayIndex]} to ${status}`);
             item.dailyStatus[dayIndex] = status;
+          } else {
+            const error = `Invalid day index: ${dayIndex}. Must be 0-6`;
+            console.error(error);
+            throw new Error(error);
           }
         });
+        
+        console.log('Updated dailyStatus:', item.dailyStatus);
       });
       
       // Mark as modified
       timesheet.markModified('data');
+      
+      console.log('Checking completion state...');
       
       // Check if all days for all items are now approved/rejected
       const allItemsProcessed = timesheet.data.every(cat => 
@@ -364,6 +506,8 @@ export const batchUpdateDailyTimesheetStatus = async (
         )
       );
       
+      console.log('All items processed:', allItemsProcessed);
+      
       // If all items are processed, update overall status
       if (allItemsProcessed) {
         const allApproved = timesheet.data.every(cat => 
@@ -372,16 +516,35 @@ export const batchUpdateDailyTimesheetStatus = async (
           )
         );
         
+        console.log('All approved:', allApproved);
+        
         timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
+        
+        // If rejected and reason provided, save it
+        if (timesheet.status === TimesheetStatus.Rejected) {
+          const rejectionUpdate = timesheetUpdates.find(u => u.rejectionReason);
+          if (rejectionUpdate?.rejectionReason) {
+            timesheet.rejectionReason = rejectionUpdate.rejectionReason;
+            console.log('Added rejection reason:', rejectionUpdate.rejectionReason);
+          }
+        }
       }
+      
+      console.log('Saving timesheet with status:', timesheet.status);
       
       // Save the timesheet
       const savedTimesheet = await timesheet.save();
+      console.log('Timesheet saved successfully:', savedTimesheet._id);
       results.push(savedTimesheet);
       
-    } catch (error) {
-      console.error(`Error updating timesheet ${timesheetId}:`, error);
-      throw error;
+    } catch (error: any) {
+      console.error(`Error updating timesheet ${timesheetId}:`, {
+        error: error.message,
+        stack: error.stack,
+        timesheetId,
+        supervisorId
+      });
+      throw error; // Re-throw to be handled by controller
     }
   }
 

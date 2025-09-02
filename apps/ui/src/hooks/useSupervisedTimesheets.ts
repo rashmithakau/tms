@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listSupervisedTimesheets, Timesheet } from '../api/timesheet';
+import { listSupervisedTimesheets, Timesheet, getSupervisedProjects } from '../api/timesheet';
 import { TimeSheetRow } from '../types/timesheet';
 
 export const useSupervisedTimesheets = () => {
   const [rows, setRows] = useState<TimeSheetRow[]>([]);
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]); // Add original timesheet data
+  const [supervisedProjectIds, setSupervisedProjectIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,11 +13,21 @@ export const useSupervisedTimesheets = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const resp = await listSupervisedTimesheets();
-      const data = resp.data?.timesheets || [];
+      
+      // Fetch both supervised timesheets and supervised projects
+      const [timesheetsResp, projectsResp] = await Promise.all([
+        listSupervisedTimesheets(),
+        getSupervisedProjects()
+      ]);
+      
+      const data = timesheetsResp.data?.timesheets || [];
+      const supervisedProjects = projectsResp.data?.projects || [];
       
       // Store original timesheets for calendar component
       setTimesheets(data);
+      
+      // Store supervised project IDs for authorization checks
+      setSupervisedProjectIds(supervisedProjects.map(p => p._id));
       
       // Flatten the timesheet structure into individual rows
       const mapped: TimeSheetRow[] = [];
@@ -76,5 +87,5 @@ export const useSupervisedTimesheets = () => {
     fetchData();
   }, [fetchData]);
 
-  return { rows, timesheets, isLoading, error, refresh: fetchData };
+  return { rows, timesheets, supervisedProjectIds, isLoading, error, refresh: fetchData };
 };

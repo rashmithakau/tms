@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import { Box, CircularProgress, IconButton } from '@mui/material';
+import { Box, CircularProgress, IconButton, Chip } from '@mui/material';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useTimesheets } from '../../hooks/useTimesheets';
@@ -48,8 +48,8 @@ const MyTimesheetsWindow: React.FC = () => {
         toast.error('No timesheet for this week');
         return;
       }
-      if (currentStatus !== 'Draft') {
-        toast.error('Only draft timesheets can be submitted');
+      if (!['Draft', 'Rejected'].includes(currentStatus || '')) {
+        toast.error('Only draft and rejected timesheets can be submitted');
         return;
       }
       if (isUnderMinimumHours) {
@@ -157,6 +157,7 @@ const MyTimesheetsWindow: React.FC = () => {
                 alignItems: 'center',
               }}
             >
+    
 
               <IconButton onClick={handlePreviousWeek}>
                 <ArrowBackIcon sx={{ color: (theme) => theme.palette.primary.main }}/>
@@ -173,12 +174,13 @@ const MyTimesheetsWindow: React.FC = () => {
                 year: 'numeric',
                 timeZone: 'UTC'
               }) : 'Loading...'}
+              
               <IconButton onClick={handleNextWeek}>
               <ArrowForwardIcon sx={{ color: (theme) => theme.palette.primary.main }} />
               </IconButton>
               <BaseBtn
                 variant="text"
-                disabled={timesheetData.status !== 'Draft' || isUnderMinimumHours}
+                disabled={!['Draft', 'Rejected'].includes(timesheetData.status || '') || isUnderMinimumHours}
                 onClick={handleSubmit}
                 startIcon={<SendOutlinedIcon />}
               >
@@ -189,7 +191,7 @@ const MyTimesheetsWindow: React.FC = () => {
                 variant="text"
                 startIcon={<SaveIcon />}
                 disabled={
-                  timesheetData.status !== 'Draft' ||
+                  !['Draft', 'Rejected'].includes(timesheetData.status || '') ||
                   JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '')
                 }
               >
@@ -199,6 +201,7 @@ const MyTimesheetsWindow: React.FC = () => {
                 onClick={handleActivityOpenPopup}
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
+                disabled={!['Draft', 'Rejected'].includes(timesheetData.status || '')}
               >
                 Select Work
               </BaseBtn>

@@ -26,9 +26,25 @@ export const updateTimesheetSchema = z.object({
   weekStartDate: z.string().or(z.date()).optional(),
   data: z.array(CategorySchema).optional(),
   status: z.nativeEnum(TimesheetStatus).optional(),
+  rejectionReason: z.string().optional(),
 });
 
 // --- Submit Timesheets ---
 export const submitTimesheetsSchema = z.object({
   ids: z.array(z.string().min(1)).min(1),
+});
+
+// --- Daily Status Update Schema ---
+export const updateDailyTimesheetStatusSchema = z.object({
+  timesheetId: z.string(),
+  categoryIndex: z.number(),
+  itemIndex: z.number(),
+  dayIndices: z.array(z.number()),
+  status: z.nativeEnum(TimesheetStatus),
+  rejectionReason: z.string().optional(),
+});
+
+// --- Batch Daily Status Update Schema ---
+export const batchUpdateDailyTimesheetStatusSchema = z.object({
+  updates: z.array(updateDailyTimesheetStatusSchema),
 });

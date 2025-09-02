@@ -27,7 +27,8 @@ export type Timesheet = {
     designation?: string;
   };
   weekStartDate: string;
-  categories: TimesheetCategory[];
+  data: TimesheetCategory[]; // Use 'data' to match backend
+  categories: TimesheetCategory[]; // Keep for backward compatibility
   status: TimesheetStatus;
   createdAt: string;
   updatedAt: string;
@@ -40,6 +41,10 @@ export const listMyTimesheets = async () => {
 
 export const listSupervisedTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets/supervised');
+};
+
+export const getSupervisedProjects = async () => {
+  return API.get<{ projects: Array<{ _id: string; projectName: string }> }>('/api/project/supervised');
 };
 
 export type CreateTimesheetPayload = {
@@ -80,20 +85,23 @@ export const updateDailyTimesheetStatusApi = async ({
   categoryIndex,
   itemIndex,
   dayIndices,
-  status
+  status,
+  rejectionReason
 }: {
   timesheetId: string;
   categoryIndex: number;
   itemIndex: number;
   dayIndices: number[];
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+  rejectionReason?: string;
 }) => {
   return API.post('/api/timesheets/supervised/daily-status', {
     timesheetId,
     categoryIndex,
     itemIndex,
     dayIndices,
-    status
+    status,
+    rejectionReason
   });
 };
 
@@ -103,6 +111,7 @@ export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
   itemIndex: number;
   dayIndices: number[];
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+  rejectionReason?: string;
 }>) => {
   return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
 };
