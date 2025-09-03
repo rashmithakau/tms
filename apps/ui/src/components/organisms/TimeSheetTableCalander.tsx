@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import theme from '../../styles/theme';
-import { startOfWeek, addDays, format, isSameWeek, isSameDay } from 'date-fns';
+import { startOfWeek, addDays, format, isSameDay } from 'date-fns';
 import { getOrCreateMyTimesheetForWeek, Timesheet } from '../../api/timesheet';
 import { listProjects } from '../../api/project';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,7 +22,6 @@ import { RootState } from '../../store/store';
 import { TimesheetStatus } from '@tms/shared';
 import {
   setTimesheetData,
-  setWeekEndDate,
   setWeekStartDate,
   setCurrentTimesheetId,
   setTimesheetStatus,
@@ -303,16 +302,11 @@ const TimeSheetTableCalendar: React.FC = () => {
                       const dayStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
                       const isEditable = timesheetStatus === 'Draft' || 
                         (timesheetStatus === 'Rejected' && dayStatus === TimesheetStatus.Rejected);
-                      const isRejected = dayStatus === TimesheetStatus.Rejected;
                       
                       return (
                         <TableCell 
                           key={colIndex} 
                           align="center"
-                          sx={{
-                            backgroundColor: isRejected ? '#ffebee' : 'inherit',
-                            borderLeft: isRejected ? '3px solid #f44336' : 'none'
-                          }}
                         >
                           <div style={{ 
                             display: 'flex', 
@@ -321,7 +315,7 @@ const TimeSheetTableCalendar: React.FC = () => {
                             flexDirection: 'column',
                             gap: '4px'
                           }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',width:'80px'}}>
                               {editCell &&
                               editCell.cat === catIndex &&
                               editCell.row === rowIndex &&
@@ -336,7 +330,7 @@ const TimeSheetTableCalendar: React.FC = () => {
                                   }}
                                   autoFocus
                                   sx={{
-                                    width: 35,
+                                    width: 34,
                                     borderRadius: 1,
                                     textAlign: 'center',
                                     fontSize: '14px',
@@ -355,7 +349,7 @@ const TimeSheetTableCalendar: React.FC = () => {
                                     onClick={() => isEditable ? handleCellClick(catIndex, rowIndex, colIndex) : undefined}
                                     style={{ 
                                       cursor: isEditable ? 'pointer' : 'default', 
-                                      opacity: isEditable ? 1 : 0.6
+                                      opacity: isEditable ? 1 : 0.7
                                     }}
                                   >
                                     {hour}

@@ -4,11 +4,9 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from './UserPopoverBox'; 
 import EmpMenu from './EmpMenu'; 
 import { logout } from '../../api/auth';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
-import { useDispatch } from "react-redux";
 import { useToast } from '../contexts/ToastContext';
 import SearchBar from '../atoms/inputFields/SearchBar';
 
@@ -18,7 +16,6 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
   const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(null);
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
-  const dispatch = useDispatch(); 
   const toast = useToast();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -37,7 +34,7 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
     setEmpMenuAnchorEl(null);
   };
 
-  const navigate = useNavigate();
+
 
   const handleProfileClick = () => {
     // Handle profile click logic here
@@ -49,14 +46,13 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
       await logout();
       authLogout();
       toast.success('Logged out successfully');
-      navigate('/', { replace: true });
+      window.location.reload();
     } catch (error) {
       console.error('Logout error:', error);
       // Even if API call fails, clear local state and redirect
       authLogout();
-      dispatch({ type: "LOGOUT" });
       toast.error('Logout failed on server. You have been signed out locally.');
-      navigate('/', { replace: true });
+      window.location.reload();
     }
   };
 

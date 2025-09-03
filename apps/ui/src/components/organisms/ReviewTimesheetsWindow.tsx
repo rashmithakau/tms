@@ -21,7 +21,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
-import { updateDailyTimesheetStatusApi, batchUpdateDailyTimesheetStatusApi } from '../../api/timesheet';
+import {  batchUpdateDailyTimesheetStatusApi } from '../../api/timesheet';
 import ChecklistOutlinedIcon from '@mui/icons-material/ChecklistOutlined';
 
 const ReviewTimesheetsWindow: React.FC = () => {

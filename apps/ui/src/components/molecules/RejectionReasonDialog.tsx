@@ -9,6 +9,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import BaseTextField from '../atoms/inputFields/BaseTextField';
 
 interface RejectionReasonDialogProps {
   open: boolean;
@@ -57,9 +58,7 @@ const RejectionReasonDialog: React.FC<RejectionReasonDialogProps> = ({
             {message}
           </Typography>
         </Box>
-        <TextField
-          autoFocus
-          fullWidth
+        <BaseTextField
           multiline
           rows={4}
           label="Rejection Reason"
@@ -81,7 +80,6 @@ const RejectionReasonDialog: React.FC<RejectionReasonDialogProps> = ({
         <Button 
           onClick={handleConfirm} 
           variant="contained" 
-          color="error"
           disabled={!reason.trim()}
         >
           Reject
