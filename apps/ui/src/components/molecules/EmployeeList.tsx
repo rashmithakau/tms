@@ -1,9 +1,5 @@
 import React from 'react';
-import { Box, List, Typography, Avatar, Chip } from '@mui/material';
-import {
-  SearchOff as SearchOffIcon,
-  Group as GroupIcon,
-} from '@mui/icons-material';
+import { Box, List, Typography, Chip } from '@mui/material';
 import EmployeeListItem from './EmployeeListItem';
 import { IEmployeeListProps } from '../../interfaces/IEmployeeListProps';
 import { useTheme } from '@mui/material/styles';

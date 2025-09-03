@@ -2,6 +2,7 @@ import { TimesheetStatus } from '@tms/shared';
 import appAssert from '../utils/appAssert';
 import {  UNAUTHORIZED, BAD_REQUEST, NOT_FOUND } from '../constants/http';
 import { Timesheet } from '../models/timesheet.model';
+import RejectReason from '../models/rejectReason.model';
 import ProjectModel from '../models/project.model';
 
 interface ITimesheetItem {
@@ -137,6 +138,26 @@ export const updateDailyTimesheetStatus = async (
     }
   });
 
+  // Save rejection reason immediately for each rejected item
+  if (status === TimesheetStatus.Rejected && rejectionReason) {
+    try {
+      await RejectReason.create({
+        reason: rejectionReason,
+        timesheet_id: timesheet._id.toString(),
+        project_id: categoryItem.projectId || '',
+        rejected_days_indexes: dayIndices,
+      });
+      console.log('RejectReason saved for individual rejection:', {
+        reason: rejectionReason,
+        timesheet_id: timesheet._id.toString(),
+        project_id: categoryItem.projectId || '',
+        rejected_days_indexes: dayIndices,
+      });
+    } catch (err) {
+      console.error('Failed to save RejectReason for individual rejection:', err);
+    }
+  }
+
   timesheet.markModified('data');
 
   // Check if all days for all items are now approved/rejected
@@ -157,6 +178,7 @@ export const updateDailyTimesheetStatus = async (
     );
     timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
 
+    // Set overall rejection reason if the overall timesheet status is rejected
     if (timesheet.status === TimesheetStatus.Rejected && rejectionReason) {
       timesheet.rejectionReason = rejectionReason;
     }
@@ -263,7 +285,7 @@ export const batchUpdateDailyTimesheetStatus = async (
       }
 
       // Apply all updates for this timesheet
-      timesheetUpdates.forEach((update, updateIndex) => {
+      for (const update of timesheetUpdates) {
         const { categoryIndex, itemIndex, dayIndices, status, rejectionReason } = update;
         
         // Validate indices
@@ -301,8 +323,28 @@ export const batchUpdateDailyTimesheetStatus = async (
           }
         });
         
+        // Save rejection reason immediately for each rejected item
+        if (status === TimesheetStatus.Rejected && rejectionReason) {
+          try {
+            await RejectReason.create({
+              reason: rejectionReason,
+              timesheet_id: timesheet._id.toString(),
+              project_id: item.projectId || '',
+              rejected_days_indexes: dayIndices,
+            });
+            console.log('RejectReason saved for individual rejection:', {
+              reason: rejectionReason,
+              timesheet_id: timesheet._id.toString(),
+              project_id: item.projectId || '',
+              rejected_days_indexes: dayIndices,
+            });
+          } catch (err) {
+            console.error('Failed to save RejectReason for individual rejection:', err);
+          }
+        }
+        
         console.log('Updated dailyStatus:', item.dailyStatus);
-      });
+      }
       
       // Mark as modified
       timesheet.markModified('data');
@@ -330,7 +372,7 @@ export const batchUpdateDailyTimesheetStatus = async (
         
         timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
         
-        // If rejected and reason provided, save it
+        // Set overall rejection reason if the overall timesheet status is rejected
         if (timesheet.status === TimesheetStatus.Rejected) {
           const rejectionUpdate = timesheetUpdates.find(u => u.rejectionReason);
           if (rejectionUpdate?.rejectionReason) {

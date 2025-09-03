@@ -1,5 +1,4 @@
 import React from 'react';
-import dayjs, { Dayjs } from 'dayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { IDatePickerFieldProps } from 'apps/ui/src/interfaces/IDatePickerFieldProps';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';

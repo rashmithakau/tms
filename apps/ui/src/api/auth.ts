@@ -27,7 +27,7 @@ export const logout = async () => {
       return await API.get("/auth/logout");
     } catch (error) {
       console.error("Logout failed:", error);
-      throw error; // Re-throw the error for the caller to handle
+      throw error; 
     }
   }
 

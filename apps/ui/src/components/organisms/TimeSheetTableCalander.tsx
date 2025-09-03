@@ -316,35 +316,30 @@ const TimeSheetTableCalendar: React.FC = () => {
                             gap: '4px'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',width:'80px'}}>
-                              {editCell &&
-                              editCell.cat === catIndex &&
-                              editCell.row === rowIndex &&
-                              editCell.col === colIndex ? (
-                                <InputBase
-                                  value={hour}
-                                  onChange={(e) =>
-                                    handleCellChange(catIndex, rowIndex, colIndex, e.target.value)
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') setEditCell(null);
-                                  }}
-                                  autoFocus
-                                  sx={{
-                                    width: 34,
-                                    borderRadius: 1,
-                                    textAlign: 'center',
-                                    fontSize: '14px',
-                                    backgroundColor: '#fff',
-                                  }}
-                                  placeholder="00.00"
-                                />
-                              ) : (
-                                <div style={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'center',
-                                  gap: '4px'
-                                }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                {editCell &&
+                                editCell.cat === catIndex &&
+                                editCell.row === rowIndex &&
+                                editCell.col === colIndex ? (
+                                  <InputBase
+                                    value={hour}
+                                    onChange={(e) =>
+                                      handleCellChange(catIndex, rowIndex, colIndex, e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') setEditCell(null);
+                                    }}
+                                    autoFocus
+                                    sx={{
+                                      width: 34,
+                                      borderRadius: 1,
+                                      textAlign: 'center',
+                                      fontSize: '14px',
+                                      backgroundColor: '#fff',
+                                    }}
+                                    placeholder="00.00"
+                                  />
+                                ) : (
                                   <div
                                     onClick={() => isEditable ? handleCellClick(catIndex, rowIndex, colIndex) : undefined}
                                     style={{ 
@@ -354,32 +349,35 @@ const TimeSheetTableCalendar: React.FC = () => {
                                   >
                                     {hour}
                                   </div>
-                                  {row.descriptions[colIndex] && (
+                                )}
+                                {/* Always show description button/icon */}
+                                {isEditable ? (
+                                  <Tooltip title={row.descriptions[colIndex] || 'Add description'}>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => handleDescriptionClick(e, catIndex, rowIndex, colIndex)}
+                                      disabled={!isEditable}
+                                    >
+                                      <EditNoteIcon 
+                                        fontSize="small" 
+                                        sx={{ 
+                                          color: 'lightgray',
+                                          opacity: 1
+                                        }} 
+                                      />
+                                    </IconButton>
+                                  </Tooltip>
+                                ) : (
+                                  row.descriptions[colIndex] && (
                                     <Tooltip title={row.descriptions[colIndex]}>
                                       <EditNoteIcon 
                                         fontSize="small" 
                                         sx={{ color: 'text.secondary' }} 
                                       />
                                     </Tooltip>
-                                  )}
-                                </div>
-                              )}
-
-                              <Tooltip title={isEditable ? (row.descriptions[colIndex] || 'Add description') : 'Cannot edit approved/pending days'}>
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => isEditable ? handleDescriptionClick(e, catIndex, rowIndex, colIndex) : undefined}
-                                  disabled={!isEditable}
-                                >
-                                 <EditNoteIcon 
-                                  fontSize="small" 
-                                  sx={{ 
-                                    color: isEditable ? 'lightgray' : '#ccc',
-                                    opacity: isEditable ? 1 : 0.5
-                                  }} 
-                                />
-                                </IconButton>
-                              </Tooltip>
+                                  )
+                                )}
+                              </div>
                             </div>
                             
                             {/* Status indicator dot */}

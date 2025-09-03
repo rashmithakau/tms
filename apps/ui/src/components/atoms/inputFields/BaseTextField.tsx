@@ -2,7 +2,6 @@ import { TextField } from '@mui/material';
 import React from 'react';
 import { IBaseTextFieldProps } from '../../../interfaces/IBaseTextFieldProps';
 
-// Forward refs to make it compatible with react-hook-form
 const BaseTextField = React.forwardRef<HTMLDivElement, IBaseTextFieldProps>(({
   variant = 'outlined',
   maxLength = 255,
@@ -10,7 +9,7 @@ const BaseTextField = React.forwardRef<HTMLDivElement, IBaseTextFieldProps>(({
 }, ref) => {
   return (
     <TextField
-      ref={ref} // Forward the ref to TextField
+      ref={ref} 
       variant={variant}
       fullWidth
       size="small"

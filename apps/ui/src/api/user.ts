@@ -8,7 +8,6 @@ import { UserRole } from "@tms/shared";
         case UserRole.Emp:return await API.post("/api/user/emp", data);
       }
     } catch (error) {
-      console.error("User registration failed:", error);
       throw error; 
     }
   };
@@ -21,7 +20,6 @@ import { UserRole } from "@tms/shared";
         case UserRole.Supervisor:return await API.get("/api/user/supervisor");
       }
     } catch (error) {
-      console.error("Users fetching failed:", error);
       throw error; 
     }
   };
@@ -39,7 +37,6 @@ import { UserRole } from "@tms/shared";
     try {
       return await API.get("/api/project");
     } catch (error) {
-      console.error("Projects fetching failed:", error);
       throw error;
     }
   };
@@ -49,7 +46,6 @@ import { UserRole } from "@tms/shared";
       const response = await API.get("/api/user/active");
       return response;
     } catch (error) {
-      console.error('Get all active users failed:', error);
       throw error;
     }
   };
@@ -60,20 +56,16 @@ import { UserRole } from "@tms/shared";
       const response = await API.get(`/api/user/all?${queryParams}`);
       return response;
     } catch (error) {
-      console.error('Get all users including inactive failed:', error);
       throw error;
     }
   };
 
 
 export const deleteUser = async (userId: string) => {
-  console.log('Making delete request to:', `/api/user/${userId}`);
   try {
     const response = await API.delete(`/api/user/${userId}`);
-    console.log('Delete response:', response);
     return response;
   } catch (error) {
-    console.error('Delete API error:', error);
     throw error;
   }
 };

@@ -1,13 +1,11 @@
-// services/timesheet.service.ts
 import API from '../config/apiClient';
 import { TimesheetStatus } from '@tms/shared';
 
-
 export type TimesheetItem = {
-  work?: string; // only for Absence
-  projectId?: string; // only for Project
-  hours: string[]; // 7 days
-  descriptions: string[]; // 7 days
+  work?: string; 
+  projectId?: string; 
+  hours: string[]; //
+  descriptions: string[]; 
 };
 
 
@@ -27,14 +25,13 @@ export type Timesheet = {
     designation?: string;
   };
   weekStartDate: string;
-  data: TimesheetCategory[]; // Use 'data' to match backend
-  categories: TimesheetCategory[]; // Keep for backward compatibility
+  data: TimesheetCategory[]; 
+  categories: TimesheetCategory[]; 
   status: TimesheetStatus;
   createdAt: string;
   updatedAt: string;
 };
 
-// --- API calls ---
 export const listMyTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
 };
