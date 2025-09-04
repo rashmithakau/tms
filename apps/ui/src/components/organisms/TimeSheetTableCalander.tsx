@@ -14,14 +14,14 @@ import {
 } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import theme from '../../styles/theme';
-import { startOfWeek, addDays, format, isSameWeek, isSameDay } from 'date-fns';
+import { startOfWeek, addDays, format, isSameDay } from 'date-fns';
 import { getOrCreateMyTimesheetForWeek, Timesheet } from '../../api/timesheet';
 import { listProjects } from '../../api/project';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
+import { TimesheetStatus } from '@tms/shared';
 import {
   setTimesheetData,
-  setWeekEndDate,
   setWeekStartDate,
   setCurrentTimesheetId,
   setTimesheetStatus,
@@ -41,6 +41,7 @@ export interface TimesheetItem {
   projectId?: string;
   hours: string[];
   descriptions: string[];
+  dailyStatus?: TimesheetStatus[]; // Add daily status tracking
 }
 
 export interface TimesheetData {
@@ -73,6 +74,7 @@ const TimeSheetTableCalendar: React.FC = () => {
       work: activity,
       hours: Array(7).fill('00.00'),
       descriptions: Array(7).fill(''),
+      dailyStatus: Array(7).fill(TimesheetStatus.Draft), // Initialize daily status
     })
   );
 
@@ -103,6 +105,7 @@ const TimeSheetTableCalendar: React.FC = () => {
           projectId: project._id,
           hours: Array(7).fill('00.00'),
           descriptions: Array(7).fill(''),
+          dailyStatus: Array(7).fill(TimesheetStatus.Draft), // Initialize daily status
         }));
 
         // Fetch or create timesheet for current week
@@ -169,7 +172,16 @@ const TimeSheetTableCalendar: React.FC = () => {
 
   // --- Hours edit ---
   const handleCellClick = (catIndex: number, rowIndex: number, colIndex: number) => {
-    if (timesheetStatus && timesheetStatus !== 'Draft') return; // read-only when not Draft
+    // Allow editing only for Draft and Rejected status
+    if (timesheetStatus && !['Draft', 'Rejected'].includes(timesheetStatus)) return;
+    
+    // If status is Rejected, only allow editing rejected days
+    if (timesheetStatus === 'Rejected') {
+      const item = data[catIndex]?.items[rowIndex];
+      const dayStatus = item?.dailyStatus?.[colIndex];
+      if (dayStatus !== TimesheetStatus.Rejected) return; // Only allow editing rejected days
+    }
+    
     setEditCell({ cat: catIndex, row: rowIndex, col: colIndex });
   };
 
@@ -195,6 +207,16 @@ const TimeSheetTableCalendar: React.FC = () => {
     rowIndex: number,
     colIndex: number
   ) => {
+    // Allow editing only for Draft and Rejected status
+    if (timesheetStatus && !['Draft', 'Rejected'].includes(timesheetStatus)) return;
+    
+    // If status is Rejected, only allow editing rejected days
+    if (timesheetStatus === 'Rejected') {
+      const item = data[catIndex]?.items[rowIndex];
+      const dayStatus = item?.dailyStatus?.[colIndex];
+      if (dayStatus !== 'Rejected') return; // Only allow editing rejected days
+    }
+    
     setAnchorEl(e.currentTarget);
     setEditDescription({ cat: catIndex, row: rowIndex, col: colIndex });
   };
@@ -276,51 +298,104 @@ const TimeSheetTableCalendar: React.FC = () => {
                       </TableCell>
                     )}
                     <TableCell>{row.work}</TableCell>
-                    {row.hours.map((hour: string, colIndex: number) => (
-                      <TableCell key={colIndex} align="center">
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {editCell &&
-                          editCell.cat === catIndex &&
-                          editCell.row === rowIndex &&
-                          editCell.col === colIndex ? (
-                            <InputBase
-                              value={hour}
-                              onChange={(e) =>
-                                handleCellChange(catIndex, rowIndex, colIndex, e.target.value)
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') setEditCell(null);
-                              }}
-                              autoFocus
-                              sx={{
-                                width: 35,
-                                borderRadius: 1,
-                                textAlign: 'center',
-                                fontSize: '14px',
-                                backgroundColor: '#fff',
-                              }}
-                              placeholder="00.00"
-                            />
-                          ) : (
-                            <div
-                              onClick={() => handleCellClick(catIndex, rowIndex, colIndex)}
-                              style={{ cursor: 'pointer', marginRight: 4 }}
-                            >
-                              {hour}
+                    {row.hours.map((hour: string, colIndex: number) => {
+                      const dayStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
+                      const isEditable = timesheetStatus === 'Draft' || 
+                        (timesheetStatus === 'Rejected' && dayStatus === TimesheetStatus.Rejected);
+                      
+                      return (
+                        <TableCell 
+                          key={colIndex} 
+                          align="center"
+                        >
+                          <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            flexDirection: 'column',
+                            gap: '4px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',width:'80px'}}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                {editCell &&
+                                editCell.cat === catIndex &&
+                                editCell.row === rowIndex &&
+                                editCell.col === colIndex ? (
+                                  <InputBase
+                                    value={hour}
+                                    onChange={(e) =>
+                                      handleCellChange(catIndex, rowIndex, colIndex, e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') setEditCell(null);
+                                    }}
+                                    autoFocus
+                                    sx={{
+                                      width: 34,
+                                      borderRadius: 1,
+                                      textAlign: 'center',
+                                      fontSize: '14px',
+                                      backgroundColor: '#fff',
+                                    }}
+                                    placeholder="00.00"
+                                  />
+                                ) : (
+                                  <div
+                                    onClick={() => isEditable ? handleCellClick(catIndex, rowIndex, colIndex) : undefined}
+                                    style={{ 
+                                      cursor: isEditable ? 'pointer' : 'default', 
+                                      opacity: isEditable ? 1 : 0.7
+                                    }}
+                                  >
+                                    {hour}
+                                  </div>
+                                )}
+                                {/* Always show description button/icon */}
+                                {isEditable ? (
+                                  <Tooltip title={row.descriptions[colIndex] || 'Add description'}>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => handleDescriptionClick(e, catIndex, rowIndex, colIndex)}
+                                      disabled={!isEditable}
+                                    >
+                                      <EditNoteIcon 
+                                        fontSize="small" 
+                                        sx={{ 
+                                          color: 'lightgray',
+                                          opacity: 1
+                                        }} 
+                                      />
+                                    </IconButton>
+                                  </Tooltip>
+                                ) : (
+                                  row.descriptions[colIndex] && (
+                                    <Tooltip title={row.descriptions[colIndex]}>
+                                      <EditNoteIcon 
+                                        fontSize="small" 
+                                        sx={{ color: 'text.secondary' }} 
+                                      />
+                                    </Tooltip>
+                                  )
+                                )}
+                              </div>
                             </div>
-                          )}
-
-                          <Tooltip title={row.descriptions[colIndex] || 'Add description'}>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => handleDescriptionClick(e, catIndex, rowIndex, colIndex)}
-                            >
-                             <EditNoteIcon fontSize="small" sx={{ color: 'lightgray' }} />
-                            </IconButton>
-                          </Tooltip>
-                        </div>
-                      </TableCell>
-                    ))}
+                            
+                            {/* Status indicator dot */}
+                            {parseFloat(hour) > 0 && dayStatus !== TimesheetStatus.Draft && (
+                              <div style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                backgroundColor: 
+                                  dayStatus === TimesheetStatus.Approved ? '#4caf50' :
+                                  dayStatus === TimesheetStatus.Rejected ? '#f44336' :
+                                  dayStatus === TimesheetStatus.Pending ? '#ff9800' : '#9e9e9e'
+                              }} />
+                            )}
+                          </div>
+                        </TableCell>
+                      );
+                    })}
                     <TableCell align="center" sx={{ fontWeight: 'bold' }}>
                       {calcRowTotal(row.hours)}
                     </TableCell>

@@ -1,44 +1,20 @@
-// Helper to get Monday of the week for a given date (UTC)
-function getMondayUTC(dateInput: Date | string): Date {
-  // Always parse as UTC: if string is 'YYYY-MM-DD', treat as UTC midnight
-  let date: Date;
-  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
-    date = new Date(dateInput + 'T00:00:00Z');
-  } else {
-    date = new Date(dateInput);
-  }
-  const day = date.getUTCDay();
-  // If already Monday, just normalize to UTC midnight
-  if (day === 1) {
-    date.setUTCHours(0, 0, 0, 0);
-    return date;
-  }
-  // getUTCDay: 0=Sunday, 1=Monday, ..., 6=Saturday
-  const diff = (day === 0 ? -6 : 1 - day); // If Sunday, go back 6 days; else, back to Monday
-  date.setUTCDate(date.getUTCDate() + diff);
-  date.setUTCHours(0, 0, 0, 0);
-  return date;
-}
-// controllers/timesheet.controller.ts
 import { Request, Response } from 'express';
 import catchErrors from '../utils/catchErrors';
-import { OK, CREATED, BAD_REQUEST, FORBIDDEN, NOT_FOUND } from '../constants/http';
+import { OK, CREATED, BAD_REQUEST, FORBIDDEN } from '../constants/http';
 import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
 import {createTimesheet,submitDraftTimesheets,updateDailyTimesheetStatus,batchUpdateDailyTimesheetStatus} from "../services/timesheet.service";
+import {getMondayUTC} from '../utils/getMondayUTC'
 
-// --- Create new timesheet ---
+//Create new timesheet
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = createTimesheetSchema.parse(req.body);
   let { weekStartDate, data } = parsed;
-  console.log(weekStartDate+" is week start date");
-  // Always use Monday as week start (UTC)
   weekStartDate = getMondayUTC(weekStartDate);
   
-  // Ensure all items have dailyStatus arrays initialized
   const dataWithDailyStatus = data.map(category => ({
     ...category,
     items: category.items.map(item => ({
@@ -51,18 +27,18 @@ export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   return res.status(CREATED).json(result);
 });
 
-// --- List my timesheets ---
+//List my timesheets
 export const listMyTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const timesheets = await Timesheet.find({ userId }).sort({ weekStartDate: -1 });
   return res.status(OK).json({ timesheets });
 });
 
-// --- List supervised timesheets ---
+//List supervised timesheets
 export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
 
-  // Fetch supervised employees from Projects
+  //get supervised employees from Projects
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
   
   const supervisedUserIds = Array.from(
@@ -108,16 +84,34 @@ export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, 
   return res.status(OK).json({ timesheets });
 });
 
-// --- Update status of supervised timesheets ---
+//Update status of supervised timesheets 
 export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
   const { ids, status } = req.body as { ids: string[]; status: TimesheetStatus };
 
   if (![TimesheetStatus.Approved, TimesheetStatus.Rejected].includes(status)) {
     return res.status(BAD_REQUEST).json({ message: 'Invalid status. Must be Approved or Rejected' });
   }
 
+  // Get supervisor's projects for authorization
+  const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedUserIds = Array.from(
+    new Set(
+      supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+    )
+  );
+
+  if (supervisedUserIds.length === 0) {
+    return res.status(FORBIDDEN).json({ message: 'You have no supervised employees' });
+  }
+
+  // Only update timesheets from supervised employees
   const result = await Timesheet.updateMany(
-    { _id: { $in: ids }, status: TimesheetStatus.Pending },
+    { 
+      _id: { $in: ids }, 
+      userId: { $in: supervisedUserIds },
+      status: TimesheetStatus.Pending 
+    },
     { $set: { status } }
   );
 
@@ -133,9 +127,10 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   const { weekStartDate, data, status } = parsed;
 
   const updateData: Partial<ITimesheet> = {};
+
   if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
+
   if (data) {
-    // Ensure all items have dailyStatus arrays initialized
     const dataWithDailyStatus = data.map(category => ({
       ...category,
       items: category.items.map(item => ({
@@ -147,6 +142,7 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
     }));
     (updateData as any).data = dataWithDailyStatus;
   }
+
   if (status) updateData.status = status;
 
   const updated = await Timesheet.findOneAndUpdate(
@@ -158,7 +154,7 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   return res.status(OK).json(updated);
 });
 
-// --- Delete my timesheet ---
+// Delete my timesheet 
 export const deleteMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const id = req.params.id;
@@ -166,7 +162,7 @@ export const deleteMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   return res.status(OK).json(deleted);
 });
 
-// --- Submit draft timesheets ---
+//Submit draft timesheets
 export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = submitTimesheetsSchema.parse(req.body);
@@ -177,30 +173,32 @@ export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res
   return res.status(OK).json(result);
 });
 
-// --- Get or create my timesheet for a given week ---
+// Get or create my timesheet for a given week
 export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const weekStartDateRaw = (req.query.weekStartDate as string) || '';
   let weekStartDate = getMondayUTC(weekStartDateRaw ? weekStartDateRaw : new Date());
 
-  // Atomic upsert: create if not exists, else return existing
+
   const ts = await Timesheet.findOneAndUpdate(
     { userId, weekStartDate },
     { $setOnInsert: { userId, weekStartDate, status: TimesheetStatus.Draft, data: [] } },
     { new: true, upsert: true }
   );
+
   return res.status(OK).json({ timesheet: ts });
 });
 
-// --- Update daily status of specific timesheet items ---
+//Update daily status of specific timesheet items 
 export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
-  const { timesheetId, categoryIndex, itemIndex, dayIndices, status } = req.body as {
+  const { timesheetId, categoryIndex, itemIndex, dayIndices, status, rejectionReason } = req.body as {
     timesheetId: string;
     categoryIndex: number;
     itemIndex: number;
     dayIndices: number[];
     status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+    rejectionReason?: string;
   };
 
   if (![TimesheetStatus.Approved, TimesheetStatus.Rejected].includes(status)) {
@@ -213,15 +211,17 @@ export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request
     categoryIndex,
     itemIndex,
     dayIndices,
-    status
+    status,
+    rejectionReason
   );
 
   return res.status(OK).json({ timesheet: result });
 });
 
-// --- Batch update daily status of multiple timesheet items ---
+//Batch update daily status of multiple timesheet items 
 export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
+  
   const { updates } = req.body as {
     updates: Array<{
       timesheetId: string;
@@ -229,8 +229,17 @@ export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Re
       itemIndex: number;
       dayIndices: number[];
       status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+      rejectionReason?: string;
     }>;
   };
+
+
+  // Validate request body
+  if (!updates || !Array.isArray(updates) || updates.length === 0) {
+    return res.status(BAD_REQUEST).json({ 
+      message: 'Updates array is required and must not be empty' 
+    });
+  }
 
   // Validate all statuses
   const validStatuses = [TimesheetStatus.Approved, TimesheetStatus.Rejected];

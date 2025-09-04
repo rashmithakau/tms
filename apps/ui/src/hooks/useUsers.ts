@@ -69,7 +69,7 @@ export const useUsers = (role: UserRole): UseUsersReturn => {
   };
 };
 
-// New hook to fetch users across multiple roles and merge them
+//fetch users across multiple roles and merge them
 export const useUsersByRoles = (roles: UserRole[]): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,7 +121,7 @@ export const useUsersByRoles = (roles: UserRole[]): UseUsersReturn => {
   };
 };
 
-// Hook to fetch all active users regardless of role
+//fetch all active users regardless of role
 export const useAllActiveUsers = (): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -169,7 +169,7 @@ export const useAllActiveUsers = (): UseUsersReturn => {
   };
 };
 
-// Hook to fetch all users including inactive ones for EmpTable
+// fetch all users including inactive ones for EmpTable
 export const useAllUsersIncludingInactive = (roles: UserRole[]): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);

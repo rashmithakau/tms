@@ -38,6 +38,16 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     return handleAppError(res, err);
   }
 
+  // For development, provide more detailed error information
+  if (process.env.NODE_ENV === 'development') {
+    return res.status(INTERNAL_SERVER_ERROR).json({
+      message: err.message || "Internal Server Error",
+      stack: err.stack,
+      path: req.path,
+      method: req.method
+    });
+  }
+
   return res.status(INTERNAL_SERVER_ERROR).send("Internal Server Error");
 };
 

@@ -19,7 +19,7 @@ export interface TimeSheetRow {
     email: string;
     contactNumber?: string;
     designation?: string;
-  }; // populated for supervised timesheets
+  }; 
 }
 
 

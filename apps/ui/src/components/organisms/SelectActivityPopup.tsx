@@ -2,40 +2,57 @@ import PopupLayout from '../templates/PopUpLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { Box, Checkbox, FormControlLabel } from '@mui/material';
 import { absenceActivity } from '@tms/shared';
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedActivities } from '../../store/slices/timesheetSlice';
+import { RootState } from '../../store/store';
 
 interface SelectActivityPopupProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: () => void; // Callback to refresh table data
+  onSuccess?: () => void;
 }
 
-// Assuming absenceActivity is an enum
 const absenceActivitiesArray = Object.values(absenceActivity);
 
-function SelectActivityPopup({ open, onClose }: SelectActivityPopupProps) {
-  const dispatch = useDispatch(); // ✅ must be inside component
+function SelectActivityPopup({
+  open,
+  onClose,
+  onSuccess,
+}: SelectActivityPopupProps) {
+  const dispatch = useDispatch();
   const title = 'Select Activity';
 
-  const [selectedActivities, setSelectedActivitiesState] = useState<absenceActivity[]>([]);
+  const reduxSelectedActivities = useSelector(
+    (state: RootState) => state.timesheet.selectedActivities
+  );
 
-  const handleCancel = () => {
+  const [selectedActivities, setSelectedActivitiesState] = useState<
+    absenceActivity[]
+  >([]);
+
+  useEffect(() => {
+    if (open) {
+      setSelectedActivitiesState(reduxSelectedActivities || []);
+    }
+  }, [open, reduxSelectedActivities]);
+
+  const handleCheckboxChange = (activity: absenceActivity) => {
+    setSelectedActivitiesState((prev) =>
+      prev.includes(activity)
+        ? prev.filter((a) => a !== activity)
+        : [...prev, activity]
+    );
+  };
+
+  const handleConfirm = () => {
+    dispatch(setSelectedActivities(selectedActivities));
+    if (onSuccess) onSuccess();
     onClose();
   };
 
-  const handleCheckboxChange = (activity: absenceActivity) => {
-    setSelectedActivitiesState((prev) => {
-      const updated = prev.includes(activity)
-        ? prev.filter((a) => a !== activity) // Uncheck
-        : [...prev, activity]; // Check
-
-      // ✅ Dispatch with latest value
-      dispatch(setSelectedActivities(updated));
-
-      return updated;
-    });
+  const handleCancel = () => {
+    onClose();
   };
 
   return (
@@ -62,14 +79,24 @@ function SelectActivityPopup({ open, onClose }: SelectActivityPopupProps) {
           </div>
         ))}
 
-        <BaseBtn
-          type="button"
-          onClick={handleCancel}
-          variant="outlined"
-          sx={{ mt: 2 }}
-        >
-          Cancel
-        </BaseBtn>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <BaseBtn
+            type="button"
+            onClick={handleCancel}
+            variant="outlined"
+            sx={{ mt: 2 }}
+          >
+            Cancel
+          </BaseBtn>
+          <BaseBtn
+            type="button"
+            onClick={handleConfirm}
+            variant="contained"
+            sx={{ mt: 2 }}
+          >
+            Confirm
+          </BaseBtn>
+        </Box>
       </Box>
     </PopupLayout>
   );

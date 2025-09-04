@@ -1,9 +1,15 @@
-import {useEffect, useMemo, useState} from 'react';
-import { Box, CircularProgress, IconButton } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, CircularProgress, IconButton, Chip } from '@mui/material';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useTimesheets } from '../../hooks/useTimesheets';
-import { deleteMyTimesheet, submitMyDraftTimesheets, getOrCreateMyTimesheetForWeek, createMyTimesheet, updateMyTimesheet } from '../../api/timesheet';
+import {
+  deleteMyTimesheet,
+  submitMyDraftTimesheets,
+  getOrCreateMyTimesheetForWeek,
+  createMyTimesheet,
+  updateMyTimesheet,
+} from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
@@ -16,7 +22,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { getWeekRangeAndUpdateRedux } from '../../utils/getWeekRangeAndUpdateRedux';
-import { setCurrentTimesheetId, setTimesheetStatus, setWeekEndDate, setWeekStartDate } from '../../store/slices/timesheetSlice';
+import {
+  setCurrentTimesheetId,
+  setTimesheetStatus,
+  setWeekEndDate,
+  setWeekStartDate,
+} from '../../store/slices/timesheetSlice';
 
 const MyTimesheetsWindow: React.FC = () => {
   const timesheetData = useSelector((state: any) => state.timesheet);
@@ -48,12 +59,16 @@ const MyTimesheetsWindow: React.FC = () => {
         toast.error('No timesheet for this week');
         return;
       }
-      if (currentStatus !== 'Draft') {
-        toast.error('Only draft timesheets can be submitted');
+      if (!['Draft', 'Rejected'].includes(currentStatus || '')) {
+        toast.error('Only draft and rejected timesheets can be submitted');
         return;
       }
       if (isUnderMinimumHours) {
-        toast.error(`Minimum 40 hours required. Current total: ${totalHours.toFixed(2)} hours`);
+        toast.error(
+          `Minimum 40 hours required. Current total: ${totalHours.toFixed(
+            2
+          )} hours`
+        );
         return;
       }
       await submitMyDraftTimesheets([currentId]);
@@ -65,18 +80,28 @@ const MyTimesheetsWindow: React.FC = () => {
   };
 
   const dispatch = useDispatch();
-  const currentWeekStartDate = useSelector((state: any) => state.timesheet.weekStartDate);
+  const currentWeekStartDate = useSelector(
+    (state: any) => state.timesheet.weekStartDate
+  );
 
   // Calculate total hours from timesheet data
   const calculateTotalHours = () => {
-    if (!timesheetData.timesheetData || timesheetData.timesheetData.length === 0) {
+    if (
+      !timesheetData.timesheetData ||
+      timesheetData.timesheetData.length === 0
+    ) {
       return 0;
     }
-    
+
     return timesheetData.timesheetData
       .flatMap((cat: any) => cat.items)
       .reduce(
-        (sum: number, row: any) => sum + row.hours.reduce((s: number, h: string) => s + parseFloat(h || '0'), 0),
+        (sum: number, row: any) =>
+          sum +
+          row.hours.reduce(
+            (s: number, h: string) => s + parseFloat(h || '0'),
+            0
+          ),
         0
       );
   };
@@ -95,7 +120,9 @@ const MyTimesheetsWindow: React.FC = () => {
   const handleSaveAsDraft = async () => {
     try {
       if (timesheetData.currentTimesheetId) {
-        await updateMyTimesheet(timesheetData.currentTimesheetId, { data: payload.data });
+        await updateMyTimesheet(timesheetData.currentTimesheetId, {
+          data: payload.data,
+        });
         toast.success('Timesheet saved');
       } else {
         await createMyTimesheet(payload);
@@ -114,8 +141,20 @@ const MyTimesheetsWindow: React.FC = () => {
       const now = new Date();
       const utcDay = now.getUTCDay(); // 0=Sun..6=Sat
       const diffToMonday = (utcDay + 6) % 7;
-      const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - diffToMonday));
-      const sunday = new Date(Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate() + 6));
+      const monday = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() - diffToMonday
+        )
+      );
+      const sunday = new Date(
+        Date.UTC(
+          monday.getUTCFullYear(),
+          monday.getUTCMonth(),
+          monday.getUTCDate() + 6
+        )
+      );
       dispatch(setWeekStartDate(monday.toISOString().slice(0, 10)));
       dispatch(setWeekEndDate(sunday.toISOString().slice(0, 10)));
     }
@@ -129,9 +168,7 @@ const MyTimesheetsWindow: React.FC = () => {
           dispatch(setCurrentTimesheetId(ts._id));
           dispatch(setTimesheetStatus(ts.status));
         }
-      } catch (e) {
-        // no toast here to avoid noise; table hook has its own error handling
-      }
+      } catch (e) {}
     };
     load();
   }, [dispatch, timesheetData.weekStartDate]);
@@ -157,28 +194,44 @@ const MyTimesheetsWindow: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-
               <IconButton onClick={handlePreviousWeek}>
-                <ArrowBackIcon sx={{ color: (theme) => theme.palette.primary.main }}/>
+                <ArrowBackIcon
+                  sx={{ color: (theme) => theme.palette.primary.main }}
+                />
               </IconButton>
-              {timesheetData.weekStartDate ? new Date(timesheetData.weekStartDate + 'T00:00:00Z').toLocaleDateString(
-                'en-US',
-                { weekday: 'short', month: 'short', day: '2-digit', timeZone: 'UTC' }
-              ) : 'Loading...'}
+              {timesheetData.weekStartDate
+                ? new Date(
+                    timesheetData.weekStartDate + 'T00:00:00Z'
+                  ).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: '2-digit',
+                    timeZone: 'UTC',
+                  })
+                : 'Loading...'}
               &nbsp;to&nbsp;
-              {timesheetData.weekEndDate ? new Date(timesheetData.weekEndDate + 'T00:00:00Z').toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: '2-digit',
-                year: 'numeric',
-                timeZone: 'UTC'
-              }) : 'Loading...'}
+              {timesheetData.weekEndDate
+                ? new Date(
+                    timesheetData.weekEndDate + 'T00:00:00Z'
+                  ).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    timeZone: 'UTC',
+                  })
+                : 'Loading...'}
               <IconButton onClick={handleNextWeek}>
-              <ArrowForwardIcon sx={{ color: (theme) => theme.palette.primary.main }} />
+                <ArrowForwardIcon
+                  sx={{ color: (theme) => theme.palette.primary.main }}
+                />
               </IconButton>
               <BaseBtn
                 variant="text"
-                disabled={timesheetData.status !== 'Draft' || isUnderMinimumHours}
+                disabled={
+                  !['Draft', 'Rejected'].includes(timesheetData.status || '') ||
+                  isUnderMinimumHours
+                }
                 onClick={handleSubmit}
                 startIcon={<SendOutlinedIcon />}
               >
@@ -189,8 +242,9 @@ const MyTimesheetsWindow: React.FC = () => {
                 variant="text"
                 startIcon={<SaveIcon />}
                 disabled={
-                  timesheetData.status !== 'Draft' ||
-                  JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '')
+                  !['Draft', 'Rejected'].includes(timesheetData.status || '') ||
+                  JSON.stringify(timesheetData.timesheetData) ===
+                    (timesheetData.originalDataHash || '')
                 }
               >
                 Save as Draft
@@ -199,6 +253,9 @@ const MyTimesheetsWindow: React.FC = () => {
                 onClick={handleActivityOpenPopup}
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
+                disabled={
+                  !['Draft', 'Rejected'].includes(timesheetData.status || '')
+                }
               >
                 Select Work
               </BaseBtn>

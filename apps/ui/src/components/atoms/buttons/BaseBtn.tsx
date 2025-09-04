@@ -4,7 +4,7 @@ import { IBaseBtnProps } from '../../../interfaces/IBaseBtnProps';
 const BaseBtn: React.FC<IBaseBtnProps> = ({
   children,
   variant = 'contained',
-  fullWidth = false, // Default to false
+  fullWidth = false, 
   ...props
 }) => {
   return (

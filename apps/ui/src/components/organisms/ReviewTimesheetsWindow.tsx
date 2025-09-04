@@ -6,6 +6,7 @@ import { useSupervisedTimesheets } from '../../hooks/useSupervisedTimesheets';
 import { Dayjs } from 'dayjs';
 import { deleteMyTimesheet } from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
+import RejectionReasonDialog from '../molecules/RejectionReasonDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
@@ -20,15 +21,21 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
-import { updateDailyTimesheetStatusApi, batchUpdateDailyTimesheetStatusApi } from '../../api/timesheet';
+import {  batchUpdateDailyTimesheetStatusApi } from '../../api/timesheet';
 import ChecklistOutlinedIcon from '@mui/icons-material/ChecklistOutlined';
 
 const ReviewTimesheetsWindow: React.FC = () => {
-  const { rows, timesheets, isLoading, refresh } = useSupervisedTimesheets();
+  const { rows, timesheets, supervisedProjectIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
+
+  // Rejection reason dialog state
+  const [rejectionDialog, setRejectionDialog] = useState<{
+    open: boolean;
+    selectedDays: DaySelection[];
+  }>({ open: false, selectedDays: [] });
 
   // Expanded employee row index
   const [openRow, setOpenRow] = useState<number | null>(null);
@@ -127,45 +134,140 @@ const ReviewTimesheetsWindow: React.FC = () => {
     }
   };
 
-  const applyDailyStatusToSelected = async (status: TimesheetStatus.Approved | TimesheetStatus.Rejected) => {
+  const applyDailyStatusToSelected = async (status: TimesheetStatus.Approved | TimesheetStatus.Rejected, rejectionReason?: string) => {
     if (selectedDays.length === 0) {
       toast.error('No days selected for approval');
       return;
     }
 
-    try {
+    try { 
       // Prepare batch updates
-      const updates = selectedDays.map(selection => ({
-        timesheetId: selection.timesheetId,
-        categoryIndex: selection.categoryIndex,
-        itemIndex: selection.itemIndex,
-        dayIndices: [selection.dayIndex],
-        status
-      }));
+      const updates: Array<{
+        timesheetId: string;
+        categoryIndex: number;
+        itemIndex: number;
+        dayIndices: number[];
+        status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+        rejectionReason?: string;
+      }> = [];
 
       // Group by timesheet and item to consolidate day indices
-      const groupedUpdates = new Map<string, typeof updates[0] & { dayIndices: number[] }>();
+      const groupedUpdates = new Map<string, {
+        timesheetId: string;
+        categoryIndex: number;
+        itemIndex: number;
+        dayIndices: number[];
+        status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+        rejectionReason?: string;
+      }>();
       
-      updates.forEach(update => {
-        const key = `${update.timesheetId}-${update.categoryIndex}-${update.itemIndex}`;
+      selectedDays.forEach((selection, index) => {
+        console.log(`Processing selection ${index + 1}:`, selection);
+        const key = `${selection.timesheetId}-${selection.categoryIndex}-${selection.itemIndex}`;
         if (groupedUpdates.has(key)) {
-          groupedUpdates.get(key)!.dayIndices.push(...update.dayIndices);
+          groupedUpdates.get(key)!.dayIndices.push(selection.dayIndex);
         } else {
-          groupedUpdates.set(key, { ...update });
+          groupedUpdates.set(key, {
+            timesheetId: selection.timesheetId,
+            categoryIndex: selection.categoryIndex,
+            itemIndex: selection.itemIndex,
+            dayIndices: [selection.dayIndex],
+            status,
+            rejectionReason: status === TimesheetStatus.Rejected ? rejectionReason : undefined
+          });
         }
       });
 
-      // Use batch API for better concurrency handling
-      await batchUpdateDailyTimesheetStatusApi(Array.from(groupedUpdates.values()));
+      updates.push(...Array.from(groupedUpdates.values()));
       
+      await batchUpdateDailyTimesheetStatusApi(updates);
+      
+      // Refresh data to get the latest state
       await refresh();
+      
+      // Get the unique timesheet IDs that were updated
+      const timesheetIds = Array.from(new Set(selectedDays.map(s => s.timesheetId)));
+      
+      // Small delay to ensure data is refreshed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Re-fetch the latest timesheet data to check completion state
+      const { listSupervisedTimesheets } = await import('../../api/timesheet');
+      const latestResponse = await listSupervisedTimesheets();
+      const latestTimesheets = latestResponse.data?.timesheets || [];
+      
+      const timesheetsToUpdateOverall: string[] = [];
+      
+      for (const timesheetId of timesheetIds) {
+        // Find the updated timesheet data from the latest fetch
+        const updatedTimesheet = latestTimesheets.find((ts: any) => ts._id === timesheetId);
+        if (!updatedTimesheet) continue;
+
+        // Check if all selectable days (days with hours > 0) are now approved
+        let allSelectableDaysApproved = true;
+        let hasSelectableDays = false;
+        
+        (updatedTimesheet as any).data.forEach((category: any) => {
+          category.items.forEach((item: any) => {
+            item.hours.forEach((hour: string, dayIndex: number) => {
+              if (parseFloat(hour) > 0) {
+                hasSelectableDays = true;
+                const dayStatus = item.dailyStatus?.[dayIndex];
+                if (dayStatus !== TimesheetStatus.Approved) {
+                  allSelectableDaysApproved = false;
+                }
+              }
+            });
+          });
+        });
+        
+        // If all selectable days are approved and we're doing an approval action, add to list for overall status update
+        if (hasSelectableDays && allSelectableDaysApproved && status === TimesheetStatus.Approved) {
+          timesheetsToUpdateOverall.push(timesheetId);
+        }
+      }
+
+      // Update overall status for timesheets where all selectable days are now approved
+      if (timesheetsToUpdateOverall.length > 0) {
+        const { updateSupervisedTimesheetsStatusApi } = await import('../../api/timesheet');
+        await updateSupervisedTimesheetsStatusApi(timesheetsToUpdateOverall, TimesheetStatus.Approved);
+        await refresh(); // Refresh again to show updated overall status
+      }
+      
       setSelectedDays([]);
       setIsSelectionMode(false);
-      toast.success(`Selected days ${status.toLowerCase()}`);
-    } catch (e) {
-      console.error('Failed to update daily status', e);
-      toast.error('Failed to update daily status');
+      
+      const statusText = status.toLowerCase();
+      if (timesheetsToUpdateOverall.length > 0) {
+        toast.success(`Selected days ${statusText} and ${timesheetsToUpdateOverall.length} timesheet(s) overall status updated to ${statusText}`);
+      } else {
+        toast.success(`Selected days ${statusText}`);
+      }
+    } catch (e: any) {
+      console.error('Failed to update daily status');
+      console.error('Error details:', {
+        message: e.message,
+        response: e.response?.data,
+        status: e.response?.status,
+        statusText: e.response?.statusText,
+        stack: e.stack
+      });
+      console.error('Selected days that caused error:', selectedDays);
+      console.error('Status attempted:', status);
+      toast.error(`Failed to update daily status: ${e.response?.data?.message || e.message || 'Unknown error'}`);
     }
+  };
+
+  const handleRejectWithReason = (reason: string) => {
+    applyDailyStatusToSelected(TimesheetStatus.Rejected, reason);
+  };
+
+  const handleRejectClick = () => {
+    if (selectedDays.length === 0) {
+      toast.error('No days selected for rejection');
+      return;
+    }
+    setRejectionDialog({ open: true, selectedDays: [...selectedDays] });
   };
 
   const handleDaySelectionChange = (selections: DaySelection[]) => {
@@ -237,6 +339,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
                         employeeName={`${group.employee.firstName} ${group.employee.lastName}`}
                         timesheets={group.timesheets}
                         originalTimesheets={timesheets.filter(ts => ts.userId?._id === group.employee._id)}
+                        supervisedProjectIds={supervisedProjectIds}
                         onDaySelectionChange={handleDaySelectionChange}
                         selectedDays={selectedDays}
                         isSelectionMode={isSelectionMode}
@@ -311,7 +414,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
                 <BaseBtn
                   variant="text"
                   disabled={selectedDays.length === 0}
-                  onClick={() => applyDailyStatusToSelected(TimesheetStatus.Rejected)}
+                  onClick={handleRejectClick}
                   startIcon={<ThumbDownAltOutlinedIcon />}
                 >
                     Reject selected
@@ -367,6 +470,14 @@ const ReviewTimesheetsWindow: React.FC = () => {
           }
           setConfirm({ open: false });
         }}
+      />
+
+      <RejectionReasonDialog
+        open={rejectionDialog.open}
+        onClose={() => setRejectionDialog({ open: false, selectedDays: [] })}
+        onConfirm={handleRejectWithReason}
+        title="Reject Selected Days"
+        message={`You are about to reject ${selectedDays.length} selected day(s). Please provide a reason:`}
       />
     </Box>
   );

@@ -1,24 +1,36 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton, TextField } from '@mui/material';
+import {
+  AppBar,
+  Toolbar,
+  Divider,
+  Box,
+  Button,
+  Popover,
+  Typography,
+  IconButton,
+} from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import UserPopoverBox from './UserPopoverBox'; 
-import EmpMenu from './EmpMenu'; 
+import UserPopoverBox from './UserPopoverBox';
+import EmpMenu from './EmpMenu';
 import { logout } from '../../api/auth';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
-import { useDispatch } from "react-redux";
 import { useToast } from '../contexts/ToastContext';
 import SearchBar from '../atoms/inputFields/SearchBar';
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 
-
-export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
+export default function CustomAppBar({
+  hasDrawer = true,
+}: {
+  hasDrawer?: boolean;
+}) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
-  const dispatch = useDispatch(); 
   const toast = useToast();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -37,32 +49,22 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
     setEmpMenuAnchorEl(null);
   };
 
-  const navigate = useNavigate();
-
   const handleProfileClick = () => {
     // Handle profile click logic here
   };
 
   const handleLogoutClick = async () => {
-
     try {
-      // Call the API logout
       await logout();
-      // Use the auth context to handle logout
       authLogout();
       toast.success('Logged out successfully');
-      // Navigate to login page
-      navigate('/', { replace: true });
+      window.location.reload();
     } catch (error) {
-      console.error('Logout error:', error);
-      // Even if API call fails, clear local state and redirect
       authLogout();
-      dispatch({ type: "LOGOUT" });
       toast.error('Logout failed on server. You have been signed out locally.');
-      navigate('/', { replace: true });
+      window.location.reload();
     }
   };
-
 
   const open = Boolean(anchorEl);
   const empMenuOpen = Boolean(empMenuAnchorEl);
@@ -86,29 +88,53 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          minHeight: '64px',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', color:'red[100]'}}>
-
-        { !hasDrawer && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap:2}}>
-                  <IconButton onClick={handleEmpMenuClick}><DensityMediumIcon/></IconButton>
-                <img
-                    src={logo}
-                    alt="Logo"
-                    style={{
-                      width: 47,
-                      height: 47,
-                    }}
-                  />
-                  {<Typography fontSize={25} sx={{ color: 'text.primary'}}>TimeSync</Typography>}
-                  <SearchBar/>
-             
-                </Box>
-        )}
-
+        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 200 }}>
+          {!hasDrawer && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <IconButton onClick={handleEmpMenuClick}>
+                <DensityMediumIcon />
+              </IconButton>
+              <img
+                src={logo}
+                alt="Logo"
+                style={{
+                  width: 47,
+                  height: 47,
+                }}
+              />
+              <Typography fontSize={25} sx={{ color: 'text.primary' }}>
+                TimeSync
+              </Typography>
+            </Box>
+          )}
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+
+        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: 400 }}>
+            <SearchBar />
+          </Box>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 200,
+            justifyContent: 'flex-end',
+          }}
+        >
+          <IconButton
+            sx={{
+              '&:hover': {
+                color: 'primary.main',
+              },
+            }}
+          >
+            <NotificationsOutlinedIcon />
+          </IconButton>
           <Button
             variant="text"
             endIcon={<KeyboardArrowDownIcon />}

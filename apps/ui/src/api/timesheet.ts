@@ -1,13 +1,11 @@
-// services/timesheet.service.ts
 import API from '../config/apiClient';
 import { TimesheetStatus } from '@tms/shared';
 
-
 export type TimesheetItem = {
-  work?: string; // only for Absence
-  projectId?: string; // only for Project
-  hours: string[]; // 7 days
-  descriptions: string[]; // 7 days
+  work?: string; 
+  projectId?: string; 
+  hours: string[]; //
+  descriptions: string[]; 
 };
 
 
@@ -27,19 +25,23 @@ export type Timesheet = {
     designation?: string;
   };
   weekStartDate: string;
-  categories: TimesheetCategory[];
+  data: TimesheetCategory[]; 
+  categories: TimesheetCategory[]; 
   status: TimesheetStatus;
   createdAt: string;
   updatedAt: string;
 };
 
-// --- API calls ---
 export const listMyTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
 };
 
 export const listSupervisedTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets/supervised');
+};
+
+export const getSupervisedProjects = async () => {
+  return API.get<{ projects: Array<{ _id: string; projectName: string }> }>('/api/project/supervised');
 };
 
 export type CreateTimesheetPayload = {
@@ -80,20 +82,23 @@ export const updateDailyTimesheetStatusApi = async ({
   categoryIndex,
   itemIndex,
   dayIndices,
-  status
+  status,
+  rejectionReason
 }: {
   timesheetId: string;
   categoryIndex: number;
   itemIndex: number;
   dayIndices: number[];
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+  rejectionReason?: string;
 }) => {
   return API.post('/api/timesheets/supervised/daily-status', {
     timesheetId,
     categoryIndex,
     itemIndex,
     dayIndices,
-    status
+    status,
+    rejectionReason
   });
 };
 
@@ -103,6 +108,7 @@ export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
   itemIndex: number;
   dayIndices: number[];
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
+  rejectionReason?: string;
 }>) => {
   return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
 };

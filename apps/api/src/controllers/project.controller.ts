@@ -9,6 +9,7 @@ import {
   listProjects,
   updateProjectStaff,
   softDeleteProject,
+  listSupervisedProjects,
 } from '../services/project.service';
 import { UserRole } from '@tms/shared';
 
@@ -46,5 +47,11 @@ export const updateStaffHandler = catchErrors(async (req, res) => {
 export const deleteHandler = catchErrors(async (req, res) => {
   const { id } = req.params as { id: string };
   const result = await softDeleteProject(id);
+  return res.status(OK).json(result);
+});
+
+export const listSupervisedProjectsHandler = catchErrors(async (req, res) => {
+  const supervisorId = req.userId as string;
+  const result = await listSupervisedProjects(supervisorId);
   return res.status(OK).json(result);
 });
