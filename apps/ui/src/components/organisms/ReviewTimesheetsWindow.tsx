@@ -140,12 +140,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
       return;
     }
 
-    try {
-      console.log('Starting batch approval process...');
-      console.log('Selected days:', selectedDays);
-      console.log('Status to apply:', status);
-      console.log('Rejection reason:', rejectionReason);
-      
+    try { 
       // Prepare batch updates
       const updates: Array<{
         timesheetId: string;
@@ -166,7 +161,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
         rejectionReason?: string;
       }>();
       
-      console.log('Grouping selected days...');
       selectedDays.forEach((selection, index) => {
         console.log(`Processing selection ${index + 1}:`, selection);
         const key = `${selection.timesheetId}-${selection.categoryIndex}-${selection.itemIndex}`;
@@ -186,11 +180,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
 
       updates.push(...Array.from(groupedUpdates.values()));
       
-      console.log('Final grouped updates:', updates);
-      console.log('Number of update groups:', updates.length);
-
-      // Update daily statuses first
-      console.log('Sending batch update request...');
       await batchUpdateDailyTimesheetStatusApi(updates);
       
       // Refresh data to get the latest state

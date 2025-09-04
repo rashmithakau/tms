@@ -16,4 +16,4 @@ const RejectReasonSchema: Schema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<IRejectReason>('RejectReason', RejectReasonSchema);
+export default mongoose.model<IRejectReason>('RejectReason', RejectReasonSchema,"reject_reasons");

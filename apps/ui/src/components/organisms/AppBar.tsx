@@ -1,19 +1,34 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Divider, Box, Button, Popover, Typography, IconButton } from '@mui/material';
+import {
+  AppBar,
+  Toolbar,
+  Divider,
+  Box,
+  Button,
+  Popover,
+  Typography,
+  IconButton,
+} from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import UserPopoverBox from './UserPopoverBox'; 
-import EmpMenu from './EmpMenu'; 
+import UserPopoverBox from './UserPopoverBox';
+import EmpMenu from './EmpMenu';
 import { logout } from '../../api/auth';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import { useToast } from '../contexts/ToastContext';
 import SearchBar from '../atoms/inputFields/SearchBar';
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 
-
-export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }) {
+export default function CustomAppBar({
+  hasDrawer = true,
+}: {
+  hasDrawer?: boolean;
+}) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
   const toast = useToast();
@@ -34,28 +49,22 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
     setEmpMenuAnchorEl(null);
   };
 
-
-
   const handleProfileClick = () => {
     // Handle profile click logic here
   };
 
   const handleLogoutClick = async () => {
-
     try {
       await logout();
       authLogout();
       toast.success('Logged out successfully');
       window.location.reload();
     } catch (error) {
-      console.error('Logout error:', error);
-      // Even if API call fails, clear local state and redirect
       authLogout();
       toast.error('Logout failed on server. You have been signed out locally.');
       window.location.reload();
     }
   };
-
 
   const open = Boolean(anchorEl);
   const empMenuOpen = Boolean(empMenuAnchorEl);
@@ -82,11 +91,12 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
           minHeight: '64px',
         }}
       >
-    
         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 200 }}>
           {!hasDrawer && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <IconButton onClick={handleEmpMenuClick}><DensityMediumIcon /></IconButton>
+              <IconButton onClick={handleEmpMenuClick}>
+                <DensityMediumIcon />
+              </IconButton>
               <img
                 src={logo}
                 alt="Logo"
@@ -95,20 +105,36 @@ export default function CustomAppBar({hasDrawer = true}: { hasDrawer?: boolean }
                   height: 47,
                 }}
               />
-              <Typography fontSize={25} sx={{ color: 'text.primary' }}>TimeSync</Typography>
+              <Typography fontSize={25} sx={{ color: 'text.primary' }}>
+                TimeSync
+              </Typography>
             </Box>
           )}
         </Box>
 
-    
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: 400 }}>
-    <SearchBar />
-  </Box>
+          <Box sx={{ width: 400 }}>
+            <SearchBar />
+          </Box>
         </Box>
 
-      
-        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 200, justifyContent: 'flex-end' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 200,
+            justifyContent: 'flex-end',
+          }}
+        >
+          <IconButton
+            sx={{
+              '&:hover': {
+                color: 'primary.main',
+              },
+            }}
+          >
+            <NotificationsOutlinedIcon />
+          </IconButton>
           <Button
             variant="text"
             endIcon={<KeyboardArrowDownIcon />}
