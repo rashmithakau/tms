@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import { listProjects } from '../api/project';
-import { TimesheetStatus } from '@tms/shared';
+import { TimesheetStatus } from '@tms/shared'; 
+import { Timesheet } from '../api/timesheet';
 
-export function useTimesheetCalendarData(timesheets, originalTimesheets) {
+export function useTimesheetCalendarData(
+  timesheets: Timesheet[], 
+  originalTimesheets: Timesheet[]
+) {
   const [data, setData] = useState([]);
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +36,6 @@ export function useTimesheetCalendarData(timesheets, originalTimesheets) {
 
   useEffect(() => {
     if (projects.length === 0) return;
-    // ...existing transformation logic from EmployeeTimesheetCalendar...
   }, [timesheets, projects, days]);
 
   return {
