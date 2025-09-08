@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TimesheetStatus } from '@tms/shared';
-import { DaySelection } from '../components/organisms/EmployeeTimesheetCalendar';
+import { DaySelection } from './useEmployeeTimesheetCalendar';
 import { useToast } from '../components/contexts/ToastContext';
 import { batchUpdateDailyTimesheetStatusApi } from '../api/timesheet';
 

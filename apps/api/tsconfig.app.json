@@ -3,9 +3,12 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
+    "moduleResolution": "node",
     "types": ["node"],
-    "typeRoots": ["../../node_modules/@types", "./src/types"],
-    "ignoreDeprecations": "6.0"
+    "typeRoots": [
+      "../../node_modules/@types",
+      "./src/types" 
+    ]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
