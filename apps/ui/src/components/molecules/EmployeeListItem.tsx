@@ -15,7 +15,10 @@ const EmployeeListItem: React.FC<IEmployeeListItemProps> = ({
   onToggle,
 }) => {
   const theme = useTheme();
-
+  const handleToggle = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    onToggle(employee);
+  };
   return (
     <ListItem
       component="button"
@@ -42,10 +45,7 @@ const EmployeeListItem: React.FC<IEmployeeListItemProps> = ({
       <ListItemIcon sx={{ minWidth: 48 }}>
         <Checkbox
           checked={isSelected}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle(employee);
-          }}
+          onClick={handleToggle}
           sx={{
             color: theme.palette.text.secondary,
           }}

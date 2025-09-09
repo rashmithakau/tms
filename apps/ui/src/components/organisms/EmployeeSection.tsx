@@ -7,14 +7,14 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { IProjectEmployeesSectionProps } from '../../interfaces/IProjectEmployeesSectionProps';
+import { IEmployeeSectionProps } from '../../interfaces/IEmployeeSectionProps';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 
-const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
+const EmployeeSection: React.FC<IEmployeeSectionProps> = ({
   selectedEmployees,
   onAddEmployeesClick,
   onRemoveEmployee,
-  title = 'Project Employees',
+  title = 'Employees',
   emptyMessage = 'No employees assigned yet',
   height = 'auto',
 }) => {
@@ -97,10 +97,9 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
       >
         {selectedEmployees.length > 0 ? (
           <Box sx={{ p: 2 }}>
-            {/* Employee Grid */}
-
             {selectedEmployees.map((employee) => (
               <Paper
+                key={employee.id}
                 elevation={0}
                 sx={{
                   p: 2,
@@ -136,7 +135,6 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
                 </IconButton>
 
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  {/* Employee Info */}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
                       variant="subtitle2"
@@ -245,8 +243,7 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
                 mb: 2,
               }}
             >
-              {emptyMessage}. Click here to start adding team members to the
-              project.
+              {emptyMessage}. Click here to start adding team members.
             </Typography>
 
             <Button
@@ -275,4 +272,6 @@ const ProjectEmployeesSection: React.FC<IProjectEmployeesSectionProps> = ({
   );
 };
 
-export default ProjectEmployeesSection;
+export default EmployeeSection;
+
+

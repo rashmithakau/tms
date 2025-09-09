@@ -44,7 +44,7 @@ const PageLoading: React.FC<PageLoadingProps> = ({
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           zIndex: 1000,
         };
-      default: // fullscreen
+      default: 
         return {
           display: 'flex',
           justifyContent: 'center',

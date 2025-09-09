@@ -3,6 +3,8 @@ import { Box, Typography, Divider, Button, Paper } from '@mui/material';
 import PopupLayout from '../templates/PopUpLayout';
 import { ProjectRow } from '../templates/TableWindowLayout';
 import { useTheme } from '@mui/material/styles';
+import SupervisorMemberCard from '../molecules/SupervisorMemberCard';
+import TeamMemberCard from '../molecules/TeamMemberCard';
 
 interface ViewProjectTeamProps {
   open: boolean;
@@ -29,8 +31,7 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
       subtitle={`Project Name - ${project.projectName}`}
       onClose={onClose}
     >
-      <Box sx={{ p: 2 }}>
-        {/* Supervisor Section */}
+      <Box>
         <Box sx={{ mb: 3 }}>
           <Typography
             variant="h6"
@@ -39,56 +40,10 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
           >
             Supervisor
           </Typography>
-
-          {project.supervisor ? (
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                position: 'relative',
-                backgroundColor: theme.palette.background.default,
-                border: `2px solid ${theme.palette.secondary.main}`,
-                borderRadius: 3,
-                '&:hover': {
-                  borderColor: theme.palette.text.secondary,
-                  backgroundColor: theme.palette.background.paper,
-                },
-              }}
-            >
-              <Box>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  {project.supervisor.name}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: theme.palette.text.secondary }}
-                >
-                  {project.supervisor.designation || 'No designation'}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: theme.palette.text.secondary }}
-                >
-                  {project.supervisor.email || 'No email'}
-                </Typography>
-              </Box>
-            </Paper>
-          ) : (
-            <Typography
-              variant="body2"
-              sx={{
-                color: theme.palette.text.secondary,
-                fontStyle: 'italic',
-              }}
-            >
-              No supervisor assigned
-            </Typography>
-          )}
+          <SupervisorMemberCard supervisor={project.supervisor ?? null} />
         </Box>
-
         <Divider sx={{ my: 2 }} />
 
-        {/* Team Members Section */}
         <Box>
           <Typography
             variant="h6"
@@ -99,39 +54,8 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
           </Typography>
           {teamMembers.length > 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {teamMembers.map((employee, index) => (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    position: 'relative',
-                    backgroundColor: theme.palette.background.default,
-                    border: `2px solid ${theme.palette.secondary.main}`,
-                    borderRadius: 3,
-                    '&:hover': {
-                      borderColor: theme.palette.text.secondary,
-                      backgroundColor: theme.palette.background.paper,
-                    },
-                  }}
-                >
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {employee.name}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: theme.palette.text.secondary }}
-                    >
-                      {employee.designation || 'No designation'}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: theme.palette.text.secondary }}
-                    >
-                      {employee.email || 'No email'}
-                    </Typography>
-                  </Box>
-                </Paper>
+              {teamMembers.map((employee) => (
+                <TeamMemberCard key={employee.id} member={employee} />
               ))}
             </Box>
           ) : (
@@ -143,22 +67,22 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
             </Typography>
           )}
         </Box>
-      </Box>
-      <Box>
-        <Divider  />
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: 2,
-          justifyContent: 'flex-end',
-          mt: 2,
-        }}
-      >
-        <Button variant="outlined" onClick={onClose}>
-          Cancel
-        </Button>
+        <Box>
+          <Divider />
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 2,
+            justifyContent: 'flex-end',
+            mt: 2,
+          }}
+        >
+          <Button variant="outlined" onClick={onClose}>
+            Cancel
+          </Button>
+        </Box>
       </Box>
     </PopupLayout>
   );

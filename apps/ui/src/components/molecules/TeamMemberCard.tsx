@@ -1,0 +1,49 @@
+import React from 'react';
+import { Paper, Typography, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import type { TeamMember } from '../organisms/ViewTeamMembers';
+
+interface TeamMemberCardProps {
+  member: TeamMember;
+}
+
+const TeamMemberCard: React.FC<TeamMemberCardProps> = ({ member }) => {
+  const theme = useTheme();
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        position: 'relative',
+        backgroundColor: theme.palette.background.default,
+        border: `2px solid ${theme.palette.secondary.main}`,
+        borderRadius: 3,
+        '&:hover': {
+          borderColor: theme.palette.text.secondary,
+          backgroundColor: theme.palette.background.paper,
+        },
+      }}
+    >
+      <Box>
+        <Typography variant="subtitle2" fontWeight="bold">
+          {member.name}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ color: theme.palette.text.secondary }}
+        >
+          {member.designation || 'No designation'}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ color: theme.palette.text.secondary }}
+        >
+          {member.email || 'No email'}
+        </Typography>
+      </Box>
+    </Paper>
+  );
+};
+
+export default TeamMemberCard;

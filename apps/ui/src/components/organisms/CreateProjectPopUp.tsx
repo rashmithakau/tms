@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Box,
-  FormHelperText,
-} from '@mui/material';
+import { Box } from '@mui/material';
 import BaseTextField from '../atoms/inputFields/BaseTextField';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
-import ProjectEmployeesSection from './ProjectEmployeesSection';
+import EmployeeSection from './EmployeeSection';
 import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,6 +13,9 @@ import PopupLayout from '../templates/PopUpLayout';
 import { createProject } from '../../api/project';
 import { useToast } from '../contexts/ToastContext';
 import Divider from '@mui/material/Divider';
+import { UserRole } from '@tms/shared';
+import SupervisorSelect from '../molecules/SupervisorSelect';
+import BillableSelect from '../molecules/BillableSelect';
 
 interface CreateProjectFormData {
   projectName: string;
@@ -127,64 +123,18 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                 name="billable"
                 control={control}
                 render={({ field }) => (
-                  <FormControl
-                    size="small"
-                    fullWidth
-                    variant="outlined"
+                  <BillableSelect
+                    value={field.value}
+                    onChange={field.onChange}
                     error={!!errors.billable}
-                  >
-                    <InputLabel required id="billable-label">
-                      Billable
-                    </InputLabel>
-                    <Select
-                      {...field}
-                      labelId="billable-label"
-                      value={field.value}
-                      label="Billable"
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 200,
-                            backgroundColor: theme.palette.background.default,
-                          },
-                        },
-                      }}
-                    >
-                      <MenuItem
-                        value="yes"
-                        id="yes-option"
-                        sx={{
-                          backgroundColor: theme.palette.background.default,
-                          '&:hover': {
-                            backgroundColor: theme.palette.background.paper,
-                          },
-                        }}
-                      >
-                        Yes
-                      </MenuItem>
-                      <MenuItem
-                        value="no"
-                        id="no-option"
-                        sx={{
-                          backgroundColor: theme.palette.background.default,
-                          '&:hover': {
-                            backgroundColor: theme.palette.background.paper,
-                          },
-                        }}
-                      >
-                        No
-                      </MenuItem>
-                    </Select>
-                    {errors.billable && (
-                      <FormHelperText>{errors.billable.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    helperText={errors.billable?.message}
+                  />
                 )}
               />
             </Box>
 
             {/* Employee Section */}
-            <ProjectEmployeesSection
+            <EmployeeSection
               selectedEmployees={selectedEmployees}
               onAddEmployeesClick={handleOpenEmployeeDialog}
               onRemoveEmployee={handleRemoveEmployee}
@@ -195,44 +145,16 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
                 name="supervisor"
                 control={control}
                 render={({ field }) => (
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="supervisor-select">Supervisor</InputLabel>
-                    <Select
-                      labelId="supervisor-select"
-                      label="Supervisor"
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 200,
-                            backgroundColor: theme.palette.background.default,
-                          },
-                        },
-                      }}
-                      value={field.value ?? ''}
-                      onChange={(e) =>
-                        field.onChange((e.target.value as string) || null)
-                      }
-                      disabled={selectedEmployees.length === 0}
-                    >
-                      {selectedEmployees.map((emp) => (
-                        <MenuItem
-                          sx={{ bgcolor: theme.palette.background.default }}
-                          key={emp.id}
-                          value={emp.id}
-                        >
-                          {emp.designation
-                            ? `${emp.name} - ${emp.designation}`
-                            : emp.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText sx={{ m: 0, mt: 0.5 }}>
-                      <span style={{ fontSize: '0.75rem' }}>Choose a supervisor from selected employees</span>
-                    </FormHelperText>
-                  </FormControl>
+                  <SupervisorSelect
+                    employees={selectedEmployees}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={selectedEmployees.length === 0}
+                  />
                 )}
               />
             </Box>
+
             <Box>
               <Divider />
             </Box>
@@ -270,6 +192,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
         onClose={handleCloseEmployeeDialog}
         onSave={handleSaveEmployees}
         initialSelectedEmployees={selectedEmployees}
+        roles={[UserRole.Emp, UserRole.Supervisor]}
       />
     </>
   );

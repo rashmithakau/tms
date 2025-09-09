@@ -81,13 +81,15 @@ export const useUsersByRoles = (roles: UserRole[]): UseUsersReturn => {
       setIsLoading(true);
       setError(null);
 
-      const responses = await Promise.all((roles || []).map((r) => getUsers(r)));
+      const results = await Promise.allSettled((roles || []).map((r) => getUsers(r)));
       const merged: Record<string, User> = {};
-      responses.forEach((resp) => {
-        const arr = resp?.data?.users as User[] | undefined;
-        (arr ?? []).forEach((u) => {
-          merged[(u as any)._id as string] = u;
-        });
+      results.forEach((res) => {
+        if (res.status === 'fulfilled') {
+          const arr = (res.value?.data?.users as User[] | undefined) ?? [];
+          arr.forEach((u) => {
+            merged[(u as any)._id as string] = u;
+          });
+        }
       });
       setUsers(Object.values(merged));
     } catch (err: any) {
