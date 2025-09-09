@@ -69,6 +69,13 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         return;
       }
       
+      // For rejected timesheets, save the current data first before submitting
+      if (currentStatus === 'Rejected') {
+        await updateMyTimesheet(currentId, {
+          data: timesheetData.timesheetData,
+        });
+      }
+      
       await submitMyDraftTimesheets([currentId]);
       toast.success('Timesheet submitted for approval');
       await refresh();

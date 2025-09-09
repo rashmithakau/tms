@@ -131,14 +131,25 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   if (weekStartDate) updateData.weekStartDate = new Date(weekStartDate);
 
   if (data) {
-    const dataWithDailyStatus = data.map(category => ({
+    // Fetch existing timesheet to preserve dailyStatus
+    const existingTimesheet = await Timesheet.findOne({ _id: timesheetId, userId });
+    
+    const dataWithDailyStatus = data.map((category, categoryIndex) => ({
       ...category,
-      items: category.items.map(item => ({
-        ...item,
-        dailyStatus: (item as any).dailyStatus && (item as any).dailyStatus.length === 7 
-          ? (item as any).dailyStatus 
-          : Array(7).fill(TimesheetStatus.Draft)
-      }))
+      items: category.items.map((item, itemIndex) => {
+        // Try to get existing dailyStatus from the same position
+        const existingDailyStatus = existingTimesheet?.data?.[categoryIndex]?.items?.[itemIndex]?.dailyStatus;
+        
+        return {
+          ...item,
+          // Preserve existing dailyStatus if available, otherwise use provided dailyStatus, otherwise default to Draft
+          dailyStatus: existingDailyStatus && existingDailyStatus.length === 7
+            ? existingDailyStatus
+            : (item as any).dailyStatus && (item as any).dailyStatus.length === 7 
+              ? (item as any).dailyStatus 
+              : Array(7).fill(TimesheetStatus.Draft)
+        };
+      })
     }));
     (updateData as any).data = dataWithDailyStatus;
   }
