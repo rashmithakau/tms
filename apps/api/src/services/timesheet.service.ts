@@ -13,7 +13,7 @@ interface ITimesheetItem {
 }
 
 export interface ITimesheetCategory {
-  category: string; //  "Project" | "Absence"
+  category: string; 
   items: ITimesheetItem[]; 
 }
 
@@ -322,6 +322,11 @@ export const batchUpdateDailyTimesheetStatus = async (
             throw new Error(error);
           }
         });
+
+        if(status ===TimesheetStatus.Rejected) {
+          console.log('Rejection timeshet recieved');
+          timesheet.status=TimesheetStatus.Rejected;
+        }
         
         // Save rejection reason immediately for each rejected item
         if (status === TimesheetStatus.Rejected && rejectionReason) {
