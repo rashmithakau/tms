@@ -7,10 +7,7 @@ export interface EmpRow {
   email: string;
   firstName: string;
   lastName: string;
-  designation: string;
-  role?: string;
-  supervisedProjects?: string[];
-  memberProjects?: string[];
+  team?: string;
   status: 'Active' | 'Inactive' | string;
   contactNumber: string;
   createdAt?: string;
@@ -23,6 +20,14 @@ export interface ProjectRow {
   createdAt?: string;
   employees?: { id: string; name: string; designation?: string; email?: string }[];
   supervisor?: { id: string; name: string; designation?: string; email?: string ;} | null;
+}
+
+export interface TeamRow {
+  id: string;
+  teamName: string;
+  createdAt?: string;
+  members: { id: string; name: string; designation?: string; email?: string }[];
+  supervisor: { id: string; name: string; designation?: string; email?: string } | null;
 }
 
 interface TableWindowLayoutProps {

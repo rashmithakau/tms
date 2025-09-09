@@ -13,21 +13,13 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTheme } from '@mui/material';
 
-export type EmpRoleFilter = 'all' | 'employee' | 'supervisor';
-
-const ROLE_OPTIONS: Array<EmpRoleFilter> = ['all', 'employee', 'supervisor'];
-
 export default function EmpTableToolbar({
-  roleFilter,
-  onRoleFilterChange,
   projectsOptions,
   selectedProjectIds,
   onSelectedProjectIdsChange,
   statusFilter,
   onStatusFilterChange,
 }: {
-  roleFilter: EmpRoleFilter;
-  onRoleFilterChange: (val: EmpRoleFilter) => void;
   projectsOptions: Array<{ id: string; name: string }>;
   selectedProjectIds: string[];
   onSelectedProjectIdsChange: (val: string[]) => void;
@@ -38,7 +30,7 @@ export default function EmpTableToolbar({
   const open = Boolean(anchorEl);
 
   const activeCount =
-    (roleFilter !== 'all' ? 1 : 0) + (selectedProjectIds.length > 0 ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0);
+    (selectedProjectIds.length > 0 ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0);
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -73,29 +65,6 @@ export default function EmpTableToolbar({
           sx: { p: 2, width: 260, bgcolor: theme.palette.background.paper },
         }}
       >
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-          Role
-        </Typography>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={roleFilter}
-          onChange={(_, value) => value && onRoleFilterChange(value)}
-          aria-label="Role filter"
-          sx={{ flexWrap: 'wrap', gap: 1, mb: 2 }}
-        >
-          {ROLE_OPTIONS.map((option) => (
-            <ToggleButton key={option} value={option} aria-label={option}>
-              {option === 'all'
-                ? 'All'
-                : option === 'employee'
-                ? 'Employee'
-                : 'Supervisor'}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-
-        <Divider sx={{ my: 1 }} />
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Projects
         </Typography>
@@ -143,15 +112,6 @@ export default function EmpTableToolbar({
         <Box>
           {activeCount > 0 && (
             <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap' }}>
-              {roleFilter !== 'all' && (
-                <Chip
-                  size="small"
-                  label={`Role: ${
-                    roleFilter === 'employee' ? 'Employee' : 'Supervisor'
-                  }`}
-                  onDelete={() => onRoleFilterChange('all')}
-                />
-              )}
               {selectedProjectIds.length > 0 && (
                 <Chip
                   size="small"
@@ -180,7 +140,6 @@ export default function EmpTableToolbar({
               size="small"
               variant="outlined"
               onClick={() => {
-                onRoleFilterChange('all');
                 onSelectedProjectIdsChange([]);
                 onStatusFilterChange('all');
               }}

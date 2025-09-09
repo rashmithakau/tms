@@ -15,7 +15,7 @@ import { UserRole } from "@tms/shared";
   export const getUsers = async (role:UserRole) => {
     try {
       switch(role){
-        case UserRole.Admin:return await API.get("/api/user/admin");
+        case UserRole.Admin:return await API.get(`/api/user/all?roles=${UserRole.Admin}`);
         case UserRole.Emp:return await API.get("/api/user/emp");
         case UserRole.Supervisor:return await API.get("/api/user/supervisor");
       }

@@ -1,17 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Tooltip,
-  Typography,
-  TableContainer,
-} from '@mui/material';
 import { deleteProject } from '../../api/project';
 import { ProjectRow } from '../templates/TableWindowLayout';
-import ProjectStaffManager from './ProjectStaffManager';
 import ViewProjectTeam from './ViewProjectTeam';
 import ActionButtons from '../molecules/ActionButtons';
 import ConfirmDialog from '../molecules/ConfirmDialog';
@@ -19,7 +8,8 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useToast } from '../contexts/ToastContext';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useTheme } from '@mui/material/styles';
-
+import DataTable from './DataTable';
+import { DataTableColumn } from './DataTable';
 interface ProjectTableProps {
   rows: ProjectRow[];
   onRefresh?: () => Promise<void> | void;
@@ -54,113 +44,68 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     });
   }, [rows, billableFilter]);
   const theme = useTheme();
+
+  const columns: DataTableColumn<ProjectRow>[] = [
+    { label: '', key: 'empty', render: () => null },
+    {
+      label: 'Project Name',
+      key: 'projectName',
+      render: (row) => row.projectName,
+    },
+    { label: 'Billable Type', key: 'billable', render: (row) => row.billable },
+    {
+      label: 'Supervisor Name',
+      key: 'supervisorName',
+      render: (row) =>
+        row.supervisor?.name || (
+          <span style={{ color: theme.palette.text.secondary}}>No supervisor assigned</span>
+        ),
+    },
+    {
+      label: 'Supervisor Email',
+      key: 'supervisorEmail',
+      render: (row) =>
+        row.supervisor?.email || (
+          <span style={{ color: theme.palette.text.secondary }}>No supervisor assigned</span>
+        ),
+    },
+    {
+      label: 'Team Members',
+      key: 'teamMembers',
+      render: (row) => (
+        <BaseBtn
+          variant="outlined"
+          onClick={() => setViewTeamProject(row)}
+          size="small"
+        >
+          View Team
+        </BaseBtn>
+      ),
+    },
+    {
+      label: 'Created At',
+      key: 'createdAt',
+      render: (row) =>
+        row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '',
+    },
+    {
+      label: 'Actions',
+      key: 'actions',
+      render: (row) => (
+        <ActionButtons
+          onEdit={() => setEditingId(row.id)}
+          onDelete={() => setConfirm({ open: true, id: row.id })}
+        />
+      ),
+    },
+  ];
   return (
     <>
-      <TableContainer sx={{ maxHeight: '70vh' }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>Project Name</TableCell>
-              <TableCell>Billable Type</TableCell>
-              <TableCell>Supervisor Name</TableCell>
-              <TableCell>Supervisor Email</TableCell>
-              <TableCell>Team Members</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map((row) => {
-              const emptySupervised = !row.supervisor || !row.supervisor.name;
-              const emptyEmail = !row.supervisor || !row.supervisor.email;
-              return (
-                <React.Fragment key={row.id}>
-                  <TableRow>
-                    <TableCell></TableCell>
-                    <TableCell>{row.projectName}</TableCell>
-                    <TableCell>
-                      {row.billable
-                        ? row.billable.charAt(0).toUpperCase() +
-                          row.billable.slice(1).toLowerCase()
-                        : ''}
-                    </TableCell>
-                    <TableCell>
-                      {emptySupervised ? (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: theme.palette.text.secondary,
-                          }}
-                        >
-                          No supervisor assigned
-                        </Typography>
-                      ) : row.supervisor ? (
-                        row.supervisor.name
-                      ) : (
-                        ''
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {emptyEmail ? (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: theme.palette.text.secondary,
-                          }}
-                        >
-                          No supervisor assigned
-                        </Typography>
-                      ) : row.supervisor ? (
-                        row.supervisor.email
-                      ) : (
-                        ''
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <BaseBtn
-                        variant="outlined"
-                        onClick={() => setViewTeamProject(row)}
-                        size="small"
-                      >
-                        View Team
-                      </BaseBtn>
-                    </TableCell>
-                    <TableCell>
-                      {row.createdAt
-                        ? new Date(row.createdAt).toLocaleDateString()
-                        : ''}
-                    </TableCell>
-                    <TableCell>
-                        <span>
-                          <ActionButtons
-                            onEdit={() => setEditingId(row.id)}
-                            onDelete={() =>
-                              setConfirm({ open: true, id: row.id })
-                            }
-                          />
-                        </span>
-                    </TableCell>
-                  </TableRow>
-                  {editingId === row.id && (
-                    <ProjectStaffManager
-                      open={true}
-                      onClose={() => setEditingId(null)}
-                      projectId={row.id}
-                      initialEmployees={row.employees ?? []}
-                      initialSupervisor={row.supervisor ?? null}
-                      onSaved={async () => {
-                        setEditingId(null);
-                        if (onRefresh) await onRefresh();
-                      }}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        getRowKey={(row) => row.id}
+      />
       <ConfirmDialog
         open={confirm.open}
         title="Delete Project"

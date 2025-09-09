@@ -1,6 +1,6 @@
 import { IEmployeeProps } from './IEmployeeProps';
 
-export interface IProjectEmployeesSectionProps {
+export interface IEmployeeSectionProps {
   selectedEmployees: IEmployeeProps[];
   onAddEmployeesClick: () => void;
   onRemoveEmployee: (employeeId: string) => void;
@@ -8,3 +8,5 @@ export interface IProjectEmployeesSectionProps {
   emptyMessage?: string;
   height?: string | number;
 }
+
+

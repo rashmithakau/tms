@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.route";
 import userRoutes from './routes/user.route';
 import projectRoutes from './routes/project.route';
 import timesheetRoutes from './routes/timesheet.route';
+import teamRoutes from './routes/team.route';
 
 const port = Number(PORT);
 
@@ -28,6 +29,7 @@ app.use("/auth",authRoutes);
 app.use("/api/user",userRoutes);
 app.use("/api/project",projectRoutes)
 app.use("/api/timesheets", timesheetRoutes)
+app.use('/api/team', teamRoutes);
 
 app.use(errorHandler);
 
