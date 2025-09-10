@@ -47,7 +47,7 @@ const EmployeeSection: React.FC<EmployeeSectionProps> = ({
   return (
     <Box sx={{ padding: 2, height: '93%' }}>
       <TableWindowLayout
-        title="All Accounts"
+        title="Employee & Admin Accounts"
         filter={
           <EmpTableToolbar
             projectsOptions={projectOptions}

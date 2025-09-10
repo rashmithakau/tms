@@ -6,14 +6,14 @@ import { UserRole } from "@tms/shared";
 const userhRoutes=Router();
 
 userhRoutes.post("/admin",authenticate([UserRole.SuperAdmin]), registerHandler(UserRole.Admin)); 
-userhRoutes.get("/admin",authenticate([UserRole.SuperAdmin]), getUserHandler([UserRole.Emp, UserRole.Supervisor])); 
-userhRoutes.post("/emp",authenticate([UserRole.Admin]),registerHandler(UserRole.Emp)); 
-userhRoutes.get("/emp",authenticate([UserRole.Admin]), getUserHandler(UserRole.Emp));
-userhRoutes.get("/supervisor", authenticate([UserRole.Admin]), getUserHandler(UserRole.Supervisor));
-userhRoutes.delete("/emp/:id", authenticate([UserRole.Admin]), deleteUserHandler());
-userhRoutes.delete("/supervisor/:id", authenticate([UserRole.Admin]), deleteUserHandler());
-userhRoutes.delete("/:id", authenticate([UserRole.Admin]), deleteUserHandler());
-userhRoutes.get("/active", authenticate([UserRole.Admin]), getAllActiveUsersHandler());
-userhRoutes.get("/all", authenticate([UserRole.Admin]), getAllUsersIncludingInactiveHandler());
+userhRoutes.get("/admin",authenticate([UserRole.SuperAdmin]), getUserHandler([UserRole.Emp, UserRole.Supervisor, UserRole.SupervisorAdmin])); 
+userhRoutes.post("/emp",authenticate([UserRole.Admin, UserRole.SupervisorAdmin]),registerHandler(UserRole.Emp)); 
+userhRoutes.get("/emp",authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), getUserHandler(UserRole.Emp));
+userhRoutes.get("/supervisor", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), getUserHandler([UserRole.Supervisor, UserRole.SupervisorAdmin]));
+userhRoutes.delete("/emp/:id", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), deleteUserHandler());
+userhRoutes.delete("/supervisor/:id", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), deleteUserHandler());
+userhRoutes.delete("/:id", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), deleteUserHandler());
+userhRoutes.get("/active", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), getAllActiveUsersHandler());
+userhRoutes.get("/all", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), getAllUsersIncludingInactiveHandler());
 
 export default userhRoutes;

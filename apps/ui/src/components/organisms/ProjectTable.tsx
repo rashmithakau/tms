@@ -10,6 +10,7 @@ import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useTheme } from '@mui/material/styles';
 import DataTable from './DataTable';
 import { DataTableColumn } from './DataTable';
+import ProjectStaffManager from './ProjectStaffManager';
 interface ProjectTableProps {
   rows: ProjectRow[];
   onRefresh?: () => Promise<void> | void;
@@ -30,6 +31,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const [viewTeamProject, setViewTeamProject] = useState<ProjectRow | null>(
     null
   );
+
+  const [staffManagerTeam, setStaffManagerTeam] = useState<ProjectRow | null>(null);
   const toast = useToast();
 
   const filtered = useMemo(() => {
@@ -93,7 +96,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       key: 'actions',
       render: (row) => (
         <ActionButtons
-          onEdit={() => setEditingId(row.id)}
+          onEdit={() => setStaffManagerTeam(row)}
           onDelete={() => setConfirm({ open: true, id: row.id })}
         />
       ),
@@ -132,6 +135,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         open={!!viewTeamProject}
         onClose={() => setViewTeamProject(null)}
         project={viewTeamProject}
+      />
+
+      <ProjectStaffManager
+        open={!!staffManagerTeam}
+        onClose={() => setStaffManagerTeam(null)}
+        projectId={staffManagerTeam?.id || ''}
+        initialEmployees={staffManagerTeam?.employees || []}
+        initialSupervisor={staffManagerTeam?.supervisor || null}
       />
     </>
   );

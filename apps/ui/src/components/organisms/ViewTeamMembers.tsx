@@ -4,6 +4,7 @@ import PopupLayout from '../templates/PopUpLayout';
 import { useTheme } from '@mui/material/styles';
 import SupervisorMemberCard from '../molecules/SupervisorMemberCard';
 import TeamMemberCard from '../molecules/TeamMemberCard';
+import BaseButton from '../atoms/buttons/BaseBtn';
 export type TeamMember = {
   id: string;
   name: string;
@@ -38,6 +39,21 @@ const ViewTeamMembers: React.FC<ViewTeamMembersProps> = ({
       title="Team"
       subtitle={`Team Name - ${teamName}`}
       onClose={onClose}
+      actions={
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 2,
+            justifyContent: 'flex-end',
+            width: '100%',
+          }}
+        >
+          <BaseButton variant="outlined" onClick={onClose}>
+            Cancel
+          </BaseButton>
+        </Box>
+      }
     >
       <Box sx={{ mb: 3 }}>
         <Typography
@@ -69,14 +85,18 @@ const ViewTeamMembers: React.FC<ViewTeamMembersProps> = ({
         ) : (
           <Typography
             variant="body2"
-            sx={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}
+            sx={{ color: theme.palette.text.secondary }}
           >
             No team members assigned
           </Typography>
         )}
       </Box>
+       <Divider sx={{ my: 2 }} />
     </PopupLayout>
   );
 };
 
 export default ViewTeamMembers;
+
+
+

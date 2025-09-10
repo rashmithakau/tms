@@ -14,7 +14,7 @@ import { EmpRow, ProjectRow, TeamRow } from '../templates/TableWindowLayout';
 import { listTeams, TeamListItem } from '../../api/team';
 
 const AdminWindow: React.FC = () => {
-  const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor, UserRole.Admin] as const, []);
+  const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin] as const, []);
   const { users, isLoading, error, refreshUsers } =
     useAllUsersIncludingInactive(roles as unknown as UserRole[]);
 

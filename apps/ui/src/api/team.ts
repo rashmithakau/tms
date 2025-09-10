@@ -24,4 +24,11 @@ export const listTeams = async () => {
   return res;
 };
 
+export const updateTeamStaff = async (
+  teamId: string,
+  data: { members?: string[]; supervisor?: string | null }
+) => {
+  return API.put(`/api/team/${teamId}/staff`, data);
+};
+
 

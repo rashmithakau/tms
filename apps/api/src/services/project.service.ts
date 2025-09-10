@@ -35,11 +35,13 @@ export const createProject = async (data: CreateProjectParams) => {
 
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project creation failed');
 
-  // If a supervisor is assigned on creation, set their role to Supervisor
   if (project.supervisor) {
-    await UserModel.findByIdAndUpdate(project.supervisor, {
-      $set: { role: UserRole.Supervisor },
-    });
+    const sup = await UserModel.findById(project.supervisor).select('role');
+    if (sup && sup.role !== UserRole.Admin && sup.role !== UserRole.SupervisorAdmin) {
+      await UserModel.findByIdAndUpdate(project.supervisor, {
+        $set: { role: UserRole.Supervisor },
+      });
+    }
   }
 
   return {
@@ -58,6 +60,7 @@ export const listProjects = async (userId: string, userRole: UserRole) => {
       return { projects };
     }
     case UserRole.Admin:
+    case UserRole.SupervisorAdmin:
     case UserRole.SuperAdmin: {
       const projects = await ProjectModel.find({ status: true })
         .sort({ createdAt: -1 })
@@ -103,11 +106,14 @@ export const updateProjectStaff = async (
       ? (project.supervisor as any)._id?.toString?.() || project.supervisor.toString()
       : null;
 
-    // Promote new supervisor if changed
+    // Promote new supervisor if changed (Emp -> Supervisor). Do not override Admin/SupervisorAdmin
     if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
-      await UserModel.findByIdAndUpdate(newSupervisorId, {
-        $set: { role: UserRole.Supervisor },
-      });
+      const sup = await UserModel.findById(newSupervisorId).select('role');
+      if (sup && sup.role !== UserRole.Admin && sup.role !== UserRole.SupervisorAdmin) {
+        await UserModel.findByIdAndUpdate(newSupervisorId, {
+          $set: { role: UserRole.Supervisor },
+        });
+      }
     }
     //previous supervisor if changed or removed and not supervising any other active project  
     if (
@@ -120,9 +126,12 @@ export const updateProjectStaff = async (
         status: true,
       });
       if (!stillSupervisingAnother) {
-        await UserModel.findByIdAndUpdate(previousSupervisorId, {
-          $set: { role: UserRole.Emp },
-        });
+        const prev = await UserModel.findById(previousSupervisorId).select('role');
+        if (prev && prev.role === UserRole.Supervisor) {
+          await UserModel.findByIdAndUpdate(previousSupervisorId, {
+            $set: { role: UserRole.Emp },
+          });
+        }
       }
     }
   }

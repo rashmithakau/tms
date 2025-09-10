@@ -14,7 +14,6 @@ import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTheme } from '@mui/material';
 
 export default function EmpTableToolbar({
-  projectsOptions,
   selectedProjectIds,
   onSelectedProjectIdsChange,
   statusFilter,
@@ -41,7 +40,6 @@ export default function EmpTableToolbar({
   };
   const theme = useTheme();
 
- 
   return (
     <Box>
       <BaseBtn
@@ -65,27 +63,6 @@ export default function EmpTableToolbar({
           sx: { p: 2, width: 260, bgcolor: theme.palette.background.paper },
         }}
       >
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-          Projects
-        </Typography>
-        <ToggleButtonGroup
-          size="small"
-          value={selectedProjectIds}
-          onChange={(_, value) => {
-            // value is an array of selected ids when exclusive is false
-            onSelectedProjectIdsChange(Array.isArray(value) ? value : []);
-          }}
-          aria-label="Project filter"
-          sx={{ flexWrap: 'wrap', gap: 1, mb: 2 }}
-        >
-          {projectsOptions.map((p) => (
-            <ToggleButton key={p.id} value={p.id} aria-label={p.name}>
-              {p.name}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-
-        <Divider sx={{ my: 1 }} />
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Status
         </Typography>

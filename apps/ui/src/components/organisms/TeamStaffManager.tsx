@@ -4,34 +4,31 @@ import PopupLayout from '../templates/PopUpLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import { useUsersByRoles } from '../../hooks/useUsers';
 import { UserRole } from '@tms/shared';
-import { updateProjectStaff } from '../../api/project';
+import { updateTeamStaff } from '../../api/team';
 import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
 import { useToast } from '../contexts/ToastContext';
 import StaffSelector from '../molecules/StaffSelector';
 import SupervisorSelector from '../molecules/SupervisorSelector';
 import SelectedEmployeeChips from '../molecules/SelectedEmployeeChips';
 
-export default function ProjectStaffManager({
+export default function TeamStaffManager({
   open,
   onClose,
-  projectId,
-  initialEmployees,
+  teamId,
+  initialMembers,
   initialSupervisor,
   onSaved,
 }: {
   open: boolean;
   onClose: () => void;
-  projectId: string;
-  initialEmployees: { id: string; name: string; designation?: string }[];
+  teamId: string;
+  initialMembers: { id: string; name: string; designation?: string }[];
   initialSupervisor: { id: string; name: string; designation?: string } | null;
   onSaved?: () => void;
 }) {
-  // In projects, supervisors can be from Emp/Supervisor roles (Admins remain Admin)
-  const { users } = useUsersByRoles([UserRole.Emp, UserRole.Supervisor]);
+  const { users } = useUsersByRoles([UserRole.Emp, UserRole.Supervisor, UserRole.SupervisorAdmin, UserRole.Admin]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
-    []
-  );
+  const [selectedMembers, setSelectedMembers] = useState<IEmployeeProps[]>([]);
   const [supervisor, setSupervisor] = useState<string | ''>('');
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
@@ -49,8 +46,8 @@ export default function ProjectStaffManager({
 
   useEffect(() => {
     if (open) {
-      setSelectedEmployees(
-        initialEmployees.map(
+      setSelectedMembers(
+        initialMembers.map(
           (e) =>
             employeeOptions.find((o) => o.id === e.id) || {
               id: e.id,
@@ -63,7 +60,7 @@ export default function ProjectStaffManager({
       setSupervisor(initialSupervisor?.id || '');
       setSearchTerm('');
     }
-  }, [open, initialEmployees, initialSupervisor, employeeOptions]);
+  }, [open, initialMembers, initialSupervisor, employeeOptions]);
 
   const filteredEmployees = useMemo(() => {
     const lc = searchTerm.toLowerCase();
@@ -75,7 +72,7 @@ export default function ProjectStaffManager({
   }, [employeeOptions, searchTerm]);
 
   const handleEmployeeToggle = (employee: IEmployeeProps) => {
-    setSelectedEmployees((prev) => {
+    setSelectedMembers((prev) => {
       const exists = prev.some((e) => e.id === employee.id);
       if (exists) {
         const updated = prev.filter((e) => e.id !== employee.id);
@@ -87,22 +84,22 @@ export default function ProjectStaffManager({
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
-    setSelectedEmployees((prev) => prev.filter((e) => e.id !== employeeId));
+    setSelectedMembers((prev) => prev.filter((e) => e.id !== employeeId));
     if (supervisor === employeeId) setSupervisor('');
   };
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      await updateProjectStaff(projectId, {
-        employees: selectedEmployees.map((e) => e.id),
+      await updateTeamStaff(teamId, {
+        members: selectedMembers.map((e) => e.id),
         supervisor: supervisor || null,
       });
-      toast.success('Project staff updated');
+      toast.success('Team staff updated');
       onSaved && onSaved();
       onClose();
     } catch (e) {
-      toast.error('Failed to update project staff');
+      toast.error('Failed to update team staff');
     } finally {
       setIsLoading(false);
     }
@@ -112,30 +109,30 @@ export default function ProjectStaffManager({
     <PopupLayout
       open={open}
       onClose={onClose}
-      title="Manage Project Members"
-      subtitle="Add or remove project members and set a supervisor"
+      title="Manage Team Members"
+      subtitle="Add or remove team members and set a supervisor"
     >
       <Box>
         <SelectedEmployeeChips
-          employees={selectedEmployees}
+          employees={selectedMembers}
           onRemove={handleRemoveEmployee}
           title="Selected Employees"
           sx={{ mb: 2 }}
         />
         <SupervisorSelector
-          selectedEmployees={selectedEmployees}
+          selectedEmployees={selectedMembers}
           supervisor={supervisor}
           onSupervisorChange={setSupervisor}
-          caption="Choose a supervisor from selected employees"
+          caption="Choose a supervisor from selected team members"
         />
         <StaffSelector
-          selectedEmployees={selectedEmployees}
+          selectedEmployees={selectedMembers}
           availableEmployees={filteredEmployees}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onEmployeeToggle={handleEmployeeToggle}
           onRemoveEmployee={handleRemoveEmployee}
-          title="Add more employees"
+          title="Add more team members"
         />
       </Box>
       <Box>

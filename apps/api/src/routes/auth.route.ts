@@ -8,7 +8,7 @@ const authRoutes=Router();
 authRoutes.post("/login",loginHandler);
 authRoutes.get("/refresh", refreshHandler);
 authRoutes.get("/logout", logoutHandler);
-authRoutes.post("/change-password", authenticate([UserRole.Admin,UserRole.Emp,UserRole.SuperAdmin,UserRole.Supervisor]),changePasswordHandler);
+authRoutes.post("/change-password", authenticate([UserRole.Admin,UserRole.Emp,UserRole.SuperAdmin,UserRole.Supervisor,UserRole.SupervisorAdmin]),changePasswordHandler);
 authRoutes.post('/password/forgot',sendPasswordResetHandler);
 authRoutes.post('/password/reset',resetPasswordHandler);
 authRoutes.get('/password/reset', verifyPasswordResetLinkHandler);

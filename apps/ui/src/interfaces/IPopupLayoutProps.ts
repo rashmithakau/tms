@@ -12,4 +12,5 @@ export interface IPopupLayoutProps {
   contentPadding?: number | string;
   titleProps?: Record<string, any>;
   contentProps?: { sx?: object } & Record<string, any>;
+  actions?: React.ReactNode;
 }

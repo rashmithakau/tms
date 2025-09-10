@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
   Box,
   Typography,
   IconButton,
@@ -25,6 +26,7 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   contentPadding = 3,
   titleProps = {},
   contentProps = {},
+  actions,
   onClose,
 }) => {
   const theme = useTheme();
@@ -98,11 +100,19 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
         {...contentProps}
       >
         {children}
-        
       </DialogContent>
-       
+      {actions && (
+        <DialogActions
+          sx={{
+            p: contentPadding,
+
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          {actions}
+        </DialogActions>
+      )}
     </Dialog>
-    
   );
 };
 
