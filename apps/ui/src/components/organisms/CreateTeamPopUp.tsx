@@ -193,7 +193,7 @@ function CreateDeptPopUp({ open, onClose }: CreateDeptPopUpProps) {
         onClose={handleCloseEmployeeDialog}
         onSave={handleSaveEmployees}
         initialSelectedEmployees={selectedEmployees}
-        roles={[UserRole.Emp, UserRole.Supervisor, UserRole.Admin]}
+        roles={[UserRole.Emp, UserRole.Supervisor, UserRole.SupervisorAdmin, UserRole.Admin]}
       />
     </>
   );

@@ -41,16 +41,6 @@ const EmpTable: React.FC<TimeSheetTableProps> = ({ rows, onRefresh }) => {
       render: (row) => `${row.firstName} ${row.lastName}`.trim(),
     },
     {
-      label: 'Team',
-      key: 'team',
-      render: (row) =>
-        row.team || (
-          <span style={{ color: theme.palette.text.secondary }}>
-            No team assigned 
-          </span>
-        ),
-    },
-    {
       label: 'Contact Number',
       key: 'contactNumber',
       render: (row) => row.contactNumber,

@@ -21,13 +21,13 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
       }}
     >
       {/* Top Half - Content aligned to bottom */}
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           height: '50vh',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-end', // Aligns content to bottom of top half
+          justifyContent: 'flex-end',
           alignItems: 'center',
           textAlign: 'center',
           paddingBottom: 2,
@@ -47,7 +47,6 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
             sx={{
               mb: 2,
               color: theme.palette.text.primary,
-             
             }}
           >
             {title}
@@ -77,7 +76,7 @@ const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'flex-end', // Aligns image to bottom of bottom half
+          alignItems: 'flex-end',
           paddingBottom: 2,
         }}
       >

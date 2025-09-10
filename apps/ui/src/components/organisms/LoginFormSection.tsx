@@ -38,28 +38,40 @@ const LoginFormSection: React.FC = () => {
           email: user.email,
           role: user.role,
           designation: user.designation,
+          contactNumber: user.contactNumber,
           isChangedPwd: user.isChangedPwd,
         });
 
         
 
-        // Add a small delay to ensure state is updated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Add a longer delay to ensure state is updated and add logging
+        console.log('Login successful, user role:', user.role, 'isChangedPwd:', user.isChangedPwd);
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         if (!user.isChangedPwd) {
+          console.log('Navigating to change password page');
           navigate('/change-password', { replace: true });
         } else {
+          console.log('User has changed password, navigating based on role:', user.role);
           switch (user.role) {
             case UserRole.Admin:
+              console.log('Navigating to admin dashboard');
               navigate('/admin', { replace: true });
               break;
             case UserRole.SuperAdmin:
+              console.log('Navigating to superadmin dashboard');
               navigate('/superadmin', { replace: true });
               break;
+            case UserRole.SupervisorAdmin:
+              console.log('Navigating to admin dashboard (supervisor admin)');
+              navigate('/admin', { replace: true });
+              break;
             case UserRole.Emp:
+              console.log('Navigating to employee dashboard');
               navigate('/employee', { replace: true });
               break;
             case UserRole.Supervisor:
+              console.log('Navigating to employee dashboard (supervisor)');
               navigate('/employee', { replace: true });
               break;
             default:

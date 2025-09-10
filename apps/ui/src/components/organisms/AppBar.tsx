@@ -19,6 +19,7 @@ import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import { useToast } from '../contexts/ToastContext';
 import SearchBar from '../atoms/inputFields/SearchBar';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+import ProfilePopup from './ProfilePopup';
 
 export default function CustomAppBar({
   hasDrawer = true,
@@ -29,6 +30,7 @@ export default function CustomAppBar({
   const [empMenuAnchorEl, setEmpMenuAnchorEl] = useState<null | HTMLElement>(
     null
   );
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { authState, logout: authLogout } = useAuth();
   const { user } = authState;
   const toast = useToast();
@@ -50,7 +52,8 @@ export default function CustomAppBar({
   };
 
   const handleProfileClick = () => {
-    // Handle profile click logic here
+    setIsProfileOpen(true);
+    handleClose();
   };
 
   const handleLogoutClick = async () => {
@@ -183,6 +186,8 @@ export default function CustomAppBar({
       >
         <EmpMenu onClose={handleEmpMenuClose} />
       </Popover>
+
+      <ProfilePopup open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </AppBar>
   );
 }

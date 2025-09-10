@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: UserRole;
   designation: string;
+  contactNumber?: string;
   isChangedPwd: boolean;
 }
 
@@ -60,6 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: localStorage.getItem('email') || '',
           role: (localStorage.getItem('role') as UserRole) || UserRole.Emp,
           designation: localStorage.getItem('designation') || '',
+          contactNumber: localStorage.getItem('contactNumber') || '',
           isChangedPwd: localStorage.getItem('isChangedPwd') === 'true',
         } : null;
 
@@ -84,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = (user: User) => {
     try {
-      
+      console.log('AuthContext: Login called with user:', user);
       
       // Set localStorage
       localStorage.setItem('isAuthenticated', 'true');
@@ -94,6 +96,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('email', user.email);
       localStorage.setItem('role', user.role);
       localStorage.setItem('designation', user.designation);
+      if (user.contactNumber) {
+        localStorage.setItem('contactNumber', user.contactNumber);
+      } else {
+        localStorage.removeItem('contactNumber');
+      }
       localStorage.setItem('isChangedPwd', user.isChangedPwd.toString());
 
       // Update state
@@ -103,6 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
       });
       
+      console.log('AuthContext: State updated, user authenticated:', true, 'role:', user.role);
       
     } catch (error) {
       console.error('AuthContext: Error during login:', error);
@@ -121,6 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('email');
       localStorage.removeItem('role');
       localStorage.removeItem('designation');
+      localStorage.removeItem('contactNumber');
       localStorage.removeItem('isChangedPwd');
 
       // Update state

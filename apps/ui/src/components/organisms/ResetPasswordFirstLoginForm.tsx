@@ -39,6 +39,7 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
 
     switch (role) {
       case UserRole.Admin:
+      case UserRole.SupervisorAdmin:
         navigate('/admin');
         break;
       case UserRole.SuperAdmin:

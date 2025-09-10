@@ -5,6 +5,7 @@ import { ProjectRow } from '../templates/TableWindowLayout';
 import { useTheme } from '@mui/material/styles';
 import SupervisorMemberCard from '../molecules/SupervisorMemberCard';
 import TeamMemberCard from '../molecules/TeamMemberCard';
+import BaseButton from '../atoms/buttons/BaseBtn';
 
 interface ViewProjectTeamProps {
   open: boolean;
@@ -30,6 +31,21 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
       title="Project Team"
       subtitle={`Project Name - ${project.projectName}`}
       onClose={onClose}
+      actions={
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 2,
+            justifyContent: 'flex-end',
+            width: '100%',
+          }}
+        >
+          <BaseButton variant="outlined" onClick={onClose}>
+            Cancel
+          </BaseButton>
+        </Box>
+      }
     >
       <Box>
         <Box sx={{ mb: 3 }}>
@@ -61,27 +77,11 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
           ) : (
             <Typography
               variant="body2"
-              sx={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}
+              sx={{ color: theme.palette.text.secondary }}
             >
               No team members assigned
             </Typography>
           )}
-        </Box>
-        <Box>
-          <Divider />
-        </Box>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: 2,
-            justifyContent: 'flex-end',
-            mt: 2,
-          }}
-        >
-          <Button variant="outlined" onClick={onClose}>
-            Cancel
-          </Button>
         </Box>
       </Box>
     </PopupLayout>

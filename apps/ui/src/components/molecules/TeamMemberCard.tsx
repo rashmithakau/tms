@@ -9,6 +9,13 @@ interface TeamMemberCardProps {
 
 const TeamMemberCard: React.FC<TeamMemberCardProps> = ({ member }) => {
   const theme = useTheme();
+  if (!member) {
+    return (
+      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+        No member assigned
+      </Typography>
+    );
+  }
 
   return (
     <Paper
