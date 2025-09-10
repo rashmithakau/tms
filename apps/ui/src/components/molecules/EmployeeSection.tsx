@@ -4,7 +4,7 @@ import EmpTable from '../organisms/EmpTable';
 import EmpTableToolbar from './EmpTableToolbar';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import LoadingSpinner from '../atoms/LoadingSpinner';
+import PageLoading from '../molecules/PageLoading';
 import { EmpRow } from '../templates/TableWindowLayout';
 
 interface EmployeeSectionProps {
@@ -40,9 +40,7 @@ const EmployeeSection: React.FC<EmployeeSectionProps> = ({
     );
   }
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
+  if (isLoading) return <PageLoading variant="inline" message="Loading accounts..." />;
 
   return (
     <Box sx={{ padding: 2, height: '93%' }}>

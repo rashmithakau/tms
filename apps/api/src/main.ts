@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import connectDB from './config/db';
 import { APP_ORIGIN, NODE_ENV, PORT } from './constants/env';
 import cors from 'cors';
@@ -8,17 +9,20 @@ import authRoutes from "./routes/auth.route";
 import userRoutes from './routes/user.route';
 import projectRoutes from './routes/project.route';
 import timesheetRoutes from './routes/timesheet.route';
+import notificationRoutes from './routes/notification.route';
 import teamRoutes from './routes/team.route';
+import { socketService } from './config/socket';
 
 const port = Number(PORT);
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: APP_ORIGIN,
+    origin: NODE_ENV === 'development' ? [APP_ORIGIN, 'http://localhost:4200'] : APP_ORIGIN,
     credentials: true,
   })
 );
@@ -30,10 +34,12 @@ app.use("/api/user",userRoutes);
 app.use("/api/project",projectRoutes)
 app.use("/api/timesheets", timesheetRoutes)
 app.use('/api/team', teamRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(errorHandler);
 
-app.listen(port,async () => {
+server.listen(port,async () => {
   await connectDB();
+  socketService.init(server);
    console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
 });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import PageLoading from '../molecules/PageLoading';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import { useSupervisedTimesheets } from '../../hooks/useSupervisedTimesheets';
 import { deleteMyTimesheet } from '../../api/timesheet';
@@ -58,20 +59,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
   const [openRow, setOpenRow] = useState<number | null>(null);
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '50vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (isLoading) return <PageLoading variant="inline" message="Loading timesheets..." />;
 
   const employeeTable = (
     <Table size="small">

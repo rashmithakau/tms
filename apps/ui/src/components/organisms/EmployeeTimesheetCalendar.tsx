@@ -1,5 +1,6 @@
 import React from 'react';
-import { Table, TableBody, TableContainer, Box, IconButton, Typography, CircularProgress, TableCell } from '@mui/material';
+import { Table, TableBody, TableContainer, Box, IconButton, Typography, TableCell } from '@mui/material';
+import PageLoading from '../molecules/PageLoading';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import theme from '../../styles/theme';
@@ -41,12 +42,44 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
     supervisedProjectIds: supervisedIds,
   } = useEmployeeTimesheetCalendar({ timesheets, originalTimesheets, supervisedProjectIds });
 
+  // Helper: map rendered indices to original timesheet indices
+  const getOriginalIndices = (renderCatIndex: number, renderItemIndex: number) => {
+    if (!weekOriginalTimesheet) return null;
+
+    const renderedCategory = data[renderCatIndex];
+    if (!renderedCategory) return null;
+
+    const originalCategoryIndex = weekOriginalTimesheet.data?.findIndex((c: any) => c.category === renderedCategory.category);
+    if (originalCategoryIndex === undefined || originalCategoryIndex === -1) return null;
+
+    const renderedItem = renderedCategory.items[renderItemIndex];
+    if (!renderedItem) return null;
+
+    const originalItems: any[] = weekOriginalTimesheet.data[originalCategoryIndex]?.items || [];
+
+    // Match by projectId for Project category; otherwise match by work field
+    const originalItemIndex = originalItems.findIndex((itm: any) => {
+      if (renderedCategory.category === 'Project') {
+        return itm.projectId && renderedItem.projectId && itm.projectId === renderedItem.projectId;
+      }
+      return itm.work && renderedItem.work && itm.work === renderedItem.work;
+    });
+
+    if (originalItemIndex === -1) return null;
+
+    return { categoryIndex: originalCategoryIndex, itemIndex: originalItemIndex };
+  };
+
   // Selection logic
   const isDaySelected = (categoryIndex: number, itemIndex: number, dayIndex: number) => {
     if (!isSelectionMode) return false;
+
+    const mapped = getOriginalIndices(categoryIndex, itemIndex);
+    if (!mapped) return false;
+
     return selectedDays.some(selection =>
-      selection.categoryIndex === categoryIndex &&
-      selection.itemIndex === itemIndex &&
+      selection.categoryIndex === mapped.categoryIndex &&
+      selection.itemIndex === mapped.itemIndex &&
       selection.dayIndex === dayIndex
     );
   };
@@ -55,20 +88,27 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
     if (!isSelectionMode || !onDaySelectionChange) return;
     const actualTimesheetId = weekOriginalTimesheet?._id;
     if (!actualTimesheetId) return;
+
+    const mapped = getOriginalIndices(categoryIndex, itemIndex);
+    if (!mapped) return;
+
     const selectionKey = {
       timesheetId: actualTimesheetId,
-      categoryIndex,
-      itemIndex,
+      categoryIndex: mapped.categoryIndex,
+      itemIndex: mapped.itemIndex,
       dayIndex,
     };
+
     let newSelections: DaySelection[];
     if (selected) {
       newSelections = [...selectedDays, selectionKey];
     } else {
       newSelections = selectedDays.filter(selection =>
-        !(selection.categoryIndex === categoryIndex &&
-          selection.itemIndex === itemIndex &&
-          selection.dayIndex === dayIndex)
+        !(
+          selection.categoryIndex === mapped.categoryIndex &&
+          selection.itemIndex === mapped.itemIndex &&
+          selection.dayIndex === dayIndex
+        )
       );
     }
     onDaySelectionChange(newSelections);
@@ -125,9 +165,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
       </Box>
 
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
+        <PageLoading variant="inline" message="Loading timesheet..." />
       ) : (
         <TableContainer>
           <Table size="small">

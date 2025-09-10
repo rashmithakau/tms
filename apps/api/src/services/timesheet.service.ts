@@ -4,6 +4,8 @@ import {  UNAUTHORIZED, BAD_REQUEST, NOT_FOUND } from '../constants/http';
 import { Timesheet } from '../models/timesheet.model';
 import RejectReason from '../models/rejectReason.model';
 import ProjectModel from '../models/project.model';
+import NotificationModel from '../models/notification.model';
+import { socketService } from '../config/socket';
 
 interface ITimesheetItem {
   work?: string;
@@ -203,6 +205,48 @@ export const updateDailyTimesheetStatus = async (
   }
 
   const savedTimesheet = await timesheet.save();
+
+  // Emit detailed rejection notification for single-item flow
+  try {
+    if (status === TimesheetStatus.Rejected) {
+      const weekStart = new Date(savedTimesheet.weekStartDate);
+      const item: any = savedTimesheet.data[categoryIndex].items[itemIndex];
+      const projectId = item.projectId || '';
+      const projectName = item.projectName || 'Project';
+      const rejectedDates = dayIndices.map((d) => {
+        const date = new Date(weekStart);
+        date.setUTCDate(date.getUTCDate() + d);
+        return date.toISOString().split('T')[0];
+      });
+
+      const notif = await NotificationModel.create({
+        userId: (savedTimesheet.userId as any)._id || savedTimesheet.userId,
+        type: 'TimesheetRejected',
+        title: `Timesheet Rejected - ${projectName}`,
+        message: `Timesheet rejected for ${rejectedDates.join(', ')}${rejectionReason ? ` - Reason: ${rejectionReason}` : ''}`,
+        projectId,
+        projectName,
+        rejectedDates,
+        reason: rejectionReason,
+      });
+
+      const targetUserId = (((savedTimesheet.userId as any)._id) || savedTimesheet.userId).toString();
+      socketService.emitToUser(targetUserId, 'notification', {
+        _id: notif._id,
+        type: notif.type,
+        title: notif.title,
+        message: notif.message,
+        projectId: notif.projectId,
+        projectName: notif.projectName,
+        rejectedDates: notif.rejectedDates,
+        reason: notif.reason,
+        createdAt: notif.createdAt,
+        isRead: notif.isRead,
+      });
+    }
+  } catch (e) {
+    console.error('Failed to create/emit single rejection notification', e);
+  }
 
   return savedTimesheet;
 };
@@ -406,6 +450,61 @@ export const batchUpdateDailyTimesheetStatus = async (
       
       const savedTimesheet = await timesheet.save();
       results.push(savedTimesheet);
+
+      // Emit rejection notifications per updated item (if any rejection occurred)
+      const hadRejection = timesheetUpdates.some(u => u.status === TimesheetStatus.Rejected);
+      if (hadRejection) {
+        try {
+          const weekStart = new Date(timesheet.weekStartDate);
+          const rejectedSummaries: Array<{ projectId?: string; projectName?: string; rejectedDates: string[]; reason?: string; }> = [];
+
+          for (const u of timesheetUpdates.filter(u => u.status === TimesheetStatus.Rejected)) {
+            const item = timesheet.data[u.categoryIndex].items[u.itemIndex] as any;
+            const projectId = item.projectId;
+            const projectName = item.projectName || undefined;
+            const rejectedDates = u.dayIndices.map((d) => {
+              const date = new Date(weekStart);
+              date.setUTCDate(date.getUTCDate() + d);
+              return date.toISOString().split('T')[0];
+            });
+            rejectedSummaries.push({ projectId, projectName, rejectedDates, reason: u.rejectionReason });
+          }
+
+          // Create a single consolidated message
+          const allDates = Array.from(new Set(rejectedSummaries.flatMap(s => s.rejectedDates))).sort();
+          const firstProjectName = rejectedSummaries.find(s => !!s.projectName)?.projectName || 'Project';
+          const reasons = Array.from(new Set(rejectedSummaries.map(s => s.reason).filter(Boolean))) as string[];
+          const message = `Timesheet rejected for ${allDates.join(', ')}${reasons.length ? ` - Reason: ${reasons.join('; ')}` : ''}`;
+
+          const notif = await NotificationModel.create({
+            userId: (timesheet.userId as any)._id || timesheet.userId,
+            type: 'TimesheetRejected',
+            title: `Timesheet Rejected - ${firstProjectName}`,
+            message,
+            projectId: rejectedSummaries[0]?.projectId,
+            projectName: firstProjectName,
+            rejectedDates: allDates,
+            reason: reasons[0],
+          });
+
+          // Emit to the employee in real-time
+          const targetUserId = ((timesheet.userId as any)._id || timesheet.userId).toString();
+          socketService.emitToUser(targetUserId, 'notification', {
+            _id: notif._id,
+            type: notif.type,
+            title: notif.title,
+            message: notif.message,
+            projectId: notif.projectId,
+            projectName: notif.projectName,
+            rejectedDates: notif.rejectedDates,
+            reason: notif.reason,
+            createdAt: notif.createdAt,
+            isRead: notif.isRead,
+          });
+        } catch (e) {
+          console.error('Failed to create/emit rejection notification', e);
+        }
+      }
       
     } catch (error: any) {
       throw error; 

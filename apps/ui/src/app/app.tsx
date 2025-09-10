@@ -6,6 +6,7 @@ import { LoadingProvider } from '../components/contexts/LoadingContext';
 import { AuthProvider } from '../components/contexts/AuthContext';
 import GlobalLoading from '../components/organisms/GlobalLoading';
 import { ToastProvider } from '../components/contexts/ToastContext';
+import { SocketProvider } from '../components/contexts/SocketContext';
 
 export default function App() {
   return (
@@ -13,8 +14,10 @@ export default function App() {
       <AuthProvider>
         <LoadingProvider>
           <ToastProvider>
-            <GlobalLoading />
-            <AppRoute />
+            <SocketProvider>
+              <GlobalLoading />
+              <AppRoute />
+            </SocketProvider>
           </ToastProvider>
         </LoadingProvider>
       </AuthProvider>

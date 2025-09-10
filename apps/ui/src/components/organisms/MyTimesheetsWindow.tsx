@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
+import PageLoading from '../molecules/PageLoading';
 import TableWindowLayout from '../templates/TableWindowLayout';
 import { useTimesheets } from '../../hooks/useTimesheets';
 import { deleteMyTimesheet } from '../../api/timesheet';
@@ -36,9 +37,7 @@ const MyTimesheetsWindow: React.FC = () => {
   return (
     <Box sx={{ padding: 2, height: '93%' }}>
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
+        <PageLoading variant="inline" message="Loading my timesheets..." />
       ) : (
         <TableWindowLayout
           title="My Time Sheets"

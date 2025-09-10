@@ -16,6 +16,7 @@ import { useWeekDays } from '../../hooks/useWeekDays';
 import TimesheetTableHeader from '../molecules/TimesheetTableHeader';
 import TimesheetTableRow from '../molecules/TimesheetTableRow';
 import DescriptionEditor from '../molecules/DescriptionEditor';
+import PageLoading from '../molecules/PageLoading';
 
 export interface TimesheetItem {
   work?: string;
@@ -32,7 +33,7 @@ export interface TimesheetData {
 
 const TimeSheetTableCalendar: React.FC = () => {
   // Custom hooks for business logic
-  const { data, updateData, timesheetStatus } = useTimesheetDataManagement();
+  const { data, updateData, timesheetStatus, isLoading, error } = useTimesheetDataManagement();
   const { days } = useWeekDays();
   const {
     editCell,
@@ -50,6 +51,14 @@ const TimeSheetTableCalendar: React.FC = () => {
 
   return (
     <Box>
+      {error && (
+        <Box sx={{ m: 2 }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      )}
+      {isLoading ? (
+        <PageLoading variant="inline" message="Loading timesheet..." />
+      ) : (
       <TableContainer>
         <Table>
           <TimesheetTableHeader days={days} />
@@ -105,6 +114,7 @@ const TimeSheetTableCalendar: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      )}
 
       {/* Description Editor */}
       <DescriptionEditor
