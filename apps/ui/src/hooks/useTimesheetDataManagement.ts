@@ -29,6 +29,8 @@ export interface TimesheetData {
 export const useTimesheetDataManagement = () => {
   const dispatch = useDispatch();
   const [data, setData] = useState<TimesheetData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
   const selectedWeekStartIso = useSelector((state: RootState) => state.timesheet.weekStartDate);
   const timesheetStatus = useSelector((state: RootState) => state.timesheet.status);
@@ -65,6 +67,8 @@ export const useTimesheetDataManagement = () => {
 
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
         // Fetch projects
         const projectsResponse = await listProjects();
         const fetchedProjects = (projectsResponse.data as any)?.projects || [];
@@ -108,6 +112,10 @@ export const useTimesheetDataManagement = () => {
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        setError('Failed to load timesheet data');
+        setData([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -169,5 +177,7 @@ export const useTimesheetDataManagement = () => {
     updateData,
     timesheetStatus,
     selectedWeekStartIso,
+    isLoading,
+    error,
   };
 };

@@ -5,7 +5,7 @@ import { TeamRow } from '../templates/TableWindowLayout';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import ErrorAlert from '../atoms/ErrorAlert';
-import LoadingSpinner from '../atoms/LoadingSpinner';
+import PageLoading from '../molecules/PageLoading';
 
 interface TeamsSectionProps {
   error?: string;
@@ -24,9 +24,7 @@ const TeamsSection: React.FC<TeamsSectionProps> = ({
     return <ErrorAlert error={error} />;
   }
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
+  if (isLoading) return <PageLoading variant="inline" message="Loading teams..." />;
 
   return (
     <Box sx={{ padding: 2, height: '93%' }}>

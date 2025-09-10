@@ -8,7 +8,6 @@
       "@nx/react/typings/image.d.ts",
       "vite/client"
     ],
-    "ignoreDeprecations": "6.0"
   },
   "exclude": [
     "src/**/*.spec.ts",

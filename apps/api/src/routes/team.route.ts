@@ -5,9 +5,9 @@ import { UserRole } from '@tms/shared';
 
 const teamRoutes = Router();
 
-teamRoutes.post('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), createTeamHandler);
-teamRoutes.get('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), listTeamsHandler);
-teamRoutes.put('/:id/staff', authenticate([UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), updateStaffHandler);
+teamRoutes.post('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), createTeamHandler);
+teamRoutes.get('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), listTeamsHandler);
+teamRoutes.put('/:id/staff', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), updateStaffHandler);
 
 export default teamRoutes;
 
