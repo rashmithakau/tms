@@ -13,7 +13,7 @@ interface ITimesheetItem {
 }
 
 export interface ITimesheetCategory {
-  category: string; //  "Project" | "Absence"
+  category: string; 
   items: ITimesheetItem[]; 
 }
 
@@ -58,17 +58,35 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
       const timesheet = await Timesheet.findOne({
         _id: id,
         userId,
-        status: TimesheetStatus.Draft
+        $or: [
+          { status: TimesheetStatus.Draft },
+          { status: TimesheetStatus.Rejected }
+        ]
       });
       
       if (!timesheet) {
-        console.log('Timesheet not found or not Draft:', id);
+        console.log('Timesheet not found or not Draft/Rejected:', id);
         continue;
       }
       
+      // Store the original status before making changes
+      const originalStatus = timesheet.status;
+      
       timesheet.data.forEach((category) => {
         category.items.forEach((item) => {
-          item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+          if (originalStatus === TimesheetStatus.Draft) {
+            // For Draft timesheets, set all daily statuses to Pending
+            item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+          } else if (originalStatus === TimesheetStatus.Rejected) {
+            // For Rejected timesheets, only update Rejected daily statuses to Pending
+            if (!item.dailyStatus || item.dailyStatus.length !== 7) {
+              item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
+            } else {
+              item.dailyStatus = item.dailyStatus.map((status: TimesheetStatus) => 
+                status === TimesheetStatus.Rejected ? TimesheetStatus.Pending : status
+              );
+            }
+          }
         });
       });
       
@@ -322,6 +340,11 @@ export const batchUpdateDailyTimesheetStatus = async (
             throw new Error(error);
           }
         });
+
+        if(status ===TimesheetStatus.Rejected) {
+          console.log('Rejection timeshet recieved');
+          timesheet.status=TimesheetStatus.Rejected;
+        }
         
         // Save rejection reason immediately for each rejected item
         if (status === TimesheetStatus.Rejected && rejectionReason) {
