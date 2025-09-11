@@ -4,6 +4,7 @@ import {  UNAUTHORIZED, BAD_REQUEST, NOT_FOUND } from '../constants/http';
 import { Timesheet } from '../models/timesheet.model';
 import RejectReason from '../models/rejectReason.model';
 import ProjectModel from '../models/project.model';
+import TeamModel from '../models/team.model';
 import NotificationModel from '../models/notification.model';
 import { socketService } from '../config/socket';
 
@@ -124,22 +125,45 @@ export const updateDailyTimesheetStatus = async (
     .populate('userId', 'firstName lastName email');
   appAssert(timesheet, NOT_FOUND, 'Timesheet not found');
 
-  // Verify the timesheet belongs to a supervised user AND the specific item is for a supervised project
+  // Verify the timesheet belongs to a supervised user AND the specific item is for a supervised project/team
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
+  
   const supervisedProjectIds = supervisedProjects.map(p => p._id.toString());
-  const supervisedUserIds = Array.from(
+  const supervisedTeamIds = supervisedTeams.map(t => t._id.toString());
+  
+  const projectSupervisedUserIds = Array.from(
     new Set(
       supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
     )
   );
+  
+  const teamSupervisedUserIds = Array.from(
+    new Set(
+      supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
+    )
+  );
+  
+  // Combine both project and team supervised users
+  const allSupervisedUserIds = Array.from(
+    new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
+  );
 
   // Check if timesheet owner is supervised
   const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
-  appAssert(supervisedUserIds.includes(timesheetUserId), UNAUTHORIZED, 'Unauthorized: You can only approve timesheets from your supervised employees');
+  appAssert(allSupervisedUserIds.includes(timesheetUserId), UNAUTHORIZED, 'Unauthorized: You can only approve timesheets from your supervised employees');
 
-  // Check if the specific item is for a project the supervisor supervises
+  // Check if the specific item is for a project/team the supervisor supervises
   const item = timesheet.data[categoryIndex].items[itemIndex];
-  appAssert(!item.projectId || supervisedProjectIds.includes(item.projectId), UNAUTHORIZED, 'Unauthorized: You can only approve timesheet items for projects you supervise');
+  const isProjectSupervised = !item.projectId || supervisedProjectIds.includes(item.projectId);
+  const isTeamSupervised = !item.teamId || supervisedTeamIds.includes(item.teamId);
+  
+  // For timesheet items, we need to check if supervisor has permission either via project or team supervision
+  // If the item has both projectId and teamId, supervisor needs to supervise at least one of them
+  // If the item has neither (like absence), we allow if user is supervised via any mechanism
+  if (item.projectId || item.teamId) {
+    appAssert(isProjectSupervised || isTeamSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve timesheet items for projects or teams you supervise');
+  }
 
   // Validate indices
   appAssert(categoryIndex >= 0 && categoryIndex < timesheet.data.length, BAD_REQUEST, `Invalid category index: ${categoryIndex}. Available categories: ${timesheet.data.length}`);
@@ -287,13 +311,28 @@ export const batchUpdateDailyTimesheetStatus = async (
 
   const results = [];
 
-  // Get supervisor's projects once for authorization
+  // Get supervisor's projects and teams once for authorization
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
+  
   const supervisedProjectIds = supervisedProjects.map(p => p._id.toString());
-  const supervisedUserIds = Array.from(
+  const supervisedTeamIds = supervisedTeams.map(t => t._id.toString());
+  
+  const projectSupervisedUserIds = Array.from(
     new Set(
       supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
     )
+  );
+  
+  const teamSupervisedUserIds = Array.from(
+    new Set(
+      supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
+    )
+  );
+  
+  // Combine both project and team supervised users
+  const allSupervisedUserIds = Array.from(
+    new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
   );
 
   for (const [timesheetId, timesheetUpdates] of groupedUpdates) {
@@ -320,11 +359,11 @@ export const batchUpdateDailyTimesheetStatus = async (
       // Verify the timesheet belongs to a supervised user
       const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
       
-      if (!supervisedUserIds.includes(timesheetUserId)) {
+      if (!allSupervisedUserIds.includes(timesheetUserId)) {
         const error = 'Unauthorized: You can only approve timesheets from your supervised employees';
         console.error(error, {
           timesheetUserId,
-          supervisedUserIds
+          allSupervisedUserIds
         });
         throw new Error(error);
       }
@@ -347,14 +386,24 @@ export const batchUpdateDailyTimesheetStatus = async (
         const item = category.items[itemIndex];
         
         
-        // Check if the specific item is for a project the supervisor supervises
-        if (item.projectId && !supervisedProjectIds.includes(item.projectId)) {
-          console.error('Authorization failed:', {
-            itemProjectId: item.projectId,
-            supervisedProjectIds,
-            message: 'You can only approve timesheet items for projects you supervise'
-          });
-          throw new Error('Unauthorized: You can only approve timesheet items for projects you supervise');
+        // Check if the specific item is for a project/team the supervisor supervises
+        const isProjectSupervised = !item.projectId || supervisedProjectIds.includes(item.projectId);
+        const isTeamSupervised = !item.teamId || supervisedTeamIds.includes(item.teamId);
+        
+        // For timesheet items, we need to check if supervisor has permission either via project or team supervision
+        // If the item has both projectId and teamId, supervisor needs to supervise at least one of them
+        // If the item has neither (like absence), we allow if user is supervised via any mechanism
+        if (item.projectId || item.teamId) {
+          if (!isProjectSupervised && !isTeamSupervised) {
+            console.error('Authorization failed:', {
+              itemProjectId: item.projectId,
+              itemTeamId: item.teamId,
+              supervisedProjectIds,
+              supervisedTeamIds,
+              message: 'You can only approve timesheet items for projects or teams you supervise'
+            });
+            throw new Error('Unauthorized: You can only approve timesheet items for projects or teams you supervise');
+          }
         }
       }
 

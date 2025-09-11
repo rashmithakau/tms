@@ -42,6 +42,7 @@ export function useEmployeeTimesheetCalendar({
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [projects, setProjects] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
 
   const days = useMemo(() => {
     const start = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
@@ -71,71 +72,133 @@ export function useEmployeeTimesheetCalendar({
   }, [timesheets, currentWeekStart]);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjectsAndTeams = async () => {
       try {
-        const resp = await listProjects();
-        setProjects(resp.data?.projects || []);
+        const [projectsResp, teamsResp] = await Promise.all([
+          listProjects(),
+          import('../api/team').then(module => module.listMyTeams())
+        ]);
+        setProjects(projectsResp.data?.projects || []);
+        setTeams(teamsResp.data?.teams || []);
       } catch (error) {
-        console.error('Failed to fetch projects:', error);
+        console.error('Failed to fetch projects and teams:', error);
       }
     };
-    fetchProjects();
+    fetchProjectsAndTeams();
   }, []);
 
   useEffect(() => {
-    if (projects.length === 0) return;
+    if (projects.length === 0 && teams.length === 0) return;
+    
     const transformedData: TimesheetData[] = [];
-    const projectMap = new Map<string, TimesheetItem>();
-    const absenceMap = new Map<string, TimesheetItem>();
-    projects.forEach(project => {
-      projectMap.set(project._id, {
-        work: project.projectName,
-        projectId: project._id,
-        hours: Array(7).fill('0.00'),
-        descriptions: Array(7).fill(''),
-        dailyStatus: Array(7).fill(TimesheetStatus.Draft),
-      });
-    });
-    weekTimesheets.forEach(ts => {
-      const dayIndex = days.findIndex(day => isSameDay(day.date, new Date(ts.date)));
-      if (dayIndex >= 0) {
-        if (ts.projectId && projectMap.has(ts.projectId)) {
-          const item = projectMap.get(ts.projectId)!;
-          item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
-          item.descriptions[dayIndex] = ts.description || '';
-          if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
-            item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
-          }
-        } else if (ts.task) {
-          if (!absenceMap.has(ts.task)) {
-            absenceMap.set(ts.task, {
-              work: ts.task,
-              hours: Array(7).fill('0.00'),
-              descriptions: Array(7).fill(''),
-              dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+    
+    // If we have the original timesheet data, use it directly for better accuracy
+    if (weekOriginalTimesheet && weekOriginalTimesheet.data) {
+      // Use the original timesheet structure which already contains all categories and items
+      weekOriginalTimesheet.data.forEach((category: any) => {
+        if (category.items && category.items.length > 0) {
+          const categoryItems = category.items.filter((item: any) => 
+            item.hours && item.hours.some((hour: string) => parseFloat(hour) > 0)
+          );
+          if (categoryItems.length > 0) {
+            transformedData.push({
+              category: category.category,
+              items: categoryItems
             });
           }
-          const item = absenceMap.get(ts.task)!;
-          item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
-          item.descriptions[dayIndex] = ts.description || '';
-          if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
-            item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
+        }
+      });
+    } else {
+      // Fallback to reconstruction from flattened data
+      const projectMap = new Map<string, TimesheetItem>();
+      const teamMap = new Map<string, TimesheetItem>();
+      const absenceMap = new Map<string, TimesheetItem>();
+      
+      // Initialize project items
+      projects.forEach(project => {
+        projectMap.set(project._id, {
+          work: project.projectName,
+          projectId: project._id,
+          hours: Array(7).fill('0.00'),
+          descriptions: Array(7).fill(''),
+          dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+        });
+      });
+      
+      // Initialize team items
+      teams.forEach(team => {
+        teamMap.set(team._id, {
+          work: team.teamName,
+          teamId: team._id,
+          hours: Array(7).fill('0.00'),
+          descriptions: Array(7).fill(''),
+          dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+        });
+      });
+      
+      weekTimesheets.forEach(ts => {
+        const dayIndex = days.findIndex(day => isSameDay(day.date, new Date(ts.date)));
+        if (dayIndex >= 0) {
+          if (ts.projectId && projectMap.has(ts.projectId)) {
+            const item = projectMap.get(ts.projectId)!;
+            item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
+            item.descriptions[dayIndex] = ts.description || '';
+            if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
+              item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
+            }
+          } else if (ts.task && ts.task.includes('Team:')) {
+            // Handle team entries - extract team ID or name from task
+            const teamName = ts.task.replace('Team:', '').trim();
+            const team = teams.find(t => t.teamName === teamName);
+            if (team && teamMap.has(team._id)) {
+              const item = teamMap.get(team._id)!;
+              item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
+              item.descriptions[dayIndex] = ts.description || '';
+              if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
+                item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
+              }
+            }
+          } else if (ts.task) {
+            // Handle absence/other entries
+            if (!absenceMap.has(ts.task)) {
+              absenceMap.set(ts.task, {
+                work: ts.task,
+                hours: Array(7).fill('0.00'),
+                descriptions: Array(7).fill(''),
+                dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+              });
+            }
+            const item = absenceMap.get(ts.task)!;
+            item.hours[dayIndex] = (ts.hoursSpent || 0).toFixed(2);
+            item.descriptions[dayIndex] = ts.description || '';
+            if (ts.dailyStatus && ts.dailyStatus[dayIndex]) {
+              item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
+            }
           }
         }
+      });
+      
+      const projectItems = Array.from(projectMap.values()).filter(item =>
+        item.hours.some(hour => parseFloat(hour) > 0)
+      );
+      const teamItems = Array.from(teamMap.values()).filter(item =>
+        item.hours.some(hour => parseFloat(hour) > 0)
+      );
+      const absenceItems = Array.from(absenceMap.values());
+      
+      if (projectItems.length > 0) {
+        transformedData.push({ category: 'Project', items: projectItems });
       }
-    });
-    const projectItems = Array.from(projectMap.values()).filter(item =>
-      item.hours.some(hour => parseFloat(hour) > 0)
-    );
-    const absenceItems = Array.from(absenceMap.values());
-    if (projectItems.length > 0) {
-      transformedData.push({ category: 'Project', items: projectItems });
+      if (teamItems.length > 0) {
+        transformedData.push({ category: 'Team', items: teamItems });
+      }
+      if (absenceItems.length > 0) {
+        transformedData.push({ category: 'Absence', items: absenceItems });
+      }
     }
-    if (absenceItems.length > 0) {
-      transformedData.push({ category: 'Absence', items: absenceItems });
-    }
+    
     setData(transformedData);
-  }, [weekTimesheets, projects, days]);
+  }, [weekTimesheets, projects, teams, days, weekOriginalTimesheet]);
 
   const handlePreviousWeek = () => {
     const previousWeek = new Date(currentWeekStart);

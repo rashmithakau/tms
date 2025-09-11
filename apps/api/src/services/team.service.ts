@@ -82,6 +82,26 @@ export const listTeamsForUser = async (userId: string, userRole: UserRole) => {
   }
 };
 
+export const listMyMemberTeams = async (userId: string) => {
+  // Always return teams where the user is a member, regardless of role
+  const teams = await TeamModel.find({ status: true, members: userId })
+    .sort({ createdAt: -1 })
+    .populate({ path: 'members', select: 'firstName lastName email designation' })
+    .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
+  return { teams };
+};
+
+export const listSupervisedTeams = async (supervisorId: string) => {
+  const teams = await TeamModel.find({ 
+    supervisor: supervisorId, 
+    status: true 
+  })
+    .select('_id teamName')
+    .sort({ teamName: 1 });
+  
+  return { teams };
+};
+
 export const updateTeamStaff = async (
   teamId: string,
   data: { members?: string[]; supervisor?: string | null }

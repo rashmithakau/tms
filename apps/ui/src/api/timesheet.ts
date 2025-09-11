@@ -45,6 +45,10 @@ export const getSupervisedProjects = async () => {
   return API.get<{ projects: Array<{ _id: string; projectName: string }> }>('/api/project/supervised');
 };
 
+export const getSupervisedTeams = async () => {
+  return API.get<{ teams: Array<{ _id: string; teamName: string }> }>('/api/team/supervised');
+};
+
 export type CreateTimesheetPayload = {
   weekStartDate: string | Date;
   data: TimesheetCategory[];

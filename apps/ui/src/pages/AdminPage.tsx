@@ -27,15 +27,16 @@ const AdminPage = () => {
     ]
   ];
 
-  useEffect(() => {
-    if(user?.role==UserRole.SupervisorAdmin){
-      items[0].push({ text: 'Review Timesheets', icon: <RateReviewIcon /> });
-    }
-  }
-, []);
 
     const { authState } = useAuth();
   const {  user } = authState;
+
+
+    if(user?.role==UserRole.SupervisorAdmin){
+      items[0].push({ text: 'Review Timesheets', icon: <RateReviewIcon /> });
+    }
+
+
 
 
   return (

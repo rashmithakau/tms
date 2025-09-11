@@ -4,8 +4,8 @@ import { RootState } from '../store/store';
 import { TimesheetStatus } from '@tms/shared';
 import { startOfWeek } from 'date-fns';
 import { getOrCreateMyTimesheetForWeek, Timesheet } from '../api/timesheet';
-import { listProjects } from '../api/project';
-import { listMyTeams } from '../api/team';
+import { listMyProjects, listProjects } from '../api/project';
+import { listMyMemberTeams, listMyTeams } from '../api/team';
 import {
   setTimesheetData,
   setWeekStartDate,
@@ -74,8 +74,8 @@ export const useTimesheetDataManagement = () => {
         
         // Fetch projects and teams in parallel
         const [projectsResponse, teamsResponse] = await Promise.all([
-          listProjects(),
-          listMyTeams()
+          listMyProjects(),
+          listMyMemberTeams()
         ]);
         
         const fetchedProjects = (projectsResponse.data as any)?.projects || [];
