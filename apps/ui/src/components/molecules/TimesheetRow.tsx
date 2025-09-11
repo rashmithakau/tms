@@ -27,6 +27,7 @@ const TimesheetRow: React.FC<TimesheetRowProps> = ({
   supervisedTeamIds,
 }) => (
   <TableRow>
+    <TableCell />
     <TableCell>{row.work}</TableCell>
     {row.hours.map((hour: string, colIndex: number) => {
       const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
