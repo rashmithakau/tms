@@ -1,6 +1,6 @@
 import { CREATED, OK } from '../constants/http';
 import catchErrors from '../utils/catchErrors';
-import { createTeam, listTeams, updateTeamStaff } from '../services/team.service';
+import { createTeam, listTeams, listTeamsForUser, updateTeamStaff } from '../services/team.service';
 
 export const createTeamHandler = catchErrors(async (req, res) => {
   const { teamName, employees, supervisor } = req.body as any;
@@ -17,6 +17,13 @@ export const createTeamHandler = catchErrors(async (req, res) => {
 
 export const listTeamsHandler = catchErrors(async (_req, res) => {
   const data = await listTeams();
+  return res.json(data);
+});
+
+export const listTeamsForUserHandler = catchErrors(async (req, res) => {
+  const userId = req.userId as string;
+  const userRole = req.userRole as any;
+  const data = await listTeamsForUser(userId, userRole);
   return res.json(data);
 });
 

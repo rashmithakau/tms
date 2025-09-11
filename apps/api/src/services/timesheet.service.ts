@@ -10,6 +10,7 @@ import { socketService } from '../config/socket';
 interface ITimesheetItem {
   work?: string;
   projectId?: string; 
+  teamId?: string;
   hours: string[]; 
   descriptions: string[]; 
 }

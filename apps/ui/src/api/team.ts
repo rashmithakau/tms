@@ -24,6 +24,11 @@ export const listTeams = async () => {
   return res;
 };
 
+export const listMyTeams = async () => {
+  const res = await API.get('/api/team/my-teams');
+  return res;
+};
+
 export const updateTeamStaff = async (
   teamId: string,
   data: { members?: string[]; supervisor?: string | null }

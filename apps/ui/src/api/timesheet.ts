@@ -4,13 +4,14 @@ import { TimesheetStatus } from '@tms/shared';
 export type TimesheetItem = {
   work?: string; 
   projectId?: string; 
+  teamId?: string;
   hours: string[]; //
   descriptions: string[]; 
 };
 
 
 export type TimesheetCategory = {
-  category: 'Project' | 'Absence';
+  category: 'Project' | 'Team' | 'Absence';
   items: TimesheetItem[];
 };
 

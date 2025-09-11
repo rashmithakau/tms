@@ -21,13 +21,14 @@ import PageLoading from '../molecules/PageLoading';
 export interface TimesheetItem {
   work?: string;
   projectId?: string;
+  teamId?: string;
   hours: string[];
   descriptions: string[];
   dailyStatus?: any[]; // Using any[] to match existing types
 }
 
 export interface TimesheetData {
-  category: 'Project' | 'Absence';
+  category: 'Project' | 'Team' | 'Absence';
   items: TimesheetItem[];
 }
 

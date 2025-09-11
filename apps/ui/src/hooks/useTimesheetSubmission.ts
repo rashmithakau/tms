@@ -102,8 +102,11 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         toast.success('Timesheet created');
       }
       await refresh();
-    } catch (e) {
-      toast.error('Failed to save timesheet');
+    } catch (e: any) {
+      console.error('Save error:', e);
+      // Show more detailed error message from backend if available
+      const errorMessage = e?.response?.data?.message || e?.message || 'Failed to save timesheet';
+      toast.error(errorMessage);
     }
   };
 

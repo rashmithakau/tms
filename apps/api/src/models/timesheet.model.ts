@@ -5,6 +5,7 @@ import mongoose, { Schema, Document } from "mongoose";
 interface ITimesheetItem {
   work: string;
   projectId?: string;       
+  teamId?: string;
   hours: string[];
   descriptions: string[];
   dailyStatus: TimesheetStatus[]; // status for each day
@@ -26,6 +27,7 @@ export interface ITimesheet extends Document {
 const TimesheetItemSchema = new Schema<ITimesheetItem>({
   work: { type: String, required: true },
   projectId: { type: String },
+  teamId: { type: String },
   hours: [{ type: String }],
   descriptions: [{ type: String }],
   dailyStatus: {
