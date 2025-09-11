@@ -226,22 +226,9 @@ export default function CustomAppBar({
                 <ListItemText
                   disableTypography
                   primary={<Typography component="span" variant="body2" fontWeight={600}>{n.title || 'Notification'}</Typography>}
-                  secondary={
-                    <>
-                      <Typography component="span" variant="body2" color="text.primary">{n.message}</Typography>
-                      {n.projectName && (
-                        <Typography component="span" variant="caption" color="text.secondary"> Project: {n.projectName}</Typography>
-                      )}
-                      {n.rejectedDates && n.rejectedDates.length > 0 && (
-                        <Typography component="span" variant="caption" color="text.secondary"> Dates: {n.rejectedDates.join(', ')}</Typography>
-                      )}
-                      {n.reason && (
-                        <Typography component="span" variant="caption" color="text.secondary"> Reason: {n.reason}</Typography>
-                      )}
-                      <Typography component="span" variant="caption" color="text.secondary"> {new Date(n.createdAt).toLocaleString()}</Typography>
-                    </>
-                  }
+                  secondary={<Typography  variant="body2" color="text.primary">{n.message}</Typography>}
                 />
+              
               </ListItem>
             ))}
           </List>

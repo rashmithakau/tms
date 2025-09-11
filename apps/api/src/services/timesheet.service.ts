@@ -212,7 +212,18 @@ export const updateDailyTimesheetStatus = async (
       const weekStart = new Date(savedTimesheet.weekStartDate);
       const item: any = savedTimesheet.data[categoryIndex].items[itemIndex];
       const projectId = item.projectId || '';
-      const projectName = item.projectName || 'Project';
+      
+      // Fetch the actual project name from the database
+      let projectName = 'Project'; // Default fallback
+      if (projectId) {
+        try {
+          const project = await ProjectModel.findById(projectId);
+          projectName = project?.projectName || 'Project';
+        } catch (error) {
+          console.error('Error fetching project name:', error);
+        }
+      }
+      
       const rejectedDates = dayIndices.map((d) => {
         const date = new Date(weekStart);
         date.setUTCDate(date.getUTCDate() + d);
@@ -461,7 +472,18 @@ export const batchUpdateDailyTimesheetStatus = async (
           for (const u of timesheetUpdates.filter(u => u.status === TimesheetStatus.Rejected)) {
             const item = timesheet.data[u.categoryIndex].items[u.itemIndex] as any;
             const projectId = item.projectId;
-            const projectName = item.projectName || undefined;
+            
+            // Fetch the actual project name from the database
+            let projectName = undefined;
+            if (projectId) {
+              try {
+                const project = await ProjectModel.findById(projectId);
+                projectName = project?.projectName;
+              } catch (error) {
+                console.error('Error fetching project name for batch update:', error);
+              }
+            }
+            
             const rejectedDates = u.dayIndices.map((d) => {
               const date = new Date(weekStart);
               date.setUTCDate(date.getUTCDate() + d);
