@@ -155,15 +155,23 @@ export const updateDailyTimesheetStatus = async (
 
   // Check if the specific item is for a project/team the supervisor supervises
   const item = timesheet.data[categoryIndex].items[itemIndex];
-  const isProjectSupervised = !item.projectId || supervisedProjectIds.includes(item.projectId);
-  const isTeamSupervised = !item.teamId || supervisedTeamIds.includes(item.teamId);
   
-  // For timesheet items, we need to check if supervisor has permission either via project or team supervision
-  // If the item has both projectId and teamId, supervisor needs to supervise at least one of them
-  // If the item has neither (like absence), we allow if user is supervised via any mechanism
-  if (item.projectId || item.teamId) {
-    appAssert(isProjectSupervised || isTeamSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve timesheet items for projects or teams you supervise');
+  // Authorization logic: Supervisors can only approve specific types of timesheets
+  if (item.projectId && item.teamId) {
+    // Item has both project and team - this should not happen in normal cases
+    // But if it does, supervisor must supervise the specific project for project items
+    const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
+    appAssert(isProjectSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve project timesheet items if you supervise that specific project');
+  } else if (item.projectId) {
+    // Project timesheet - only project supervisors can approve
+    const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
+    appAssert(isProjectSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve project timesheets if you supervise that specific project');
+  } else if (item.teamId) {
+    // Team timesheet - only team supervisors can approve  
+    const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
+    appAssert(isTeamSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve team timesheets if you supervise that specific team');
   }
+  // Items with neither projectId nor teamId (like absence) are allowed if user is supervised via any mechanism
 
   // Validate indices
   appAssert(categoryIndex >= 0 && categoryIndex < timesheet.data.length, BAD_REQUEST, `Invalid category index: ${categoryIndex}. Available categories: ${timesheet.data.length}`);
@@ -385,26 +393,44 @@ export const batchUpdateDailyTimesheetStatus = async (
         
         const item = category.items[itemIndex];
         
-        
-        // Check if the specific item is for a project/team the supervisor supervises
-        const isProjectSupervised = !item.projectId || supervisedProjectIds.includes(item.projectId);
-        const isTeamSupervised = !item.teamId || supervisedTeamIds.includes(item.teamId);
-        
-        // For timesheet items, we need to check if supervisor has permission either via project or team supervision
-        // If the item has both projectId and teamId, supervisor needs to supervise at least one of them
-        // If the item has neither (like absence), we allow if user is supervised via any mechanism
-        if (item.projectId || item.teamId) {
-          if (!isProjectSupervised && !isTeamSupervised) {
+        // Authorization logic: Supervisors can only approve specific types of timesheets
+        if (item.projectId && item.teamId) {
+          // Item has both project and team - this should not happen in normal cases
+          // But if it does, supervisor must supervise the specific project for project items
+          const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
+          if (!isProjectSupervised) {
             console.error('Authorization failed:', {
               itemProjectId: item.projectId,
               itemTeamId: item.teamId,
               supervisedProjectIds,
-              supervisedTeamIds,
-              message: 'You can only approve timesheet items for projects or teams you supervise'
+              message: 'You can only approve project timesheet items if you supervise that specific project'
             });
-            throw new Error('Unauthorized: You can only approve timesheet items for projects or teams you supervise');
+            throw new Error('Unauthorized: You can only approve project timesheet items if you supervise that specific project');
+          }
+        } else if (item.projectId) {
+          // Project timesheet - only project supervisors can approve
+          const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
+          if (!isProjectSupervised) {
+            console.error('Authorization failed:', {
+              itemProjectId: item.projectId,
+              supervisedProjectIds,
+              message: 'You can only approve project timesheets if you supervise that specific project'
+            });
+            throw new Error('Unauthorized: You can only approve project timesheets if you supervise that specific project');
+          }
+        } else if (item.teamId) {
+          // Team timesheet - only team supervisors can approve
+          const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
+          if (!isTeamSupervised) {
+            console.error('Authorization failed:', {
+              itemTeamId: item.teamId,
+              supervisedTeamIds,
+              message: 'You can only approve team timesheets if you supervise that specific team'
+            });
+            throw new Error('Unauthorized: You can only approve team timesheets if you supervise that specific team');
           }
         }
+        // Items with neither projectId nor teamId (like absence) are allowed if user is supervised via any mechanism
       }
 
       // Apply all updates for this timesheet

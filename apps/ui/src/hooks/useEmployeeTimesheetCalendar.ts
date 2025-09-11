@@ -7,13 +7,14 @@ import { TimeSheetRow } from '../types/timesheet';
 export interface TimesheetItem {
   work?: string;
   projectId?: string;
+  teamId?: string;
   hours: string[];
   descriptions: string[];
   dailyStatus?: TimesheetStatus[];
 }
 
 export interface TimesheetData {
-  category: 'Project' | 'Absence';
+  category: 'Project' | 'Team' | 'Absence';
   items: TimesheetItem[];
 }
 
@@ -28,10 +29,12 @@ export function useEmployeeTimesheetCalendar({
   timesheets,
   originalTimesheets = [],
   supervisedProjectIds = [],
+  supervisedTeamIds = [],
 }: {
   timesheets: TimeSheetRow[];
   originalTimesheets?: any[];
   supervisedProjectIds?: string[];
+  supervisedTeamIds?: string[];
 }) {
   const [data, setData] = useState<TimesheetData[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -223,5 +226,6 @@ export function useEmployeeTimesheetCalendar({
     handleNextWeek,
     weekOriginalTimesheet,
     supervisedProjectIds,
+    supervisedTeamIds,
   };
 }

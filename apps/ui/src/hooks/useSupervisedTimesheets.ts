@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listSupervisedTimesheets, Timesheet, getSupervisedProjects } from '../api/timesheet';
+import { listSupervisedTimesheets, Timesheet, getSupervisedProjects, getSupervisedTeams } from '../api/timesheet';
 import { TimeSheetRow } from '../types/timesheet';
 
 export const useSupervisedTimesheets = () => {
   const [rows, setRows] = useState<TimeSheetRow[]>([]);
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]); // Add original timesheet data
   const [supervisedProjectIds, setSupervisedProjectIds] = useState<string[]>([]);
+  const [supervisedTeamIds, setSupervisedTeamIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,20 +15,23 @@ export const useSupervisedTimesheets = () => {
       setIsLoading(true);
       setError(null);
       
-      // Fetch both supervised timesheets and supervised projects
-      const [timesheetsResp, projectsResp] = await Promise.all([
+      // Fetch supervised timesheets, projects, and teams
+      const [timesheetsResp, projectsResp, teamsResp] = await Promise.all([
         listSupervisedTimesheets(),
-        getSupervisedProjects()
+        getSupervisedProjects(),
+        getSupervisedTeams()
       ]);
       
       const data = timesheetsResp.data?.timesheets || [];
       const supervisedProjects = projectsResp.data?.projects || [];
+      const supervisedTeams = teamsResp.data?.teams || [];
       
       // Store original timesheets for calendar component
       setTimesheets(data);
       
-      // Store supervised project IDs for authorization checks
+      // Store supervised project and team IDs for authorization checks
       setSupervisedProjectIds(supervisedProjects.map(p => p._id));
+      setSupervisedTeamIds(supervisedTeams.map(t => t._id));
       
       // Flatten the timesheet structure into individual rows
       const mapped: TimeSheetRow[] = [];
@@ -87,5 +91,5 @@ export const useSupervisedTimesheets = () => {
     fetchData();
   }, [fetchData]);
 
-  return { rows, timesheets, supervisedProjectIds, isLoading, error, refresh: fetchData };
+  return { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, error, refresh: fetchData };
 };
