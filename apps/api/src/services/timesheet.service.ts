@@ -617,4 +617,67 @@ export const batchUpdateDailyTimesheetStatus = async (
   return results;
 };
 
+export const hasSubmittedTimesheetForWeek = async (
+  userId: string,
+  weekStartDate: Date,
+  weekEndDate: Date
+): Promise<boolean> => {
+  try {
+    // Normalize dates to UTC
+    const startDate = new Date(weekStartDate);
+    startDate.setUTCHours(0, 0, 0, 0);
+    
+    const endDate = new Date(weekEndDate);
+    endDate.setUTCHours(23, 59, 59, 999);
+
+    // Check if user has a submitted or approved timesheet for the week
+    const timesheet = await Timesheet.findOne({
+      userId,
+      weekStartDate: {
+        $gte: startDate,
+        $lte: endDate
+      },
+      status: { 
+        $in: [TimesheetStatus.Pending, TimesheetStatus.Approved] 
+      }
+    });
+
+    return !!timesheet;
+  } catch (error) {
+    console.error('Error checking timesheet submission:', error);
+    return false;
+  }
+};
+
+export const createTimesheetReminderNotification = async (
+  userId: string,
+  weekStartDate: Date,
+  weekEndDate: Date
+): Promise<void> => {
+  try {
+    const notification = await NotificationModel.create({
+      userId,
+      title: 'Timesheet Submission Reminder',
+      message: `Please submit your timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
+      type: 'TimesheetReminder',
+      isRead: false,
+      createdAt: new Date()
+    });
+
+    // Emit socket notification if user is online
+    try {
+      await socketService.emitToUser(userId, 'notification', {
+        title: notification.title,
+        message: notification.message,
+        createdAt: notification.createdAt,
+      });
+    } catch (socketError) {
+      console.error('Failed to emit socket notification:', socketError);
+    }
+  } catch (error) {
+    console.error('Error creating timesheet reminder notification:', error);
+    throw error;
+  }
+};
+
 

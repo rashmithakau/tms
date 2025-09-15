@@ -81,3 +81,32 @@ export const getWelcomeTmsTemplate = (url: string, username: string, password: s
       url
     ),
   });
+
+  export const getTimesheetReminderTemplate = (
+    firstName: string,
+    weekStartDate: Date,
+    weekEndDate: Date,
+    loginUrl: string
+  ) => ({
+    subject: "Timesheet Submission Reminder",
+    text: `Dear ${firstName}, This is a reminder that you haven't submitted your timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}. Please submit your timesheet as soon as possible. Login at: ${loginUrl}`,
+    html: generateEmailTemplate(
+      "Timesheet Submission Reminder",
+      `Dear ${firstName},<br><br>
+      This is a friendly reminder that you haven't submitted your timesheet for the week of:<br><br>
+      <strong>${weekStartDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })} - ${weekEndDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })}</strong><br><br>
+      ⚠️ Please submit your timesheet as soon as possible.<br><br>`,
+      "Submit Timesheet",
+      `${loginUrl}/timesheet`
+    ),
+  });
