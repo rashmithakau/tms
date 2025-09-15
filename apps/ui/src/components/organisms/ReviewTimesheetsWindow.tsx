@@ -22,7 +22,7 @@ import { useTimesheetApproval } from '../../hooks/useTimesheetApproval';
 import ApprovalActionButtons from '../molecules/ApprovalActionButtons';
 
 const ReviewTimesheetsWindow: React.FC = () => {
-  const { rows, timesheets, supervisedProjectIds, isLoading, refresh } = useSupervisedTimesheets();
+  const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
   
   // Use custom hooks for filtering and approval logic
@@ -105,6 +105,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
                         timesheets={group.timesheets}
                         originalTimesheets={timesheets.filter(ts => ts.userId?._id === group.employee._id)}
                         supervisedProjectIds={supervisedProjectIds}
+                        supervisedTeamIds={supervisedTeamIds}
                         onDaySelectionChange={handleDaySelectionChange}
                         selectedDays={selectedDays}
                         isSelectionMode={isSelectionMode}

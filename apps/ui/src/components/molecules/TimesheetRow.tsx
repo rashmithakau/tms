@@ -12,6 +12,7 @@ interface TimesheetRowProps {
   isDaySelected: (catIndex: number, rowIndex: number, colIndex: number) => boolean;
   handleDaySelectionChange: (catIndex: number, rowIndex: number, colIndex: number, checked: boolean) => void;
   supervisedProjectIds: string[];
+  supervisedTeamIds: string[];
 }
 
 const TimesheetRow: React.FC<TimesheetRowProps> = ({
@@ -23,15 +24,35 @@ const TimesheetRow: React.FC<TimesheetRowProps> = ({
   isDaySelected,
   handleDaySelectionChange,
   supervisedProjectIds,
+  supervisedTeamIds,
 }) => (
   <TableRow>
+    <TableCell />
     <TableCell>{row.work}</TableCell>
     {row.hours.map((hour: string, colIndex: number) => {
       const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
       const isSelected = isDaySelected(catIndex, rowIndex, colIndex);
       const hasHours = parseFloat(hour) > 0;
       const isDisabled = dailyStatus === TimesheetStatus.Approved || dailyStatus === TimesheetStatus.Rejected;
-      const canApprove = row.projectId ? supervisedProjectIds.includes(row.projectId) : true;
+      
+      // Authorization logic: Supervisors can only approve specific types of timesheets
+      let canApprove = false;
+      let tooltipMessage = '';
+      
+      if (row.projectId) {
+        // Project timesheet - only project supervisors can approve
+        canApprove = supervisedProjectIds.includes(row.projectId);
+        tooltipMessage = 'You can only approve projects you supervise';
+      } else if (row.teamId) {
+        // Team timesheet - only team supervisors can approve
+        canApprove = supervisedTeamIds.includes(row.teamId);
+        tooltipMessage = 'You can only approve teams you supervise';
+      } else {
+        // Items with neither projectId nor teamId (like absence) - allow if user has any supervision
+        canApprove = supervisedProjectIds.length > 0 || supervisedTeamIds.length > 0;
+        tooltipMessage = 'You need supervision permissions to approve this item';
+      }
+      
       const isCheckboxDisabled = isDisabled || !canApprove;
       return (
         <TableCell key={colIndex} align="center">
@@ -43,7 +64,7 @@ const TimesheetRow: React.FC<TimesheetRowProps> = ({
                 disabled={isCheckboxDisabled}
                 onChange={e => handleDaySelectionChange(catIndex, rowIndex, colIndex, e.target.checked)}
                 sx={{ p: 0, mb: 0.5 }}
-                title={!canApprove ? 'You can only approve projects you supervise' : undefined}
+                title={!canApprove ? tooltipMessage : undefined}
               />
             )}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isDisabled ? 0.6 : (!canApprove ? 0.4 : 1), position: 'relative' }}>

@@ -12,6 +12,8 @@ import CreateProjectPopUp from './CreateProjectPopUp';
 import CreateTeamPopUp from './CreateTeamPopUp';
 import { EmpRow, ProjectRow, TeamRow } from '../templates/TableWindowLayout';
 import { listTeams, TeamListItem } from '../../api/team';
+import MyTimesheetsWindow from './MyTimesheetsWindow';
+import ReviewTimesheetsWindow from './ReviewTimesheetsWindow';
 
 const AdminWindow: React.FC = () => {
   const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin] as const, []);
@@ -259,6 +261,14 @@ const AdminWindow: React.FC = () => {
             onClose={handleCloseTeamPopup}
           />
         </div>
+      )}
+
+            {selectedBtn === 'My Timesheets' && (
+        <MyTimesheetsWindow/>
+      )}
+
+                  {selectedBtn === 'Review Timesheets' && (
+        <ReviewTimesheetsWindow/>
       )}
     </>
   );

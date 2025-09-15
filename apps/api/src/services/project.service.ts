@@ -83,6 +83,15 @@ export const listProjects = async (userId: string, userRole: UserRole) => {
   }
 };
 
+export const listMyProjects = async (userId: string) => {
+  // Always return projects where the user is an employee, regardless of role
+  const projects = await ProjectModel.find({ status: true, employees: userId })
+    .sort({ createdAt: -1 })
+    .populate({ path: 'employees', select: 'firstName lastName email designation' })
+    .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
+  return { projects };
+};
+
 export const updateProjectStaff = async (
   projectId: string,
   data: { employees?: string[]; supervisor?: string | null }

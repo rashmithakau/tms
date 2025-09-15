@@ -3,6 +3,7 @@ import catchErrors from '../utils/catchErrors';
 import { OK, CREATED, BAD_REQUEST, FORBIDDEN } from '../constants/http';
 import { Timesheet, ITimesheet } from '../models/timesheet.model';
 import ProjectModel from '../models/project.model';
+import TeamModel from '../models/team.model';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
 import {createTimesheet,submitDraftTimesheets,updateDailyTimesheetStatus,batchUpdateDailyTimesheetStatus} from "../services/timesheet.service";
@@ -38,44 +39,67 @@ export const listMyTimesheetsHandler = catchErrors(async (req: Request, res: Res
 export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
 
-  //get supervised employees from Projects
+  // Get supervised employees from Projects
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
-  
-  const supervisedUserIds = Array.from(
+  const projectSupervisedUserIds = Array.from(
     new Set(
       supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
     )
   );
 
-  if (supervisedUserIds.length === 0) {
+  // Get supervised employees from Teams
+  const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
+  const teamSupervisedUserIds = Array.from(
+    new Set(
+      supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
+    )
+  );
+
+  // Combine both project and team supervised users
+  const allSupervisedUserIds = Array.from(
+    new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
+  );
+
+  if (allSupervisedUserIds.length === 0) {
     return res.status(OK).json({ timesheets: [] });
   }
 
-  const timesheets = await Timesheet.find({ userId: { $in: supervisedUserIds } })
+  const timesheets = await Timesheet.find({ userId: { $in: allSupervisedUserIds } })
     .populate('userId', 'firstName lastName email contactNumber designation')
     .sort({ weekStartDate: -1 });
 
   // Manually populate project names since projectId is stored as string
   const projectIds = new Set<string>();
+  const teamIds = new Set<string>();
+  
   timesheets.forEach(ts => {
     ts.data?.forEach(category => {
       category.items?.forEach(item => {
         if (item.projectId) {
           projectIds.add(item.projectId);
         }
+        if (item.teamId) {
+          teamIds.add(item.teamId);
+        }
       });
     });
   });
 
   const projects = await ProjectModel.find({ _id: { $in: Array.from(projectIds) } });
+  const teams = await TeamModel.find({ _id: { $in: Array.from(teamIds) } });
+  
   const projectMap = new Map(projects.map(p => [p._id.toString(), p.projectName]));
+  const teamMap = new Map(teams.map(t => [t._id.toString(), t.teamName]));
 
-  // Add project names to timesheet items
+  // Add project and team names to timesheet items
   timesheets.forEach(ts => {
     ts.data?.forEach(category => {
       category.items?.forEach(item => {
         if (item.projectId && projectMap.has(item.projectId)) {
           (item as any).projectName = projectMap.get(item.projectId);
+        }
+        if (item.teamId && teamMap.has(item.teamId)) {
+          (item as any).teamName = teamMap.get(item.teamId);
         }
       });
     });
@@ -93,23 +117,36 @@ export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: R
     return res.status(BAD_REQUEST).json({ message: 'Invalid status. Must be Approved or Rejected' });
   }
 
-  // Get supervisor's projects for authorization
+  // Get supervised employees from Projects
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
-  const supervisedUserIds = Array.from(
+  const projectSupervisedUserIds = Array.from(
     new Set(
       supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
     )
   );
 
-  if (supervisedUserIds.length === 0) {
+  // Get supervised employees from Teams
+  const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
+  const teamSupervisedUserIds = Array.from(
+    new Set(
+      supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
+    )
+  );
+
+  // Combine both project and team supervised users
+  const allSupervisedUserIds = Array.from(
+    new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
+  );
+
+  if (allSupervisedUserIds.length === 0) {
     return res.status(FORBIDDEN).json({ message: 'You have no supervised employees' });
   }
 
-  // Only update timesheets from supervised employees
+  // Only update timesheets from supervised employees (both project and team members)
   const result = await Timesheet.updateMany(
     { 
       _id: { $in: ids }, 
-      userId: { $in: supervisedUserIds },
+      userId: { $in: allSupervisedUserIds },
       status: TimesheetStatus.Pending 
     },
     { $set: { status } }

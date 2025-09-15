@@ -4,7 +4,8 @@ import { RootState } from '../store/store';
 import { TimesheetStatus } from '@tms/shared';
 import { startOfWeek } from 'date-fns';
 import { getOrCreateMyTimesheetForWeek, Timesheet } from '../api/timesheet';
-import { listProjects } from '../api/project';
+import { listMyProjects, listProjects } from '../api/project';
+import { listMyMemberTeams, listMyTeams } from '../api/team';
 import {
   setTimesheetData,
   setWeekStartDate,
@@ -16,13 +17,14 @@ import {
 export interface TimesheetItem {
   work?: string;
   projectId?: string;
+  teamId?: string;
   hours: string[];
   descriptions: string[];
   dailyStatus?: TimesheetStatus[];
 }
 
 export interface TimesheetData {
-  category: 'Project' | 'Absence';
+  category: 'Project' | 'Team' | 'Absence';
   items: TimesheetItem[];
 }
 
@@ -69,14 +71,29 @@ export const useTimesheetDataManagement = () => {
       try {
         setIsLoading(true);
         setError(null);
-        // Fetch projects
-        const projectsResponse = await listProjects();
+        
+        // Fetch projects and teams in parallel
+        const [projectsResponse, teamsResponse] = await Promise.all([
+          listMyProjects(),
+          listMyMemberTeams()
+        ]);
+        
         const fetchedProjects = (projectsResponse.data as any)?.projects || [];
+        const fetchedTeams = (teamsResponse.data as any)?.teams || [];
 
         // Build project rows
         const projectRows: TimesheetItem[] = fetchedProjects.map((project: any) => ({
           work: project.projectName,
           projectId: project._id,
+          hours: Array(7).fill('00.00'),
+          descriptions: Array(7).fill(''),
+          dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+        }));
+
+        // Build team rows
+        const teamRows: TimesheetItem[] = fetchedTeams.map((team: any) => ({
+          work: team.teamName,
+          teamId: team._id,
           hours: Array(7).fill('00.00'),
           descriptions: Array(7).fill(''),
           dailyStatus: Array(7).fill(TimesheetStatus.Draft),
@@ -97,7 +114,7 @@ export const useTimesheetDataManagement = () => {
 
           // Merge in missing data if status is Draft
           if ((existing.status as any) === 'Draft') {
-            nextData = mergeNewItems(nextData, projectRows, absenceRows);
+            nextData = mergeNewItems(nextData, projectRows, teamRows, absenceRows);
           }
 
           setData(nextData);
@@ -105,6 +122,7 @@ export const useTimesheetDataManagement = () => {
         } else {
           const initialData = [
             { category: 'Project' as const, items: projectRows },
+            { category: 'Team' as const, items: teamRows },
             { category: 'Absence' as const, items: absenceRows },
           ];
           setData(initialData);
@@ -126,6 +144,7 @@ export const useTimesheetDataManagement = () => {
   const mergeNewItems = (
     existingData: any[],
     projectRows: TimesheetItem[],
+    teamRows: TimesheetItem[],
     absenceRows: TimesheetItem[]
   ) => {
     let nextData = [...existingData];
@@ -146,6 +165,27 @@ export const useTimesheetDataManagement = () => {
       }
     } else if (projectRows.length > 0) {
       nextData = [{ category: 'Project', items: projectRows }, ...nextData];
+    }
+
+    // Merge team items
+    const teamCatIndex = nextData.findIndex((c) => c.category === 'Team');
+    if (teamCatIndex >= 0) {
+      const presentTeamIds = new Set(
+        (nextData[teamCatIndex].items || []).map((it: any) => it.teamId)
+      );
+      const newTeamItems = teamRows.filter(
+        (row) => row.teamId && !presentTeamIds.has(row.teamId)
+      );
+      if (newTeamItems.length > 0) {
+        nextData = nextData.map((c, i) =>
+          i === teamCatIndex ? { ...c, items: [...c.items, ...newTeamItems] } : c
+        );
+      }
+    } else if (teamRows.length > 0) {
+      // Insert team category after project category or at the beginning
+      const projectCatIndex = nextData.findIndex((c) => c.category === 'Project');
+      const insertIndex = projectCatIndex >= 0 ? projectCatIndex + 1 : 0;
+      nextData.splice(insertIndex, 0, { category: 'Team', items: teamRows });
     }
 
     // Merge absence items

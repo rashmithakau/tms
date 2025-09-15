@@ -4,13 +4,14 @@ import { TimesheetStatus } from '@tms/shared';
 export type TimesheetItem = {
   work?: string; 
   projectId?: string; 
+  teamId?: string;
   hours: string[]; //
   descriptions: string[]; 
 };
 
 
 export type TimesheetCategory = {
-  category: 'Project' | 'Absence';
+  category: 'Project' | 'Team' | 'Absence';
   items: TimesheetItem[];
 };
 
@@ -42,6 +43,10 @@ export const listSupervisedTimesheets = async () => {
 
 export const getSupervisedProjects = async () => {
   return API.get<{ projects: Array<{ _id: string; projectName: string }> }>('/api/project/supervised');
+};
+
+export const getSupervisedTeams = async () => {
+  return API.get<{ teams: Array<{ _id: string; teamName: string }> }>('/api/team/supervised');
 };
 
 export type CreateTimesheetPayload = {

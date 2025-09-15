@@ -7,6 +7,7 @@ import catchErrors from '../utils/catchErrors';
 import {
   createProject,
   listProjects,
+  listMyProjects,
   updateProjectStaff,
   softDeleteProject,
   listSupervisedProjects,
@@ -31,6 +32,12 @@ export const listHandler = catchErrors(async (req, res) => {
   const userId = req.userId as string;
   const userRole = req.userRole as UserRole;
   const result = await listProjects(userId, userRole);
+  return res.status(OK).json(result);
+});
+
+export const listMyProjectsHandler = catchErrors(async (req, res) => {
+  const userId = req.userId as string;
+  const result = await listMyProjects(userId);
   return res.status(OK).json(result);
 });
 
