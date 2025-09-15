@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -20,6 +20,9 @@ import { useToast } from '../contexts/ToastContext';
 import SearchBar from '../atoms/inputFields/SearchBar';
 import NotificationDropdown from './NotificationDropdown';
 import ProfilePopup from './ProfilePopup';
+import { useSelector, useDispatch } from 'react-redux';
+import { EmpMenuItem } from '@tms/shared';
+import { search_txt } from '../../store/slices/SearchBarSlice';
 
 export default function CustomAppBar({
   hasDrawer = true,
@@ -32,6 +35,22 @@ export default function CustomAppBar({
   );
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { authState, logout: authLogout } = useAuth();
+  const dispatch = useDispatch();
+  
+  // Get current selected menu from Redux store
+  const empSelectedMenu = useSelector((state: any) => state.empMenuNav.selectedBtn);
+  const adminSelectedMenu = useSelector((state: any) => state.dashboardNav.selectedBtn);
+  
+  // Check if we're in the Review Timesheets section (either as employee or admin)
+  const shouldShowSearchBar = empSelectedMenu === EmpMenuItem.ReviewTimesheets || 
+                              adminSelectedMenu === 'Review Timesheets';
+
+  // Clear search text when navigating away from Review Timesheets
+  useEffect(() => {
+    if (!shouldShowSearchBar) {
+      dispatch(search_txt(''));
+    }
+  }, [shouldShowSearchBar, dispatch]);
   const { user } = authState;
   const toast = useToast();
 
@@ -116,9 +135,11 @@ export default function CustomAppBar({
         </Box>
 
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: 400 }}>
-            <SearchBar />
-          </Box>
+          {shouldShowSearchBar && (
+            <Box sx={{ width: 400 }}>
+              <SearchBar searchBy="employee name" />
+            </Box>
+          )}
         </Box>
 
         <Box

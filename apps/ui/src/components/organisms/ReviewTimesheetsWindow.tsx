@@ -18,10 +18,14 @@ import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
 import { useTimesheetApproval } from '../../hooks/useTimesheetApproval';
 import ApprovalActionButtons from '../molecules/ApprovalActionButtons';
+import { useSelector } from 'react-redux';
 
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
+  
+  // Get search text from Redux store
+  const searchText = useSelector((state: any) => state.searchBar.searchText);
   
   // Filter out draft timesheets
   const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
@@ -52,6 +56,17 @@ const ReviewTimesheetsWindow: React.FC = () => {
     }
     return groups;
   }, []);
+
+  // Filter employee groups by search text
+  const filteredEmployeeGroups = employeeGroups.filter(group => {
+    if (!searchText.trim()) return true;
+    
+    const fullName = `${group.employee.firstName} ${group.employee.lastName}`.toLowerCase();
+    const email = group.employee.email?.toLowerCase() || '';
+    const searchLower = searchText.toLowerCase();
+    
+    return fullName.includes(searchLower) || email.includes(searchLower);
+  });
   
   const {
     selectedIds,
@@ -84,16 +99,19 @@ const ReviewTimesheetsWindow: React.FC = () => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {employeeGroups.length === 0 ? (
+        {filteredEmployeeGroups.length === 0 ? (
           <TableRow>
             <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
               <Typography color="textSecondary">
-                No timesheets to review. Employees may not have submitted any timesheets yet.
+                {searchText.trim() 
+                  ? `No employees found matching "${searchText}"`
+                  : "No timesheets to review. Employees may not have submitted any timesheets yet."
+                }
               </Typography>
             </TableCell>
           </TableRow>
         ) : (
-          employeeGroups.map((group, index) => (
+          filteredEmployeeGroups.map((group, index) => (
             <React.Fragment key={group.employee._id}>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
                 <TableCell>
