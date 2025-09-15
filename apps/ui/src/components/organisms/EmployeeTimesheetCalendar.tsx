@@ -15,6 +15,7 @@ interface EmployeeTimesheetCalendarProps {
   timesheets: any[];
   originalTimesheets?: any[];
   supervisedProjectIds?: string[];
+  supervisedTeamIds?: string[];
   onDaySelectionChange?: (selections: DaySelection[]) => void;
   selectedDays?: DaySelection[];
   isSelectionMode?: boolean;
@@ -26,6 +27,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
   timesheets,
   originalTimesheets = [],
   supervisedProjectIds = [],
+  supervisedTeamIds = [],
   onDaySelectionChange,
   selectedDays = [],
   isSelectionMode = false,
@@ -40,7 +42,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
     handleNextWeek,
     weekOriginalTimesheet,
     supervisedProjectIds: supervisedIds,
-  } = useEmployeeTimesheetCalendar({ timesheets, originalTimesheets, supervisedProjectIds });
+  } = useEmployeeTimesheetCalendar({ timesheets, originalTimesheets, supervisedProjectIds, supervisedTeamIds });
 
   // Helper: map rendered indices to original timesheet indices
   const getOriginalIndices = (renderCatIndex: number, renderItemIndex: number) => {
@@ -191,6 +193,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
                         isDaySelected={isDaySelected}
                         handleDaySelectionChange={handleDaySelectionChange}
                         supervisedProjectIds={supervisedProjectIds}
+                        supervisedTeamIds={supervisedTeamIds}
                       />
                     ))}
                   </React.Fragment>

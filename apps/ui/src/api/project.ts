@@ -21,6 +21,10 @@ export const listProjects = async () => {
   return API.get('/api/project');
 };
 
+export const listMyProjects = async () => {
+  return API.get('/api/project/my-projects');
+};
+
 export const createProject = async (data: CreateProjectPayload) => {
   return API.post('/api/project', data);
 };

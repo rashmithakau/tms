@@ -5,13 +5,14 @@ import { TimesheetStatus } from '@tms/shared';
 const ItemSchema = z.object({
   work: z.string().optional(), // present if Absence
   projectId: z.string().optional(), // present if Project
+  teamId: z.string().optional(), // present if Team
   hours: z.array(z.string()).length(7), // 7 days (allow empty strings for 00.00)
   descriptions: z.array(z.string()).length(7).optional().default(['','','','','','','']),
 });
 
 // --- Category schema ---
 const CategorySchema = z.object({
-  category: z.enum(['Project', 'Absence']),
+  category: z.enum(['Project', 'Team', 'Absence']),
   items: z.array(ItemSchema).min(1),
 });
 
