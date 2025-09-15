@@ -36,6 +36,7 @@ export default function ConfirmDialog({
   confirmText = 'Yes',
   cancelText = 'No',
   icon,
+  confirmButtonColor = 'primary',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -60,7 +61,7 @@ export default function ConfirmDialog({
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Box
               sx={{
-                color: theme.palette.error.main,
+                color: theme.palette.primary.main,
                 fontSize: 48,
                 display: 'flex',
                 alignItems: 'center',
@@ -101,11 +102,12 @@ export default function ConfirmDialog({
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 500,
-            borderColor: theme.palette.grey[300],
+            borderColor: theme.palette.secondary.main,
             color: theme.palette.text.primary,
             '&:hover': {
-              borderColor: theme.palette.grey[600],
-              backgroundColor: theme.palette.action.hover,
+              borderColor: theme.palette.primary.main,
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.primary.main,
             },
           }}
         >
@@ -118,13 +120,13 @@ export default function ConfirmDialog({
           sx={{
             minWidth: 100,
             height: 44,
-            backgroundColor: theme.palette.error.main,
+            backgroundColor: theme.palette.primary.main,
             color: theme.palette.background.default,
             borderRadius: 2,
             textTransform: 'none',
             fontWeight: 500,
             '&:hover': {
-              borderColor: theme.palette.error.dark,
+              backgroundColor: theme.palette.primary.dark || '#001f5c',
             },
           }}
         >

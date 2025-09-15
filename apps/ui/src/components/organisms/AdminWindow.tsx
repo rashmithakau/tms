@@ -169,9 +169,17 @@ const AdminWindow: React.FC = () => {
     refreshUsers();
   };
 
-  const handleCloseTeamPopup = () => {
+  const handleCloseTeamPopup = async () => {
     setIsTeamPopupOpen(false);
     setTeamsKey((k) => k + 1);
+    // Refresh teams data after team creation
+    try {
+      const resp = await listTeams();
+      const data = resp.data?.teams as TeamListItem[];
+      setTeams(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setTeams([]);
+    }
   };
 
   const handleProjectRefresh = async () => {

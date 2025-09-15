@@ -11,7 +11,7 @@ import { useAuth } from '../components/contexts/AuthContext';
 import { UserRole } from '@tms/shared';
 import PageLoading from '../components/molecules/PageLoading';
 import EmployeePage from '../pages/EmployeePage';
-
+import LandingPage from '../pages/LandingPage';
 const AppRoute: React.FC = () => {
   const { authState } = useAuth();
   const { isAuthenticated, user, isLoading } = authState;
@@ -29,12 +29,17 @@ const AppRoute: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route
         path="/admin"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && (user?.role === UserRole.Admin || user?.role === UserRole.SupervisorAdmin)}
+            isAllowed={
+              isAuthenticated &&
+              (user?.role === UserRole.Admin ||
+                user?.role === UserRole.SupervisorAdmin)
+            }
             redirectPath="/"
           >
             <AdminPage />
@@ -56,17 +61,17 @@ const AppRoute: React.FC = () => {
         path="/employee"
         element={
           <ProtectedRoute
-            isAllowed={isAuthenticated && user?.role === UserRole.Emp || user?.role === UserRole.Supervisor}
+            isAllowed={
+              (isAuthenticated && user?.role === UserRole.Emp) ||
+              user?.role === UserRole.Supervisor
+            }
             redirectPath="/"
           >
             <EmployeePage />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/forgotpassword"
-        element={<PasswordResetPage />}
-      />
+      <Route path="/forgotpassword" element={<PasswordResetPage />} />
       <Route
         path="/resetpasswordfirstlogin"
         element={
@@ -107,10 +112,7 @@ const AppRoute: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/password/reset"
-        element={<ResetChangePasswordPage />}
-      />
+      <Route path="/password/reset" element={<ResetChangePasswordPage />} />
     </Routes>
   );
 };
