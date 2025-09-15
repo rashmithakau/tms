@@ -45,4 +45,8 @@ export const updateTeamStaff = async (
   return API.put(`/api/team/${teamId}/staff`, data);
 };
 
+export const deleteTeam = async (teamId: string) => {
+  return API.delete(`/api/team/${teamId}`);
+};
+
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { listTeams, TeamListItem } from '../../api/team';
+import { listTeams, TeamListItem, deleteTeam } from '../../api/team';
 import BaseBtn from '../atoms/buttons/BaseBtn';
 import ViewTeamMembers from './ViewTeamMembers';
 import TeamStaffManager from './TeamStaffManager';
@@ -7,6 +7,9 @@ import { TeamRow } from '../templates/TableWindowLayout';
 import DataTable, { DataTableColumn } from './DataTable';
 import { useTheme } from '@mui/material/styles';
 import ActionButtons from '../molecules/ActionButtons';
+import ConfirmDialog from '../molecules/ConfirmDialog';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { useToast } from '../contexts/ToastContext';
 
 const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
   const [teams, setTeams] = useState<TeamRow[]>([]);
@@ -26,6 +29,7 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
       designation?: string;
     }[];
   }>(null);
+ const toast = useToast();
 
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -209,6 +213,64 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
             }
           };
           run();
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirm.open}
+        title="Delete Team"
+        message="Are you sure you want to delete this team? This action cannot be undone."
+        icon={<DeleteRoundedIcon />}
+        confirmText="Delete"
+        onCancel={() => setConfirm({ open: false })}
+        onConfirm={async () => {
+          if (confirm.id) {
+            try {
+              await deleteTeam(confirm.id);
+              toast.success('Team deleted');
+              // Refresh the team data after deletion
+              const run = async () => {
+                try {
+                  const resp = await listTeams();
+                  const arr = resp.data?.teams as TeamListItem[] | undefined;
+                  const mapped: TeamRow[] = (arr ?? []).map((t) => ({
+                    id: t._id,
+                    teamName: t.teamName,
+                    createdAt: t.createdAt,
+                    members: (t.members ?? []).map((m) => ({
+                      id: m._id,
+                      name: `${m.firstName} ${m.lastName}`.trim(),
+                      email: m.email,
+                      designation: m.designation,
+                    })),
+                    supervisor: t.supervisor
+                      ? {
+                          id: t.supervisor._id,
+                          name: `${t.supervisor.firstName} ${t.supervisor.lastName}`.trim(),
+                          email: t.supervisor.email,
+                          designation: t.supervisor.designation,
+                        }
+                      : null,
+                  }));
+                  if (externalRows) {
+                    setDisplayRows(mapped);
+                  } else {
+                    setTeams(mapped);
+                  }
+                } catch {
+                  if (externalRows) {
+                    setDisplayRows([]);
+                  } else {
+                    setTeams([]);
+                  }
+                }
+              };
+              run();
+            } catch (e) {
+              toast.error('Failed to delete team');
+            }
+          }
+          setConfirm({ open: false });
         }}
       />
     </>

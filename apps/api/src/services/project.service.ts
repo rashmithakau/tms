@@ -1,6 +1,7 @@
 import { CONFLICT, INTERNAL_SERVER_ERROR } from '../constants/http';
 import appAssert from '../utils/appAssert';
 import ProjectModel from '../models/project.model';
+import TeamModel from '../models/team.model';
 import mongoose from 'mongoose';
 import UserModel from '../models/user.model';
 import { UserRole } from '@tms/shared';
@@ -37,10 +38,19 @@ export const createProject = async (data: CreateProjectParams) => {
 
   if (project.supervisor) {
     const sup = await UserModel.findById(project.supervisor).select('role');
-    if (sup && sup.role !== UserRole.Admin && sup.role !== UserRole.SupervisorAdmin) {
-      await UserModel.findByIdAndUpdate(project.supervisor, {
-        $set: { role: UserRole.Supervisor },
-      });
+    if (sup) {
+      if (sup.role === UserRole.Admin) {
+        // Admin -> SupervisorAdmin when assigned as project supervisor
+        await UserModel.findByIdAndUpdate(project.supervisor, {
+          $set: { role: UserRole.SupervisorAdmin },
+        });
+      } else if (sup.role === UserRole.Emp) {
+        // Emp -> Supervisor when assigned as project supervisor
+        await UserModel.findByIdAndUpdate(project.supervisor, {
+          $set: { role: UserRole.Supervisor },
+        });
+      }
+      // If already SupervisorAdmin or Supervisor, keep current role
     }
   }
 
@@ -115,31 +125,70 @@ export const updateProjectStaff = async (
       ? (project.supervisor as any)._id?.toString?.() || project.supervisor.toString()
       : null;
 
-    // Promote new supervisor if changed (Emp -> Supervisor). Do not override Admin/SupervisorAdmin
+    // Promote new supervisor if changed
     if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
       const sup = await UserModel.findById(newSupervisorId).select('role');
-      if (sup && sup.role !== UserRole.Admin && sup.role !== UserRole.SupervisorAdmin) {
-        await UserModel.findByIdAndUpdate(newSupervisorId, {
-          $set: { role: UserRole.Supervisor },
-        });
+      if (sup) {
+        if (sup.role === UserRole.Admin) {
+          // Admin -> SupervisorAdmin when assigned as project supervisor
+          await UserModel.findByIdAndUpdate(newSupervisorId, {
+            $set: { role: UserRole.SupervisorAdmin },
+          });
+        } else if (sup.role === UserRole.Emp) {
+          // Emp -> Supervisor when assigned as project supervisor
+          await UserModel.findByIdAndUpdate(newSupervisorId, {
+            $set: { role: UserRole.Supervisor },
+          });
+        }
+        // If already SupervisorAdmin or Supervisor, keep current role
       }
     }
-    //previous supervisor if changed or removed and not supervising any other active project  
+    // Demote previous supervisor if changed or removed
     if (
       previousSupervisorId &&
       (previousSupervisorId !== newSupervisorId || !newSupervisorId)
     ) {
-      const stillSupervisingAnother = await ProjectModel.exists({
-        _id: { $ne: projectId },
-        supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
-        status: true,
-      });
-      if (!stillSupervisingAnother) {
-        const prev = await UserModel.findById(previousSupervisorId).select('role');
-        if (prev && prev.role === UserRole.Supervisor) {
-          await UserModel.findByIdAndUpdate(previousSupervisorId, {
-            $set: { role: UserRole.Emp },
+      const prev = await UserModel.findById(previousSupervisorId).select('role');
+      
+      if (prev) {
+        if (prev.role === UserRole.SupervisorAdmin) {
+          // For SupervisorAdmin: check if still supervising any other projects or teams
+          const stillSupervisingAnotherProject = await ProjectModel.exists({
+            _id: { $ne: projectId },
+            supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
+            status: true,
           });
+          
+          const stillSupervisingAnotherTeam = await TeamModel.exists({
+            supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
+            status: true,
+          });
+          
+          // Only demote to Admin if not supervising any other projects or teams
+          if (!stillSupervisingAnotherProject && !stillSupervisingAnotherTeam) {
+            await UserModel.findByIdAndUpdate(previousSupervisorId, {
+              $set: { role: UserRole.Admin },
+            });
+          }
+        } else if (prev.role === UserRole.Supervisor) {
+          // For Supervisor: check if still supervising any other projects or teams
+          const stillSupervisingAnotherProject = await ProjectModel.exists({
+            _id: { $ne: projectId },
+            supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
+            status: true,
+          });
+          
+          const stillSupervisingAnotherTeam = await TeamModel.exists({
+            supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
+            status: true,
+          });
+          
+          // Only demote to Emp if not supervising any other projects or teams
+          if (!stillSupervisingAnotherProject && !stillSupervisingAnotherTeam) {
+            await UserModel.findByIdAndUpdate(previousSupervisorId, {
+              $set: { role: UserRole.Emp },
+            });
+          }
         }
       }
     }
@@ -148,8 +197,8 @@ export const updateProjectStaff = async (
 };
 
 export const softDeleteProject = async (projectId: string) => {
-  // Capture the current supervisor before deletion
-  const existing = await ProjectModel.findById(projectId).select('supervisor');
+  // Capture the current project data before deletion
+  const existing = await ProjectModel.findById(projectId).select('supervisor employees');
 
   const project = await ProjectModel.findByIdAndUpdate(
     projectId,
@@ -158,19 +207,60 @@ export const softDeleteProject = async (projectId: string) => {
   );
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project delete failed');
 
-  // If there was a supervisor, check if they still supervise any other active projects
+  // Handle supervisor role management
   const supervisorId = existing?.supervisor?.toString();
   if (supervisorId) {
-    const stillSupervising = await ProjectModel.exists({
-      _id: { $ne: projectId as any },
-      supervisor: new mongoose.Types.ObjectId(supervisorId),
-      status: true,
-    });
-    if (!stillSupervising) {
-      await UserModel.findByIdAndUpdate(supervisorId, {
-        $set: { role: UserRole.Emp },
-      });
+    const prev = await UserModel.findById(supervisorId).select('role');
+    
+    if (prev) {
+      if (prev.role === UserRole.SupervisorAdmin) {
+        // For SupervisorAdmin: check if still supervising any other projects or teams
+        const stillSupervisingAnotherProject = await ProjectModel.exists({
+          _id: { $ne: projectId },
+          supervisor: new mongoose.Types.ObjectId(supervisorId),
+          status: true,
+        });
+        
+        const stillSupervisingAnotherTeam = await TeamModel.exists({
+          supervisor: new mongoose.Types.ObjectId(supervisorId),
+          status: true,
+        });
+        
+        // Only demote to Admin if not supervising any other projects or teams
+        if (!stillSupervisingAnotherProject && !stillSupervisingAnotherTeam) {
+          await UserModel.findByIdAndUpdate(supervisorId, {
+            $set: { role: UserRole.Admin },
+          });
+        }
+      } else if (prev.role === UserRole.Supervisor) {
+        // For Supervisor: check if still supervising any other projects or teams
+        const stillSupervisingAnotherProject = await ProjectModel.exists({
+          _id: { $ne: projectId },
+          supervisor: new mongoose.Types.ObjectId(supervisorId),
+          status: true,
+        });
+        
+        const stillSupervisingAnotherTeam = await TeamModel.exists({
+          supervisor: new mongoose.Types.ObjectId(supervisorId),
+          status: true,
+        });
+        
+        // Only demote to Emp if not supervising any other projects or teams
+        if (!stillSupervisingAnotherProject && !stillSupervisingAnotherTeam) {
+          await UserModel.findByIdAndUpdate(supervisorId, {
+            $set: { role: UserRole.Emp },
+          });
+        }
+      }
     }
+  }
+
+  // Remove project from all users' teams array
+  if (existing?.employees && existing.employees.length > 0) {
+    await UserModel.updateMany(
+      { _id: { $in: existing.employees } },
+      { $pull: { teams: new mongoose.Types.ObjectId(projectId) } }
+    );
   }
 
   return { projectId };

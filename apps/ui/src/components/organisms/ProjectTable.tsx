@@ -143,6 +143,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         projectId={staffManagerTeam?.id || ''}
         initialEmployees={staffManagerTeam?.employees || []}
         initialSupervisor={staffManagerTeam?.supervisor || null}
+        onSaved={() => {
+          // Refresh the project data after staff update
+          if (onRefresh) {
+            onRefresh();
+          }
+        }}
       />
     </>
   );
