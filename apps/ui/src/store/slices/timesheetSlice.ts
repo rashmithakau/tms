@@ -11,6 +11,7 @@ interface ITimesheetState {
   currentTimesheetId: string | null;
   status: TimesheetStatus | null;
   originalDataHash: string | null;
+  isDraftSaved: boolean;
 }
 
 const initialState: ITimesheetState = {
@@ -21,6 +22,7 @@ const initialState: ITimesheetState = {
   currentTimesheetId: null,
   status: null,
   originalDataHash: null,
+  isDraftSaved: false,
 };
 
 const timesheetSlice = createSlice({
@@ -51,9 +53,12 @@ const timesheetSlice = createSlice({
     setOriginalDataHash: (state, action: PayloadAction<string | null>) => {
       state.originalDataHash = action.payload;
     },
+    setIsDraftSaved: (state, action: PayloadAction<boolean>) => {
+      state.isDraftSaved = action.payload;
+    },
   },
 });
 
 export default timesheetSlice.reducer;
-export const { setSelectedActivities, setTimesheetData, setWeekStartDate, setWeekEndDate, setCurrentTimesheetId, setTimesheetStatus, setOriginalDataHash } =
+export const { setSelectedActivities, setTimesheetData, setWeekStartDate, setWeekEndDate, setCurrentTimesheetId, setTimesheetStatus, setOriginalDataHash, setIsDraftSaved } =
   timesheetSlice.actions;

@@ -480,18 +480,23 @@ export const batchUpdateDailyTimesheetStatus = async (
         // Save rejection reason immediately for each rejected item
         if (status === TimesheetStatus.Rejected && rejectionReason) {
           try {
-            await RejectReason.create({
+            const rejectReasonData: any = {
               reason: rejectionReason,
               timesheet_id: timesheet._id.toString(),
-              project_id: item.projectId || '',
+              work_name: item.work,
               rejected_days_indexes: dayIndices,
-            });
-            console.log('RejectReason saved for individual rejection:', {
-              reason: rejectionReason,
-              timesheet_id: timesheet._id.toString(),
-              project_id: item.projectId || '',
-              rejected_days_indexes: dayIndices,
-            });
+            };
+
+            // Add project_id or team_id based on what's available
+            if (item.projectId) {
+              rejectReasonData.project_id = item.projectId;
+            }
+            if (item.teamId) {
+              rejectReasonData.team_id = item.teamId;
+            }
+
+            await RejectReason.create(rejectReasonData);
+            console.log('RejectReason saved for individual rejection:', rejectReasonData);
           } catch (err) {
             console.error('Failed to save RejectReason for individual rejection:', err);
           }
