@@ -1,28 +1,6 @@
 import { TimesheetStatus } from '@tms/shared';
-
 import mongoose, { Schema, Document } from "mongoose";
-
-interface ITimesheetItem {
-  work: string;
-  projectId?: string;       
-  teamId?: string;
-  hours: string[];
-  descriptions: string[];
-  dailyStatus: TimesheetStatus[]; // status for each day
-}
-
-interface ITimesheetCategory {
-  category: string;      
-  items: ITimesheetItem[];
-}
-
-export interface ITimesheet extends Document {
-  userId: mongoose.Types.ObjectId;          
-  weekStartDate: Date;    
-  data: ITimesheetCategory[];
-  status: TimesheetStatus; 
-  rejectionReason?: string; // Add rejection reason field
-}
+import { ITimesheet, ITimesheetDocument, ITimesheetItem, ITimesheetCategory } from '../interfaces';
 
 const TimesheetItemSchema = new Schema<ITimesheetItem>({
   work: { type: String, required: true },
@@ -49,7 +27,7 @@ const TimesheetSchema = new Schema<ITimesheet>({
   rejectionReason: { type: String }, // Add rejection reason field
 });
 
-export const Timesheet = mongoose.model<ITimesheet>(
+export const Timesheet = mongoose.model<ITimesheetDocument>(
   "Timesheet",
   TimesheetSchema
 );

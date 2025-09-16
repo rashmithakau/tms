@@ -7,37 +7,28 @@ import ProjectModel from '../models/project.model';
 import TeamModel from '../models/team.model';
 import NotificationModel from '../models/notification.model';
 import { socketService } from '../config/socket';
+import { getMondayUTC } from '../utils/getMondayUTC';
+import { createFilledArray } from '../utils/arrayUtils';
+import { getSupervisedUserIds } from '../utils/assignmentUtils';
+import {
+  ITimesheet,
+  ICreateTimesheetParams,
+  IUpdateTimesheetParams,
+  ITimesheetSubmissionParams,
+  ITimesheetCategoryInput,
+} from '../interfaces';
 
-interface ITimesheetItem {
-  work?: string;
-  projectId?: string; 
-  teamId?: string;
-  hours: string[]; 
-  descriptions: string[]; 
-}
-
-export interface ITimesheetCategory {
-  category: string; 
-  items: ITimesheetItem[]; 
-}
-
-export interface CreateTimesheetParams {
-  userId: string;
-  weekStartDate: string | Date;
-  data: ITimesheetCategory[];
-}
-
-export type UpdateTimesheetParams = Partial<CreateTimesheetParams> & {
+export type UpdateTimesheetParams = Partial<IUpdateTimesheetParams> & {
   status?: TimesheetStatus;
 };
 
-export const createTimesheet = async (params: CreateTimesheetParams) => {
+export const createTimesheet = async (params: ICreateTimesheetParams) => {
 
   const dataWithDailyStatus = params.data.map(category => ({
     ...category,
     items: category.items.map(item => ({
       ...item,
-      dailyStatus: Array(7).fill(TimesheetStatus.Draft)
+      dailyStatus: createFilledArray(7, TimesheetStatus.Draft)
     }))
   }));
 
@@ -53,7 +44,22 @@ export const createTimesheet = async (params: CreateTimesheetParams) => {
   return { timesheet: doc };
 };
 
-// --- Submit draft timesheets ---
+export const createTimesheetWithBusinessLogic = async (
+  userId: string,
+  weekStartDate: string | Date,
+  data: ITimesheetCategoryInput[]
+) => {
+  const dataWithDailyStatus = data.map(category => ({
+    ...category,
+    items: category.items.map(item => ({
+      ...item,
+      dailyStatus: Array(7).fill(TimesheetStatus.Draft)
+    }))
+  }));
+
+  return await createTimesheet({ userId, weekStartDate, data: dataWithDailyStatus });
+};
+
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
   const results = [];
   
@@ -73,16 +79,13 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
         continue;
       }
       
-      // Store the original status before making changes
       const originalStatus = timesheet.status;
       
       timesheet.data.forEach((category) => {
         category.items.forEach((item) => {
           if (originalStatus === TimesheetStatus.Draft) {
-            // For Draft timesheets, set all daily statuses to Pending
             item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
           } else if (originalStatus === TimesheetStatus.Rejected) {
-            // For Rejected timesheets, only update Rejected daily statuses to Pending
             if (!item.dailyStatus || item.dailyStatus.length !== 7) {
               item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
             } else {
@@ -107,7 +110,6 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
   return { matched: ids.length, modified: results.length };
 };
 
-// --- Update daily status of specific timesheet items ---
 export const updateDailyTimesheetStatus = async (
   supervisorId: string, 
   timesheetId: string, 
@@ -125,7 +127,6 @@ export const updateDailyTimesheetStatus = async (
     .populate('userId', 'firstName lastName email');
   appAssert(timesheet, NOT_FOUND, 'Timesheet not found');
 
-  // Verify the timesheet belongs to a supervised user AND the specific item is for a supervised project/team
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
   const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
   
@@ -143,37 +144,27 @@ export const updateDailyTimesheetStatus = async (
       supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
     )
   );
-  
-  // Combine both project and team supervised users
+
   const allSupervisedUserIds = Array.from(
     new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
   );
 
-  // Check if timesheet owner is supervised
   const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
   appAssert(allSupervisedUserIds.includes(timesheetUserId), UNAUTHORIZED, 'Unauthorized: You can only approve timesheets from your supervised employees');
 
-  // Check if the specific item is for a project/team the supervisor supervises
   const item = timesheet.data[categoryIndex].items[itemIndex];
   
-  // Authorization logic: Supervisors can only approve specific types of timesheets
   if (item.projectId && item.teamId) {
-    // Item has both project and team - this should not happen in normal cases
-    // But if it does, supervisor must supervise the specific project for project items
     const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
     appAssert(isProjectSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve project timesheet items if you supervise that specific project');
   } else if (item.projectId) {
-    // Project timesheet - only project supervisors can approve
     const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
     appAssert(isProjectSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve project timesheets if you supervise that specific project');
   } else if (item.teamId) {
-    // Team timesheet - only team supervisors can approve  
     const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
     appAssert(isTeamSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve team timesheets if you supervise that specific team');
   }
-  // Items with neither projectId nor teamId (like absence) are allowed if user is supervised via any mechanism
 
-  // Validate indices
   appAssert(categoryIndex >= 0 && categoryIndex < timesheet.data.length, BAD_REQUEST, `Invalid category index: ${categoryIndex}. Available categories: ${timesheet.data.length}`);
   const category = timesheet.data[categoryIndex];
   appAssert(itemIndex >= 0 && itemIndex < category.items.length, BAD_REQUEST, `Invalid item index: ${itemIndex}. Available items in category '${category.category}': ${category.items.length}`);
@@ -184,14 +175,12 @@ export const updateDailyTimesheetStatus = async (
     categoryItem.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
   }
 
-  // Update the specified days
   dayIndices.forEach(dayIndex => {
     if (dayIndex >= 0 && dayIndex < 7) {
       categoryItem.dailyStatus[dayIndex] = status;
     }
   });
 
-  // Save rejection reason immediately for each rejected item
   if (status === TimesheetStatus.Rejected && rejectionReason) {
     try {
       await RejectReason.create({
@@ -213,7 +202,6 @@ export const updateDailyTimesheetStatus = async (
 
   timesheet.markModified('data');
 
-  // Check if all days for all items are now approved/rejected
   const allItemsProcessed = timesheet.data.every(cat => 
     cat.items.every(itm => 
       itm.dailyStatus.every(dayStatus => 
@@ -222,7 +210,6 @@ export const updateDailyTimesheetStatus = async (
     )
   );
 
-  // If all items are processed, update overall status
   if (allItemsProcessed) {
     const allApproved = timesheet.data.every(cat => 
       cat.items.every(itm => 
@@ -231,7 +218,6 @@ export const updateDailyTimesheetStatus = async (
     );
     timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
 
-    // Set overall rejection reason if the overall timesheet status is rejected
     if (timesheet.status === TimesheetStatus.Rejected && rejectionReason) {
       timesheet.rejectionReason = rejectionReason;
     }
@@ -239,15 +225,13 @@ export const updateDailyTimesheetStatus = async (
 
   const savedTimesheet = await timesheet.save();
 
-  // Emit detailed rejection notification for single-item flow
   try {
     if (status === TimesheetStatus.Rejected) {
       const weekStart = new Date(savedTimesheet.weekStartDate);
       const item: any = savedTimesheet.data[categoryIndex].items[itemIndex];
       const projectId = item.projectId || '';
       
-      // Fetch the actual project name from the database
-      let projectName = 'Project'; // Default fallback
+      let projectName = 'Project'; 
       if (projectId) {
         try {
           const project = await ProjectModel.findById(projectId);
@@ -295,7 +279,6 @@ export const updateDailyTimesheetStatus = async (
   return savedTimesheet;
 };
 
-//Batch update daily status of multiple timesheet items 
 export const batchUpdateDailyTimesheetStatus = async (
   supervisorId: string,
   updates: Array<{
@@ -307,8 +290,6 @@ export const batchUpdateDailyTimesheetStatus = async (
     rejectionReason?: string;
   }>
 ) => {
-
-  // Group updates by timesheetId to process each timesheet once
   const groupedUpdates = new Map<string, typeof updates>();
   updates.forEach(update => {
     if (!groupedUpdates.has(update.timesheetId)) {
@@ -319,7 +300,6 @@ export const batchUpdateDailyTimesheetStatus = async (
 
   const results = [];
 
-  // Get supervisor's projects and teams once for authorization
   const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
   const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
   
@@ -338,22 +318,18 @@ export const batchUpdateDailyTimesheetStatus = async (
     )
   );
   
-  // Combine both project and team supervised users
   const allSupervisedUserIds = Array.from(
     new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
   );
 
   for (const [timesheetId, timesheetUpdates] of groupedUpdates) {
     try {
-      
-      // Validate ObjectId format
       if (!timesheetId || timesheetId.length !== 24) {
         const error = `Invalid timesheet ID format: ${timesheetId}`;
         console.error(error);
         throw new Error(error);
       }
 
-      // Find the timesheet
       const timesheet = await Timesheet.findById(timesheetId)
         .populate('userId', 'firstName lastName email');
       
@@ -363,8 +339,6 @@ export const batchUpdateDailyTimesheetStatus = async (
         throw new Error(error);
       }
 
-
-      // Verify the timesheet belongs to a supervised user
       const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
       
       if (!allSupervisedUserIds.includes(timesheetUserId)) {
@@ -376,7 +350,6 @@ export const batchUpdateDailyTimesheetStatus = async (
         throw new Error(error);
       }
 
-      // Pre-validate all project items before making any changes
       for (const update of timesheetUpdates) {
         const { categoryIndex, itemIndex } = update;
         
@@ -393,10 +366,7 @@ export const batchUpdateDailyTimesheetStatus = async (
         
         const item = category.items[itemIndex];
         
-        // Authorization logic: Supervisors can only approve specific types of timesheets
         if (item.projectId && item.teamId) {
-          // Item has both project and team - this should not happen in normal cases
-          // But if it does, supervisor must supervise the specific project for project items
           const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
           if (!isProjectSupervised) {
             console.error('Authorization failed:', {
@@ -430,7 +400,6 @@ export const batchUpdateDailyTimesheetStatus = async (
             throw new Error('Unauthorized: You can only approve team timesheets if you supervise that specific team');
           }
         }
-        // Items with neither projectId nor teamId (like absence) are allowed if user is supervised via any mechanism
       }
 
       // Apply all updates for this timesheet
@@ -623,14 +592,12 @@ export const hasSubmittedTimesheetForWeek = async (
   weekEndDate: Date
 ): Promise<boolean> => {
   try {
-    // Normalize dates to UTC
     const startDate = new Date(weekStartDate);
     startDate.setUTCHours(0, 0, 0, 0);
     
     const endDate = new Date(weekEndDate);
     endDate.setUTCHours(23, 59, 59, 999);
 
-    // Check if user has a submitted or approved timesheet for the week
     const timesheet = await Timesheet.findOne({
       userId,
       weekStartDate: {
@@ -649,35 +616,134 @@ export const hasSubmittedTimesheetForWeek = async (
   }
 };
 
-export const createTimesheetReminderNotification = async (
-  userId: string,
-  weekStartDate: Date,
-  weekEndDate: Date
-): Promise<void> => {
-  try {
-    const notification = await NotificationModel.create({
-      userId,
-      title: 'Timesheet Submission Reminder',
-      message: `Please submit your timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
-      type: 'TimesheetReminder',
-      isRead: false,
-      createdAt: new Date()
-    });
+export const listUserTimesheets = async (userId: string) => {
+  return await Timesheet.find({ userId }).sort({ weekStartDate: -1 });
+};
 
-    // Emit socket notification if user is online
-    try {
-      await socketService.emitToUser(userId, 'notification', {
-        title: notification.title,
-        message: notification.message,
-        createdAt: notification.createdAt,
-      });
-    } catch (socketError) {
-      console.error('Failed to emit socket notification:', socketError);
-    }
-  } catch (error) {
-    console.error('Error creating timesheet reminder notification:', error);
-    throw error;
+export const getSupervisedTimesheets = async (supervisorId: string) => {
+  const allSupervisedUserIds = await getSupervisedUserIds(supervisorId);
+
+  if (allSupervisedUserIds.length === 0) {
+    return [];
   }
+
+  const timesheets = await Timesheet.find({ userId: { $in: allSupervisedUserIds } })
+    .populate('userId', 'firstName lastName email contactNumber designation')
+    .sort({ weekStartDate: -1 });
+
+  const projectIds = new Set<string>();
+  const teamIds = new Set<string>();
+  
+  timesheets.forEach(ts => {
+    ts.data?.forEach(category => {
+      category.items?.forEach(item => {
+        if (item.projectId) {
+          projectIds.add(item.projectId);
+        }
+        if (item.teamId) {
+          teamIds.add(item.teamId);
+        }
+      });
+    });
+  });
+
+  const projects = await ProjectModel.find({ _id: { $in: Array.from(projectIds) } });
+  const teams = await TeamModel.find({ _id: { $in: Array.from(teamIds) } });
+  
+  const projectMap = new Map(projects.map(p => [p._id.toString(), p.projectName]));
+  const teamMap = new Map(teams.map(t => [t._id.toString(), t.teamName]));
+
+  timesheets.forEach(ts => {
+    ts.data?.forEach(category => {
+      category.items?.forEach(item => {
+        if (item.projectId && projectMap.has(item.projectId)) {
+          (item as any).projectName = projectMap.get(item.projectId);
+        }
+        if (item.teamId && teamMap.has(item.teamId)) {
+          (item as any).teamName = teamMap.get(item.teamId);
+        }
+      });
+    });
+  });
+
+  return timesheets;
+};
+
+export const updateSupervisedTimesheetsStatus = async (
+  supervisorId: string, 
+  ids: string[], 
+  status: TimesheetStatus
+) => {
+  const allSupervisedUserIds = await getSupervisedUserIds(supervisorId);
+
+  if (allSupervisedUserIds.length === 0) {
+    throw new Error('You have no supervised employees');
+  }
+
+  return await Timesheet.updateMany(
+    { 
+      _id: { $in: ids }, 
+      userId: { $in: allSupervisedUserIds },
+      status: TimesheetStatus.Pending 
+    },
+    { $set: { status } }
+  );
+};
+
+export const updateUserTimesheet = async (
+  userId: string,
+  timesheetId: string,
+  updateData: IUpdateTimesheetParams
+) => {
+  const { weekStartDate, data, status } = updateData;
+  const updateFields: Partial<ITimesheet> = {};
+
+  if (weekStartDate) {
+    updateFields.weekStartDate = weekStartDate instanceof Date ? weekStartDate : new Date(weekStartDate);
+  }
+
+  if (data) {
+    const existingTimesheet = await Timesheet.findOne({ _id: timesheetId, userId });
+    
+    const dataWithDailyStatus = data.map((category: any, categoryIndex: number) => ({
+      ...category,
+      items: category.items.map((item: any, itemIndex: number) => {
+        const existingDailyStatus = existingTimesheet?.data?.[categoryIndex]?.items?.[itemIndex]?.dailyStatus;
+        
+        return {
+          ...item,
+          dailyStatus: existingDailyStatus && existingDailyStatus.length === 7
+            ? existingDailyStatus
+            : (item as any).dailyStatus && (item as any).dailyStatus.length === 7 
+              ? (item as any).dailyStatus 
+              : Array(7).fill(TimesheetStatus.Draft)
+        };
+      })
+    }));
+    (updateFields as any).data = dataWithDailyStatus;
+  }
+
+  if (status) updateFields.status = status;
+
+  return await Timesheet.findOneAndUpdate(
+    { _id: timesheetId, userId },
+    { $set: updateFields },
+    { new: true }
+  );
+};
+
+export const deleteUserTimesheet = async (userId: string, timesheetId: string) => {
+  return await Timesheet.findOneAndDelete({ _id: timesheetId, userId });
+};
+
+export const getOrCreateTimesheetForWeek = async (userId: string, weekStartDateRaw?: string) => {
+  let weekStartDate = getMondayUTC(weekStartDateRaw ? weekStartDateRaw : new Date());
+
+  return await Timesheet.findOneAndUpdate(
+    { userId, weekStartDate },
+    { $setOnInsert: { userId, weekStartDate, status: TimesheetStatus.Draft, data: [] } },
+    { new: true, upsert: true }
+  );
 };
 
 

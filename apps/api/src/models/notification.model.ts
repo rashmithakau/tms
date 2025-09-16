@@ -1,17 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-
-export interface INotification extends Document {
-  userId: mongoose.Types.ObjectId | string;
-  type: 'TimesheetRejected' | 'TimesheetReminder';
-  title: string;
-  message: string;
-  projectId?: string;
-  projectName?: string;
-  rejectedDates?: string[];
-  reason?: string;
-  isRead: boolean;
-  createdAt: Date;
-}
+import { INotification, INotificationDocument } from '../interfaces';
 
 const NotificationSchema = new Schema<INotification>(
   {
@@ -28,7 +16,7 @@ const NotificationSchema = new Schema<INotification>(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-const NotificationModel = mongoose.model<INotification>('Notification', NotificationSchema);
+const NotificationModel = mongoose.model<INotificationDocument>('Notification', NotificationSchema);
 export default NotificationModel;
 
 

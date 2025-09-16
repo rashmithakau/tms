@@ -16,6 +16,8 @@ import VerificationCodeType from '../constants/verificationCodeType';
 import mongoose from 'mongoose';
 import UserModel  from '../models/user.model';
 
+
+
 export const loginHandler = catchErrors(async (req, res) => {
   const request = loginSchema.parse({
     ...req.body,
@@ -84,7 +86,7 @@ export const changePasswordHandler = catchErrors(async (req, res) => {
   });
 });
 
-//change password flow
+
 export const sendPasswordResetHandler = catchErrors(async (req, res) => {
     const email = emailSchema.parse(req.body.email);
     await sendPasswordResetEmail(email);

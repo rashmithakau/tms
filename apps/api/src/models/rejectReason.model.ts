@@ -1,14 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-
-export interface IRejectReason extends Document {
-  reason: string;
-  timesheet_id: string;
-  project_id?: string;
-  team_id?: string;
-  work_name: string;
-  rejected_days_indexes: number[];
-  createdAt: Date;
-}
+import { IRejectReason, IRejectReasonDocument } from '../interfaces';
 
 const RejectReasonSchema: Schema = new Schema({
   reason: { type: String, required: true },
@@ -20,4 +11,4 @@ const RejectReasonSchema: Schema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<IRejectReason>('RejectReason', RejectReasonSchema,"reject_reasons");
+export default mongoose.model<IRejectReasonDocument>('RejectReason', RejectReasonSchema,"reject_reasons");

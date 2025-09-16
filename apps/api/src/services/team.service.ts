@@ -5,6 +5,10 @@ import TeamModel from '../models/team.model';
 import ProjectModel from '../models/project.model';
 import UserModel from '../models/user.model';
 import { UserRole } from '@tms/shared';
+import { stringArrayToObjectIds, stringToObjectId } from '../utils/mongooseUtils';
+import { filterValidIds } from '../utils/arrayUtils';
+import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/roleUtils';
+import { updateUserTeamMemberships } from '../utils/assignmentUtils';
 
 export type CreateTeamParams = {
   teamName: string;
@@ -19,42 +23,19 @@ export const createTeam = async (data: CreateTeamParams) => {
 
   const team = await TeamModel.create({
     teamName: data.teamName,
-    members: (data.members ?? [])
-      .filter((id) => !!id)
-      .map((id) => new mongoose.Types.ObjectId(id)),
-    supervisor:
-      data.supervisor && data.supervisor.trim() !== ''
-        ? new mongoose.Types.ObjectId(data.supervisor)
-        : null,
+    members: stringArrayToObjectIds(filterValidIds(data.members ?? [])),
+    supervisor: stringToObjectId(data.supervisor),
     status: data.status ?? true,
   });
 
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team creation failed');
 
-
   if (team.supervisor) {
-    const sup = await UserModel.findById(team.supervisor).select('role');
-    if (sup) {
-      if (sup.role === UserRole.Admin) {
-        // Admin -> SupervisorAdmin when assigned as team supervisor
-        await UserModel.findByIdAndUpdate(team.supervisor, {
-          $set: { role: UserRole.SupervisorAdmin },
-        });
-      } else if (sup.role === UserRole.Emp) {
-        // Emp -> Supervisor when assigned as team supervisor
-        await UserModel.findByIdAndUpdate(team.supervisor, {
-          $set: { role: UserRole.Supervisor },
-        });
-      }
-      // If already SupervisorAdmin or Supervisor, keep current role
-    }
+    await updateUserRoleOnSupervisorAssignment(team.supervisor.toString());
   }
 
   if ((data.members ?? []).length > 0) {
-    await UserModel.updateMany(
-      { _id: { $in: (data.members ?? []).map((id) => new mongoose.Types.ObjectId(id)) } },
-      { $addToSet: { teams: team._id } }
-    );
+    await updateUserTeamMemberships(team._id.toString(), filterValidIds(data.members ?? []));
   }
 
   return { team };

@@ -2,14 +2,14 @@ import cron from 'node-cron';
 import { getAllActiveUsers } from './user.service';
 import {
   hasSubmittedTimesheetForWeek,
-  createTimesheetReminderNotification,
 } from './timesheet.service';
 import { sendEmail } from '../utils/sendEmail';
 import { getTimesheetReminderTemplate } from '../utils/emailTemplates';
 import { APP_ORIGIN } from '../constants/env';
 import UserModel from '../models/user.model';
-import TeamModel from '../models/team.model';
-import ProjectModel from '../models/project.model';
+import { getCurrentWeekRange } from '../utils/dateRange';
+import { isEmployeeAssignedToProjectOrTeam } from '../utils/assignmentUtils';
+import { createTimesheetReminderNotification } from '../utils/notificationUtils';
 
 export class CronJobService {
   public startScheduledJobs(): void {
@@ -30,7 +30,7 @@ export class CronJobService {
 
   private async checkMissingTimesheets(): Promise<void> {
     try {
-      const currentWeek = this.getCurrentWeekRange();
+      const currentWeek = getCurrentWeekRange();
       console.log(
         `Checking timesheet submissions for week: ${currentWeek.startDate.toDateString()} - ${currentWeek.endDate.toDateString()}`
       );
@@ -50,9 +50,7 @@ export class CronJobService {
         if (!userDoc) continue;
 
         // Check if employee is assigned to any project or team
-        const isAssigned = await this.isEmployeeAssignedToProjectOrTeam(
-          userDoc._id.toString()
-        );
+        const isAssigned = await isEmployeeAssignedToProjectOrTeam(userDoc._id.toString());
         if (!isAssigned) {
           console.log(
             `Skipping ${employee.firstName} ${employee.lastName} - not assigned to any project or team`
@@ -87,74 +85,6 @@ export class CronJobService {
       }
     } catch (error) {
       console.error('Error in checkMissingTimesheets:', error);
-    }
-  }
-
-  private getCurrentWeekRange(): { startDate: Date; endDate: Date } {
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-
-    // Calculate start of week (Monday)
-    const startDate = new Date(now);
-    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    startDate.setDate(now.getDate() + daysToMonday);
-    startDate.setUTCHours(0, 0, 0, 0);
-
-    // Calculate end of week (Friday)
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 4); // Friday
-    endDate.setUTCHours(23, 59, 59, 999);
-
-    return { startDate, endDate };
-  }
-
-  private async isEmployeeAssignedToProjectOrTeam(
-    userId: string
-  ): Promise<boolean> {
-    try {
-      const assignedToProject = await ProjectModel.findOne({
-        employees: userId,
-        status: true,
-      });
-
-      if (assignedToProject) {
-        return true;
-      }
-
-      const assignedToTeam = await TeamModel.findOne({
-        members: userId,
-        status: true,
-      });
-
-      if (assignedToTeam) {
-        return true;
-      }
-
-      const supervisorOfTeam = await TeamModel.findOne({
-        supervisor: userId,
-        status: true,
-      });
-
-      if (supervisorOfTeam) {
-        return true;
-      }
-
-      const supervisorOfProject = await ProjectModel.findOne({
-        supervisor: userId,
-        status: true,
-      });
-
-      if (supervisorOfProject) {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error(
-        `Error checking project/team assignment for user ${userId}:`,
-        error
-      );
-      return false;
     }
   }
 

@@ -7,13 +7,11 @@ import { Request, Response } from 'express';
 
 export const registerHandler = (role: UserRole) =>
   catchErrors(async (req: Request, res: Response) => {
-    // Validate and parse the request body
     const parsedRequest = registerSchema.parse({
       ...req.body,
       userAgent: req.headers['user-agent'],
     });
 
-    // Assign the role to the parsed request
     const requestWithRole = {
       ...parsedRequest,
       role,
@@ -30,7 +28,6 @@ export const registerHandler = (role: UserRole) =>
 
       const user = await getUsersByRole(role);
   
-      // Return the created user with a 201 status
       return res.status(OK).json(user);
     });
 
