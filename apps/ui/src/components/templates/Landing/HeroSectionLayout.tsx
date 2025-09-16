@@ -1,10 +1,9 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import SectionContainer from '../atoms/Landing/SectionContainer';
+import SectionContainer from '../../atoms/Landing/SectionContainer';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
+import { useTheme } from '@mui/material/styles';
 export interface HeroSectionLayoutProps {
   id?: string;
   title: React.ReactNode;
@@ -24,6 +23,7 @@ const HeroSectionLayout: React.FC<HeroSectionLayoutProps> = ({
   background,
   mobileImageFirst = false,
 }) => {
+  const theme = useTheme();
   return (
     <Box
       id={id}
@@ -52,7 +52,7 @@ const HeroSectionLayout: React.FC<HeroSectionLayoutProps> = ({
               {description ? (
                 <Typography
                   variant="h6"
-                  sx={{ color: 'text.secondary', lineHeight: 1.6 }}
+                  sx={{ color: theme.palette.text.secondary, lineHeight: 1.6 }}
                 >
                   {description}
                 </Typography>

@@ -7,9 +7,11 @@ import { ArrowForward } from '@mui/icons-material';
 interface LandingActionButtonsProps {
   onGetStarted: () => void;
   onExplore: () => void;
+  containbtn?:string;
+  outlinebtn?:string;
 }
 
-const LandingActionButtons: React.FC<LandingActionButtonsProps> = ({ onGetStarted, onExplore }) => {
+const LandingActionButtons: React.FC<LandingActionButtonsProps> = ({ onGetStarted, onExplore,containbtn ,outlinebtn}) => {
   const theme = useTheme();
   return (
     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -25,7 +27,7 @@ const LandingActionButtons: React.FC<LandingActionButtonsProps> = ({ onGetStarte
           '&:hover': { bgcolor: theme.palette.primary.dark },
         }}
       >
-        Get Started
+        {containbtn}
       </BaseButton>
       <BaseButton
         variant="outlined"
@@ -42,7 +44,7 @@ const LandingActionButtons: React.FC<LandingActionButtonsProps> = ({ onGetStarte
         }}
         onClick={onExplore}
       >
-        Explore More
+       {outlinebtn}
       </BaseButton>
     </Stack>
   );

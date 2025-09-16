@@ -80,10 +80,10 @@ export default function CustomAppBar({
       await logout();
       authLogout();
       toast.success('Logged out successfully');
-      window.location.reload();
+      window.location.href = '/login';
     } catch (error) {
       authLogout();
-      toast.error('Logout failed on server. You have been signed out locally.');
+      toast.error('Logout failed on server.');
       window.location.reload();
     }
   };
@@ -164,7 +164,7 @@ export default function CustomAppBar({
         </Box>
       </Toolbar>
       <Divider />
-      
+
       <Popover
         id={id}
         open={open}
@@ -201,7 +201,10 @@ export default function CustomAppBar({
         <EmpMenu onClose={handleEmpMenuClose} />
       </Popover>
 
-      <ProfilePopup open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <ProfilePopup
+        open={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
     </AppBar>
   );
 }

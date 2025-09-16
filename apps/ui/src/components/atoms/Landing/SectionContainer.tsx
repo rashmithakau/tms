@@ -6,7 +6,7 @@ type Props = React.PropsWithChildren<{
   component?: React.ElementType<any>;
 }>;
 
-const SectionContainer: React.FC<Props> = ({ children, maxWidth = 'lg', component: Component }) => {
+const SectionContainer: React.FC<Props> = ({ children, maxWidth = 'xl', component: Component }) => {
   return (
     <Container maxWidth={maxWidth} {...(Component ? { component: Component } : {})}>
       {children}

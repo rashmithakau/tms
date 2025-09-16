@@ -36,7 +36,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, features 
       <Typography variant="h5" component="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
         {title}
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body1" sx={{ mb: 3,color: theme.palette.text.secondary }}>
         {description}
       </Typography>
       <Box >
