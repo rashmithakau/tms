@@ -17,7 +17,6 @@ import {
 } from "../services/timesheet.service";
 import { getMondayUTC } from '../utils/getMondayUTC';
 
-//Create new timesheet
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = createTimesheetSchema.parse(req.body);
@@ -28,21 +27,18 @@ export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   return res.status(CREATED).json(result);
 });
 
-//List my timesheets
 export const listMyTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const timesheets = await listUserTimesheets(userId);
   return res.status(OK).json({ timesheets });
 });
 
-//List supervised timesheets
 export const listSupervisedTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
   const timesheets = await getSupervisedTimesheets(supervisorId);
   return res.status(OK).json({ timesheets });
 });
 
-//Update status of supervised timesheets 
 export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
   const { ids, status } = req.body as { ids: string[]; status: TimesheetStatus };
@@ -59,7 +55,6 @@ export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: R
   }
 });
 
-// --- Update my timesheet ---
 export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const timesheetId = req.params.id;
@@ -69,7 +64,6 @@ export const updateMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   return res.status(OK).json(updated);
 });
 
-// Delete my timesheet 
 export const deleteMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const id = req.params.id;
@@ -77,7 +71,6 @@ export const deleteMyTimesheetHandler = catchErrors(async (req: Request, res: Re
   return res.status(OK).json(deleted);
 });
 
-//Submit draft timesheets
 export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = submitTimesheetsSchema.parse(req.body);
@@ -88,7 +81,7 @@ export const submitDraftTimesheetsHandler = catchErrors(async (req: Request, res
   return res.status(OK).json(result);
 });
 
-// Get or create my timesheet for a given week
+
 export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const weekStartDateRaw = req.query.weekStartDate as string;
@@ -97,7 +90,7 @@ export const getOrCreateMyTimesheetForWeekHandler = catchErrors(async (req: Requ
   return res.status(OK).json({ timesheet });
 });
 
-//Update daily status of specific timesheet items 
+
 export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
   const { timesheetId, categoryIndex, itemIndex, dayIndices, status, rejectionReason } = req.body as {
@@ -126,7 +119,6 @@ export const updateDailyTimesheetStatusHandler = catchErrors(async (req: Request
   return res.status(OK).json({ timesheet: result });
 });
 
-//Batch update daily status of multiple timesheet items 
 export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Request, res: Response) => {
   const supervisorId = req.userId as string;
   
@@ -141,14 +133,12 @@ export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Re
     }>;
   };
 
-  // Validate request body
   if (!updates || !Array.isArray(updates) || updates.length === 0) {
     return res.status(BAD_REQUEST).json({ 
       message: 'Updates array is required and must not be empty' 
     });
   }
 
-  // Validate all statuses
   const validStatuses = [TimesheetStatus.Approved, TimesheetStatus.Rejected];
   for (const update of updates) {
     if (!validStatuses.includes(update.status)) {

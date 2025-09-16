@@ -16,8 +16,6 @@ import VerificationCodeType from '../constants/verificationCodeType';
 import mongoose from 'mongoose';
 import UserModel  from '../models/user.model';
 
-
-
 export const loginHandler = catchErrors(async (req, res) => {
   const request = loginSchema.parse({
     ...req.body,
@@ -71,7 +69,6 @@ export const refreshHandler = catchErrors(async (req, res) => {
 export const changePasswordHandler = catchErrors(async (req, res) => {
   const request = changePasswordSchema.parse(req.body);
 
-  // Get user ID from the authenticated request
   const userId = req.userId as string;
   appAssert(userId, UNAUTHORIZED, 'User not authenticated');
 
@@ -99,7 +96,6 @@ export const sendPasswordResetHandler = catchErrors(async (req, res) => {
 export const resetPasswordHandler = catchErrors(async (req, res) => {
     const { newPassword, verificationCodeId } = resetPasswordSchema.parse(req.body);
 
-    // Find the verification code and validate it
     const validCode = await VerificationCodeModel.findOne({
       _id: verificationCodeId,
       type: VerificationCodeType.PasswordReset,
@@ -137,15 +133,12 @@ export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
   const authHeader = req.headers.authorization;
   appAssert(authHeader, NOT_FOUND, 'Authorization header is required');
   
-  // Extract token from "Bearer TOKEN" format
   const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
   appAssert(token, NOT_FOUND, 'Reset token is required');
 
-  // Verify the token and extract user info
   const { payload } = verifyToken(token);
   appAssert(payload, UNAUTHORIZED, 'Invalid or expired reset token');
   
-  // Check if it's a password reset token
   appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
 
   const userId = (payload as any).userId;
@@ -160,7 +153,6 @@ export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
   });
   appAssert(validCode, NOT_FOUND, 'Reset token has expired or is invalid');
 
-  // Get user information 
   const user = await UserModel.findById(userId).select('-password');
   appAssert(user, NOT_FOUND, 'User not found');
 
@@ -181,16 +173,13 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
   appAssert(token, NOT_FOUND, 'Reset token is required');
   appAssert(verificationCode, NOT_FOUND, 'Verification code is required');
 
-  // Verify the token and extract user info
   const { payload } = verifyToken(token as string);
   appAssert(payload, UNAUTHORIZED, 'Invalid or expired reset token');
   
-  // Check if it's a password reset token
   appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
 
   const userId = (payload as any).userId;
 
-  // Verify the verification code still exists and is valid
   const validCode = await VerificationCodeModel.findOne({
     _id: verificationCode,
     userId: new mongoose.Types.ObjectId(userId),
@@ -199,7 +188,6 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
   });
   appAssert(validCode, NOT_FOUND, 'Reset token has expired or is invalid');
 
-  // Get user information 
   const user = await UserModel.findById(userId).select('-password');
   appAssert(user, NOT_FOUND, 'User not found');
 

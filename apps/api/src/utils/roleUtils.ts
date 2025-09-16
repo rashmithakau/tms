@@ -18,7 +18,7 @@ export const updateUserRoleOnSupervisorAssignment = async (supervisorId: string)
   }
 };
 
-export const checkAndDowngradeUserRole = async (userId: string): Promise<void> => 
+export const checkAndDowngradeUserRole = async (userId: string): Promise<void> => {
   const ProjectModel = (await import('../models/project.model')).default;
   const TeamModel = (await import('../models/team.model')).default;
 

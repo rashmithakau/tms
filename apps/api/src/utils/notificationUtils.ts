@@ -1,9 +1,10 @@
 import NotificationModel from '../models/notification.model';
 import { socketService } from '../config/socket';
+import { NotificationType } from '@tms/shared';
 
 export interface NotificationData {
   userId: string;
-  type: 'TimesheetRejected' | 'TimesheetReminder' | 'ProjectAssignment' | 'TeamAssignment';
+  type: NotificationType;
   title: string;
   message: string;
   projectId?: string;
@@ -14,9 +15,6 @@ export interface NotificationData {
   reason?: string;
 }
 
-/**
- * Creates a notification and emits it via socket
- */
 export const createAndEmitNotification = async (data: NotificationData) => {
   try {
     const notification = await NotificationModel.create({
@@ -56,9 +54,6 @@ export const createAndEmitNotification = async (data: NotificationData) => {
   }
 };
 
-/**
- * Creates a timesheet rejection notification
- */
 export const createTimesheetRejectionNotification = async (
   userId: string,
   projectName: string,
@@ -68,7 +63,7 @@ export const createTimesheetRejectionNotification = async (
 ) => {
   return createAndEmitNotification({
     userId,
-    type: 'TimesheetRejected',
+    type: NotificationType.TimesheetRejected,
     title: `Timesheet Rejected - ${projectName}`,
     message: `Timesheet rejected for ${rejectedDates.join(', ')}${reason ? ` - Reason: ${reason}` : ''}`,
     projectId,
@@ -78,9 +73,7 @@ export const createTimesheetRejectionNotification = async (
   });
 };
 
-/**
- * Creates a timesheet reminder notification
- */
+
 export const createTimesheetReminderNotification = async (
   userId: string,
   weekStartDate: Date,
@@ -88,15 +81,13 @@ export const createTimesheetReminderNotification = async (
 ) => {
   return createAndEmitNotification({
     userId,
-    type: 'TimesheetReminder',
+    type: NotificationType.TimesheetReminder,
     title: 'Timesheet Submission Reminder',
     message: `Please submit your timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
   });
 };
 
-/**
- * Bulk creates notifications for multiple users
- */
+
 export const createBulkNotifications = async (notifications: NotificationData[]): Promise<void> => {
   const promises = notifications.map(notification => createAndEmitNotification(notification));
   await Promise.allSettled(promises);

@@ -1,4 +1,4 @@
-import { TimesheetStatus } from '@tms/shared';
+import { TimesheetStatus, NotificationType } from '@tms/shared';
 import appAssert from '../utils/appAssert';
 import {  UNAUTHORIZED, BAD_REQUEST, NOT_FOUND } from '../constants/http';
 import { Timesheet } from '../models/timesheet.model';
@@ -249,7 +249,7 @@ export const updateDailyTimesheetStatus = async (
 
       const notif = await NotificationModel.create({
         userId: (savedTimesheet.userId as any)._id || savedTimesheet.userId,
-        type: 'TimesheetRejected',
+        type: NotificationType.TimesheetRejected,
         title: `Timesheet Rejected - ${projectName}`,
         message: `Timesheet rejected for ${rejectedDates.join(', ')}${rejectionReason ? ` - Reason: ${rejectionReason}` : ''}`,
         projectId,
@@ -550,7 +550,7 @@ export const batchUpdateDailyTimesheetStatus = async (
 
           const notif = await NotificationModel.create({
             userId: (timesheet.userId as any)._id || timesheet.userId,
-            type: 'TimesheetRejected',
+            type: NotificationType.TimesheetRejected,
             title: `Timesheet Rejected - ${firstProjectName}`,
             message,
             projectId: rejectedSummaries[0]?.projectId,
