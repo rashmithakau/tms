@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { thirtyDaysFromNow } from "../utils/date";
+import { thirtyDaysFromNow } from "../utils/data";
 import { ISessionDocument } from '../interfaces';
 
 const sessionSchema = new mongoose.Schema<ISessionDocument>({

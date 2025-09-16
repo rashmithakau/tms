@@ -1,6 +1,6 @@
 import { CREATED, OK } from '../constants/http';
 import { registerSchema } from '../schemas/user.schema';
-import catchErrors from '../utils/catchErrors';
+import { catchErrors } from '../utils/error';
 import { createUser, getUsersByRole, deleteUser, getAllActiveUsers, getAllUsersIncludingInactive } from '../services/user.service';
 import { UserRole } from '@tms/shared';
 import { Request, Response } from 'express';

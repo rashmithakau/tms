@@ -1,5 +1,5 @@
-import NotificationModel from '../models/notification.model';
-import { socketService } from '../config/socket';
+import NotificationModel from '../../models/notification.model';
+import { socketService } from '../../config/socket';
 import { NotificationType } from '@tms/shared';
 
 export interface NotificationData {

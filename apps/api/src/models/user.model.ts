@@ -1,6 +1,5 @@
 import mongoose, { Model } from 'mongoose';
-import { hashValue } from '../utils/bcrypt';
-import { compareValue } from '../utils/bcrypt';
+import { hashValue, compareValue } from '../utils/auth';
 import { UserRole } from '@tms/shared';
 import { IUserDocument, IUserModel } from '../interfaces';
 
@@ -40,7 +39,8 @@ userSchema.methods.comparePassword = async function (val: string) {
 userSchema.methods.omitPassword = function () {
   const user = this.toObject();
   delete user.password;
-  return this.select('-password -__v');
+  delete user.__v;
+  return user;
 };
 
 userSchema.statics.findAllByRole = async function (role: UserRole): Promise<IUserDocument[]> {

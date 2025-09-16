@@ -1,13 +1,12 @@
-import catchErrors from '../utils/catchErrors';
+import { catchErrors } from '../utils/error';
 import { refreshUserAccessToken, resetPassword, sendPasswordResetEmail, verifyEmail } from '../services/auth.service';
 import { NOT_FOUND, OK } from '../constants/http';
-import {getAccessTokenCookieOptions,getRefreshTokenCookieOptions,setAuthCookies} from '../utils/cookies';
+import { getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthCookies, clearAuthCookies } from '../utils/auth';
 import { loginSchema, changePasswordSchema, resetPasswordSchema } from './../schemas/auth.schema';
 import { loginUser } from '../services/auth.service';
-import { verifyToken } from '../utils/jwt';
+import { verifyToken } from '../utils/auth';
 import SessionModel from '../models/session.model';
-import { clearAuthCookies } from '../utils/cookies';
-import appAssert from '../utils/appAssert';
+import { appAssert } from '../utils/validation';
 import { UNAUTHORIZED } from '../constants/http';
 import { changePassword } from '../services/user.service';
 import { emailSchema } from '../schemas/main.schema';
@@ -202,4 +201,6 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
     verificationCodeId: verificationCode,
   });
 });
+
+
 

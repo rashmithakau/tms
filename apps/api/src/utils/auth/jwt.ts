@@ -1,6 +1,6 @@
 import jwt, { VerifyOptions, SignOptions } from 'jsonwebtoken';
-import { JWT_REFRESH_SECRET, JWT_SECRET } from '../constants/env';
-import { IUserDocument, ISessionDocument } from '../interfaces';
+import { JWT_REFRESH_SECRET, JWT_SECRET } from '../../constants/env';
+import { IUserDocument, ISessionDocument } from '../../interfaces';
 
 export type RefreshTokenPayload = {
   sessionId: ISessionDocument["_id"];

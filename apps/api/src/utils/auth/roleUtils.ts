@@ -1,4 +1,4 @@
-import UserModel from '../models/user.model';
+import UserModel from '../../models/user.model';
 import { UserRole } from '@tms/shared';
 
 export const updateUserRoleOnSupervisorAssignment = async (supervisorId: string): Promise<void> => {
@@ -19,8 +19,8 @@ export const updateUserRoleOnSupervisorAssignment = async (supervisorId: string)
 };
 
 export const checkAndDowngradeUserRole = async (userId: string): Promise<void> => {
-  const ProjectModel = (await import('../models/project.model')).default;
-  const TeamModel = (await import('../models/team.model')).default;
+  const ProjectModel = (await import('../../models/project.model')).default;
+  const TeamModel = (await import('../../models/team.model')).default;
 
   const user = await UserModel.findById(userId).select('role');
   if (!user || (user.role !== UserRole.Supervisor && user.role !== UserRole.SupervisorAdmin)) {

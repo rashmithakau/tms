@@ -1,10 +1,9 @@
 import { CONFLICT, INTERNAL_SERVER_ERROR,UNAUTHORIZED,NOT_FOUND } from '../constants/http';
 import UserModel from '../models/user.model';
-import appAssert from '../utils/appAssert';
+import { appAssert } from '../utils/validation';
 import { UserRole } from '@tms/shared';
-import { sendEmail } from '../utils/sendEmail';
-import {getWelcomeTmsTemplate}  from '../utils/emailTemplates';
-import {generateRandomPassword} from '../utils/passwordUtils';
+import { sendEmail, getWelcomeTmsTemplate } from '../utils/email';
+import { generateRandomPassword } from '../utils/auth';
 import { APP_ORIGIN } from '../constants/env';
 
 export type CreateUserParams = {

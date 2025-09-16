@@ -3,13 +3,12 @@ import { getAllActiveUsers } from './user.service';
 import {
   hasSubmittedTimesheetForWeek,
 } from './timesheet.service';
-import { sendEmail } from '../utils/sendEmail';
-import { getTimesheetReminderTemplate } from '../utils/emailTemplates';
+import { sendEmail, getTimesheetReminderTemplate } from '../utils/email';
 import { APP_ORIGIN } from '../constants/env';
 import UserModel from '../models/user.model';
-import { getCurrentWeekRange } from '../utils/dateRange';
-import { isEmployeeAssignedToProjectOrTeam } from '../utils/assignmentUtils';
-import { createTimesheetReminderNotification } from '../utils/notificationUtils';
+import { getCurrentWeekRange } from '../utils/data';
+import { isEmployeeAssignedToProjectOrTeam } from '../utils/data';
+import { createTimesheetReminderNotification } from '../utils/notification';
 
 export class CronJobService {
   public startScheduledJobs(): void {

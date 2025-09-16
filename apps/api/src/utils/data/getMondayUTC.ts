@@ -1,5 +1,5 @@
 export const getMondayUTC = (dateInput: Date | string): Date => {
-  // Always parse as UTC: if string is 'YYYY-MM-DD', treat as UTC midnight
+
   let date: Date;
   if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
     date = new Date(dateInput + 'T00:00:00Z');

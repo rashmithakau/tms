@@ -1,14 +1,13 @@
 import { CONFLICT, INTERNAL_SERVER_ERROR } from '../constants/http';
-import appAssert from '../utils/appAssert';
+import { appAssert } from '../utils/validation';
 import mongoose from 'mongoose';
 import TeamModel from '../models/team.model';
 import ProjectModel from '../models/project.model';
 import UserModel from '../models/user.model';
 import { UserRole } from '@tms/shared';
-import { stringArrayToObjectIds, stringToObjectId } from '../utils/mongooseUtils';
-import { filterValidIds } from '../utils/arrayUtils';
-import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/roleUtils';
-import { updateUserTeamMemberships } from '../utils/assignmentUtils';
+import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../utils/data';
+import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
+import { updateUserTeamMemberships } from '../utils/data';
 
 export type CreateTeamParams = {
   teamName: string;

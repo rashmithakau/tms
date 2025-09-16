@@ -1,5 +1,5 @@
-import transporter from '../config/transporter';
-import { GMAIL_USER } from '../constants/env';
+import transporter from '../../config/transporter';
+import { GMAIL_USER } from '../../constants/env';
 
 type EmailParams = {
   to: string;

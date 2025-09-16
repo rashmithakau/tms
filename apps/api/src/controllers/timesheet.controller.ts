@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import catchErrors from '../utils/catchErrors';
+import { catchErrors } from '../utils/error';
 import { OK, CREATED, BAD_REQUEST, FORBIDDEN } from '../constants/http';
 import { TimesheetStatus } from '@tms/shared';
 import { createTimesheetSchema, updateTimesheetSchema, submitTimesheetsSchema } from '../schemas/timesheet.schema';
@@ -15,7 +15,7 @@ import {
   deleteUserTimesheet,
   getOrCreateTimesheetForWeek
 } from "../services/timesheet.service";
-import { getMondayUTC } from '../utils/getMondayUTC';
+import { getMondayUTC } from '../utils/data';
 
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
