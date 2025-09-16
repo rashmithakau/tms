@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import LandingPageLogo from '../../../assets/images/Landing Page.png';
-import HeroSectionTemplate from '../../templates/HeroSectionLayout';
+import HeroSectionTemplate from '../../templates/Landing/HeroSectionLayout';
 import LandingActionButtons from '../../molecules/Landing/LandingActionButtons';
 
 const HeroSection: React.FC = () => {
@@ -39,6 +39,8 @@ const HeroSection: React.FC = () => {
       }
       actions={
         <LandingActionButtons
+          containbtn="Get Started"
+          outlinebtn="Explore More"
           onGetStarted={() => navigate('/login')}
           onExplore={() => handleScrollTo('#features')}
         />

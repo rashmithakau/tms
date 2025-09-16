@@ -44,7 +44,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) =
         >
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2"sx={{ color: theme.palette.text.secondary }}>
           {description}
         </Typography>
       </CardContent>

@@ -1,17 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SectionContainer from '../../atoms/Landing/SectionContainer';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate, useLocation } from 'react-router-dom';
 import WebSiteLogo from '../../../assets/images/WebSiteLogo.png';
 import BrandLogo from '../../atoms/Landing/BrandLogo';
-import NavLinks from '../../molecules/Landing/NavLinks';
 import BaseButton from '../../atoms/buttons/BaseBtn';
+import HeaderDrawer from '../../molecules/Landing/HeaderDrawer';
+import NavItemSection from '../../molecules/Landing/NavItemSection';
+import HeaderLayout from '../../templates/Landing/HeaderLayout';
 
 const Header: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const navItems = [
     { label: 'Home', target: 'home' },
@@ -29,7 +34,6 @@ const Header: React.FC = () => {
 
     if (location.pathname !== '/') {
       navigate('/', { replace: false });
-      // Wait a tick for route change, then scroll
       setTimeout(performScroll, 50);
     } else {
       performScroll();
@@ -49,29 +53,44 @@ const Header: React.FC = () => {
       }}
     >
       <SectionContainer>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            py: 2,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <HeaderLayout
+          logo={
             <BrandLogo src={WebSiteLogo} alt="TimeSync Logo" title="TimeSync" />
-          </Box>
-          <NavLinks items={navItems} onNavigate={handleScrollTo} />
-          <BaseButton
-            variant="contained"
-            onClick={() => navigate('/login')}
-            sx={{
-              bgcolor: theme.palette.primary.main,
-              '&:hover': { bgcolor: theme.palette.primary.dark },
-            }}
-          >
-            Sign In
-          </BaseButton>
-        </Box>
+          }
+          navItems={
+            <NavItemSection
+              items={navItems}
+              onNavigate={handleScrollTo}
+              display="flex"
+              direction={isMobile ? 'column' : 'row'}
+              alignItems={isMobile ? 'stretch' : 'center'}
+            />
+          }
+          signInButton={
+            <BaseButton
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                ...(isMobile && { width: '100%', mt: 2 }),
+              }}
+            >
+              Sign In
+            </BaseButton>
+          }
+          isMobile={isMobile}
+          onMenuClick={() => setDrawerOpen(true)}
+          drawer={
+            <HeaderDrawer
+              open={drawerOpen}
+              onClose={() => setDrawerOpen(false)}
+              navItems={navItems}
+              handleScrollTo={handleScrollTo}
+              navigate={navigate}
+            />
+          }
+        />
       </SectionContainer>
     </Box>
   );

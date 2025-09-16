@@ -1,5 +1,5 @@
 import React from 'react';
-import LandingPageLayout from '../components/templates/LandingPageLayout';
+import LandingPageLayout from '../components/templates/Landing/LandingPageLayout';
 import HeroSection from '../components/organisms/Landing/HeroSection';
 import Features from '../components/organisms/Landing/Features';
 import UseRole from '../components/organisms/Landing/UseRole';

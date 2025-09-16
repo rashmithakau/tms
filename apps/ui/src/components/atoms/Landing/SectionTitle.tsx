@@ -21,8 +21,7 @@ const SectionTitle: React.FC<SectionTitleProps> = ({ title, subtitle }) => {
       {subtitle && (
         <Typography
           variant="h6"
-          color="text.secondary"
-          sx={{ maxWidth: 600, mx: 'auto' }}
+          sx={{ maxWidth: 600, mx: 'auto' ,color: theme.palette.text.secondary}}
         >
           {subtitle}
         </Typography>

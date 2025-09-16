@@ -49,7 +49,7 @@ const EmployeePicker: React.FC<EmployeePickerProps> = ({
       </Paper>
 
       {selected.length > 0 && (
-        <Paper elevation={0} sx={{ mb: 2, backgroundColor: theme.palette.background.default }}>
+        <Paper elevation={0} sx={{ mt:2,mb: 2, backgroundColor: theme.palette.background.default }}>
           <SelectedEmployeeChips employees={selected} onRemove={onRemove} title="" sx={{ mb: 0 }} />
         </Paper>
       )}
