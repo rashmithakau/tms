@@ -1,14 +1,7 @@
 import mongoose from 'mongoose';
+import { IProjectDocument } from '../interfaces';
 
-export interface ProjectDocument extends mongoose.Document {
-  projectName: string;
-  billable: boolean;
-  employees: mongoose.Types.ObjectId[];
-  status: boolean;
-  supervisor?: mongoose.Types.ObjectId;
-}
-
-const projectSchema = new mongoose.Schema<ProjectDocument>(
+const projectSchema = new mongoose.Schema<IProjectDocument>(
   {
     projectName: { type: String, required: true },
     billable: { type: Boolean, required: true },
@@ -21,5 +14,5 @@ const projectSchema = new mongoose.Schema<ProjectDocument>(
   }
 );
 
-const ProjectModel = mongoose.model<ProjectDocument>('Project', projectSchema);
+const ProjectModel = mongoose.model<IProjectDocument>('Project', projectSchema);
 export default ProjectModel;

@@ -1,14 +1,8 @@
 import mongoose from "mongoose";
-import { thirtyDaysFromNow } from "../utils/date";
+import { thirtyDaysFromNow } from "../utils/data";
+import { ISessionDocument } from '../interfaces';
 
-export interface SessionDocument extends mongoose.Document {
-    userId: mongoose.Types.ObjectId;
-    userAgent: string;
-    createdAt: Date;
-    expiresAt: Date;
-}
-
-const sessionSchema = new mongoose.Schema<SessionDocument>({
+const sessionSchema = new mongoose.Schema<ISessionDocument>({
     userId:{
         ref:"User",
         type: mongoose.Schema.Types.ObjectId,
@@ -20,6 +14,6 @@ const sessionSchema = new mongoose.Schema<SessionDocument>({
     expiresAt: { type: Date,default: thirtyDaysFromNow() },
 })
 
-const SessionModel = mongoose.model<SessionDocument>("Session", sessionSchema);
+const SessionModel = mongoose.model<ISessionDocument>("Session", sessionSchema);
 
 export default SessionModel;

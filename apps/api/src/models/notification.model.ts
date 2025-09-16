@@ -1,22 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
-
-export interface INotification extends Document {
-  userId: mongoose.Types.ObjectId | string;
-  type: 'TimesheetRejected' | 'TimesheetReminder';
-  title: string;
-  message: string;
-  projectId?: string;
-  projectName?: string;
-  rejectedDates?: string[];
-  reason?: string;
-  isRead: boolean;
-  createdAt: Date;
-}
+import { INotification, INotificationDocument } from '../interfaces';
+import { NotificationType } from '@tms/shared';
 
 const NotificationSchema = new Schema<INotification>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, enum: ['TimesheetRejected', 'TimesheetReminder'], required: true },
+    type: { type: String, enum: Object.values(NotificationType), required: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
     projectId: { type: String },
@@ -28,7 +17,7 @@ const NotificationSchema = new Schema<INotification>(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-const NotificationModel = mongoose.model<INotification>('Notification', NotificationSchema);
+const NotificationModel = mongoose.model<INotificationDocument>('Notification', NotificationSchema);
 export default NotificationModel;
 
 

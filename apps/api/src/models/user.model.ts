@@ -1,48 +1,9 @@
 import mongoose, { Model } from 'mongoose';
-import { hashValue } from '../utils/bcrypt';
-import { compareValue } from '../utils/bcrypt';
+import { hashValue, compareValue } from '../utils/auth';
 import { UserRole } from '@tms/shared';
+import { IUserDocument, IUserModel } from '../interfaces';
 
-export interface UserDocument extends mongoose.Document {
-  firstName: string;
-  lastName: string;
-  designation: string;
-  contactNumber: string;
-  teams: ['ObjectId'];
-  email: string;
-  password: string;
-  role: string;
-  isChangedPwd: boolean;
-  status?:boolean;
-  isVerified?: boolean; // Optional field for email verification
-  createdAt: Date;
-  updatedAt: Date;
-  __v?: number;
-  comparePassword(val: string): Promise<boolean>;
-  omitPassword(): Pick<
-    UserDocument,
-    | 'firstName'
-    | 'lastName'
-    | 'designation'
-    | 'contactNumber'
-    | 'email'
-    | 'role'
-    | 'isChangedPwd'
-    | 'isVerified'
-    | 'createdAt'
-    | 'updatedAt'
-    | '__v'
-  >;
-}
-
-interface UserModel extends Model<UserDocument> {
-  findAllByRole(role: UserRole): Promise<UserDocument[]>;
-  findAllByRoles(roles: UserRole[]): Promise<UserDocument[]>;
-  findAllActive(): Promise<UserDocument[]>;
-  findAllIncludingInactive(roles: UserRole[]): Promise<UserDocument[]>;
-}
-
-const userSchema = new mongoose.Schema<UserDocument>(
+const userSchema = new mongoose.Schema<IUserDocument>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -61,21 +22,6 @@ const userSchema = new mongoose.Schema<UserDocument>(
   }
 );
 
-userSchema.statics.findAllByRole = function (role: UserRole) {
-  return this.find({ role });
-};
-
-userSchema.statics.findAllByRoles = function (roles: UserRole[]) {
-  return this.find({ role: { $in: roles } });
-};
-
-userSchema.statics.findAllActive = function () {
-  return this.find({ status: { $ne: false } });
-};
-
-userSchema.statics.findAllIncludingInactive = function (roles: UserRole[]) {
-  return this.find({ role: { $in: roles } }).sort({ status: -1, firstName: 1, lastName: 1 });
-};
 // Middleware to hash the password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
@@ -86,7 +32,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-
 userSchema.methods.comparePassword = async function (val: string) {
   return compareValue(val, this.password);
 };
@@ -94,9 +39,26 @@ userSchema.methods.comparePassword = async function (val: string) {
 userSchema.methods.omitPassword = function () {
   const user = this.toObject();
   delete user.password;
+  delete user.__v;
   return user;
 };
 
-const User = mongoose.model<UserDocument, UserModel>('User', userSchema);
+userSchema.statics.findAllByRole = async function (role: UserRole): Promise<IUserDocument[]> {
+  return this.find({ role, status: true }).sort({ firstName: 1 }).select('-password');
+};
 
-export default User;
+userSchema.statics.findAllByRoles = async function (roles: UserRole[]): Promise<IUserDocument[]> {
+  return this.find({ role: { $in: roles }, status: true }).sort({ firstName: 1 }).select('-password');
+};
+
+userSchema.statics.findAllActive = async function (): Promise<IUserDocument[]> {
+  return this.find({ status: true }).sort({ firstName: 1 }).select('-password');
+};
+
+userSchema.statics.findAllIncludingInactive = async function (roles: UserRole[]): Promise<IUserDocument[]> {
+  return this.find({ role: { $in: roles } }).sort({ firstName: 1 }).select('-password');
+};
+
+const UserModel = mongoose.model<IUserDocument, IUserModel>('User', userSchema);
+
+export default UserModel;

@@ -1,8 +1,7 @@
 import { RequestHandler } from "express";
-import appAssert from "../utils/appAssert";
-import AppErrorCode from "../constants/appErrorCode";
+import { appAssert } from "../utils/validation";
 import { UNAUTHORIZED, FORBIDDEN } from "../constants/http";
-import { verifyToken } from "../utils/jwt";
+import { verifyToken } from "../utils/auth";
 import { UserRole } from "@tms/shared"; 
 
 const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
@@ -13,8 +12,7 @@ const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
     appAssert(
       accessToken,
       UNAUTHORIZED,
-      "Not authorized",
-      AppErrorCode.InvalidAccessToken
+      "Not authorized"
     );
 
     const { error, payload } = verifyToken(accessToken);
@@ -23,16 +21,14 @@ const authenticate = (requiredRoles?: UserRole[]): RequestHandler => {
     appAssert(
       payload,
       UNAUTHORIZED,
-      error === "jwt expired" ? "Token expired" : "Invalid token",
-      AppErrorCode.InvalidAccessToken
+      error === "jwt expired" ? "Token expired" : "Invalid token"
     );
 
     // Ensure the payload contains required fields
     appAssert(
       payload.userId && payload.sessionId && payload.role,
       UNAUTHORIZED,
-      "Invalid token payload",
-      AppErrorCode.InvalidAccessToken
+      "Invalid token payload"
     );
 
     // Attach user details to the request object

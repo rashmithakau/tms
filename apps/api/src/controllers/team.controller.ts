@@ -1,5 +1,5 @@
 import { CREATED, OK } from '../constants/http';
-import catchErrors from '../utils/catchErrors';
+import { catchErrors } from '../utils/error';
 import { createTeam, listTeams, listTeamsForUser,softDeleteTeam, listMyMemberTeams, listSupervisedTeams, updateTeamStaff } from '../services/team.service';
 
 

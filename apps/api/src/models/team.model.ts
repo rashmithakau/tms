@@ -1,15 +1,7 @@
 import mongoose from 'mongoose';
+import { ITeamDocument } from '../interfaces';
 
-export interface TeamDocument extends mongoose.Document {
-  teamName: string;
-  members: mongoose.Types.ObjectId[];
-  supervisor?: mongoose.Types.ObjectId | null;
-  status: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const teamSchema = new mongoose.Schema<TeamDocument>(
+const teamSchema = new mongoose.Schema<ITeamDocument>(
   {
     teamName: { type: String, required: true, unique: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
@@ -21,7 +13,7 @@ const teamSchema = new mongoose.Schema<TeamDocument>(
   }
 );
 
-const TeamModel = mongoose.model<TeamDocument>('Team', teamSchema);
+const TeamModel = mongoose.model<ITeamDocument>('Team', teamSchema);
 export default TeamModel;
 
 

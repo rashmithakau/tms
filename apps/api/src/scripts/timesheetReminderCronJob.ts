@@ -1,6 +1,6 @@
 import { CronJobService } from '../services/cronJob.service';
 
-async function runCronJob() {
+async function timesheetReminder() {
   const cronService = new CronJobService();
 
   const runJob = cronService['checkMissingTimesheets'].bind(cronService);
@@ -13,4 +13,4 @@ async function runCronJob() {
   }
 }
 
-runCronJob();
+timesheetReminder();

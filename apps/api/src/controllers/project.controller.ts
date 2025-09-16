@@ -3,7 +3,7 @@ import {
   createProjectFromUiSchema,
   createProjectNormalizedSchema,
 } from '../schemas/project.schema';
-import catchErrors from '../utils/catchErrors';
+import { catchErrors } from '../utils/error';
 import {
   createProject,
   listProjects,

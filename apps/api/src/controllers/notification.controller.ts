@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import NotificationModel from '../models/notification.model';
 import { OK } from '../constants/http';
-import catchErrors from '../utils/catchErrors';
+import { catchErrors } from '../utils/error';
 
 export const listMyNotificationsHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;

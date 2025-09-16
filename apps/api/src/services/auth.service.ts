@@ -1,7 +1,7 @@
 import UserModel from '../models/user.model';
-import { ONE_DAY_MS } from '../utils/date';
+import { ONE_DAY_MS, thirtyDaysFromNow, fiveMinutesAgo, oneHourFromNow } from '../utils/data';
 import SessionModel from '../models/session.model';
-import appAssert from '../utils/appAssert';
+import { appAssert } from '../utils/validation';
 import {
   UNAUTHORIZED,
   INTERNAL_SERVER_ERROR,
@@ -13,16 +13,12 @@ import {
   refreshTokenSignOptions,
   signToken,
   verifyToken,
-} from '../utils/jwt';
-import { thirtyDaysFromNow } from '../utils/date';
-import { fiveMinutesAgo } from '../utils/date';
-import { oneHourFromNow } from '../utils/date';
+} from '../utils/auth';
 import { APP_ORIGIN } from '../constants/env';
-import { sendEmail } from '../utils/sendEmail';
 import VerificationCodeModel from '../models/verificationCode.model';
 import VerificationCodeType from '../constants/verificationCodeType';
-import { getPasswordResetTemplate } from './../utils/emailTemplates';
-import { hashValue } from '../utils/bcrypt';
+import { sendEmail, getPasswordResetTemplate } from '../utils/email';
+import { hashValue } from '../utils/auth';
 import { JWT_SECRET } from '../constants/env';
 
 export type LoginParams = {

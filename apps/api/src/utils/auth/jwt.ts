@@ -1,16 +1,15 @@
 import jwt, { VerifyOptions, SignOptions } from 'jsonwebtoken';
-import { JWT_REFRESH_SECRET, JWT_SECRET } from '../constants/env';
-import { UserDocument } from "../models/user.model";
-import { SessionDocument } from "../models/session.model";
+import { JWT_REFRESH_SECRET, JWT_SECRET } from '../../constants/env';
+import { IUserDocument, ISessionDocument } from '../../interfaces';
 
 export type RefreshTokenPayload = {
-  sessionId:SessionDocument["_id"];
+  sessionId: ISessionDocument["_id"];
 };
 
 export type AccessTokenPayload = {
-  userId: UserDocument["_id"];
-  role: UserDocument["role"];
-  sessionId:  SessionDocument["_id"];
+  userId: IUserDocument["_id"];
+  role: IUserDocument["role"];
+  sessionId: ISessionDocument["_id"];
 };
 
 type SignOptionsAndSecret = SignOptions & {

@@ -11,7 +11,7 @@ class SocketService {
   init(server: http.Server) {
     this.io = new Server(server, {
       cors: {
-        origin: NODE_ENV === 'development' ? [APP_ORIGIN, 'http://localhost:4200'] : APP_ORIGIN,
+        origin: APP_ORIGIN,
         credentials: true,
       },
     });
@@ -41,6 +41,3 @@ class SocketService {
 }
 
 export const socketService = new SocketService();
-
-
-

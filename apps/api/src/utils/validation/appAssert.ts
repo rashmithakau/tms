@@ -1,13 +1,12 @@
 import assert from 'assert';
-import AppError  from './AppError';
-import { HttpStatusCode } from '../constants/http';
-import AppErrorCode from '../constants/appErrorCode';
+import AppError  from '../error/appError';
+import { HttpStatusCode } from '../../constants/http';
 
 type AppAssert = (
     condition : any,
     httpStatusCode:HttpStatusCode,
     message:string,
-    appErrorCode?: AppErrorCode
+    appErrorCode?: string
 )=>asserts condition;
 
 const appAssert:AppAssert = (

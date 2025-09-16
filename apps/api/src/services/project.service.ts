@@ -1,10 +1,12 @@
 import { CONFLICT, INTERNAL_SERVER_ERROR } from '../constants/http';
-import appAssert from '../utils/appAssert';
+import { appAssert } from '../utils/validation';
 import ProjectModel from '../models/project.model';
 import TeamModel from '../models/team.model';
 import mongoose from 'mongoose';
 import UserModel from '../models/user.model';
 import { UserRole } from '@tms/shared';
+import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../utils/data';
+import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
 
 export type CreateProjectParams = {
   projectName: string;
@@ -24,34 +26,15 @@ export const createProject = async (data: CreateProjectParams) => {
   const project = await ProjectModel.create({
     projectName: data.projectName,
     billable: data.billable,
-    employees: (data.employees ?? [])
-      .filter((id) => !!id)
-      .map((id) => new mongoose.Types.ObjectId(id)),
-    supervisor:
-      data.supervisor && data.supervisor.trim() !== ''
-        ? new mongoose.Types.ObjectId(data.supervisor)
-        : null,
+    employees: stringArrayToObjectIds(filterValidIds(data.employees ?? [])),
+    supervisor: stringToObjectId(data.supervisor),
     status: data.status ?? true,
   });
 
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project creation failed');
 
   if (project.supervisor) {
-    const sup = await UserModel.findById(project.supervisor).select('role');
-    if (sup) {
-      if (sup.role === UserRole.Admin) {
-        // Admin -> SupervisorAdmin when assigned as project supervisor
-        await UserModel.findByIdAndUpdate(project.supervisor, {
-          $set: { role: UserRole.SupervisorAdmin },
-        });
-      } else if (sup.role === UserRole.Emp) {
-        // Emp -> Supervisor when assigned as project supervisor
-        await UserModel.findByIdAndUpdate(project.supervisor, {
-          $set: { role: UserRole.Supervisor },
-        });
-      }
-      // If already SupervisorAdmin or Supervisor, keep current role
-    }
+    await updateUserRoleOnSupervisorAssignment(project.supervisor.toString());
   }
 
   return {
