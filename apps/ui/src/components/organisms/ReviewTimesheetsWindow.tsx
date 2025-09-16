@@ -7,7 +7,6 @@ import { deleteMyTimesheet } from '../../api/timesheet';
 import ConfirmDialog from '../molecules/ConfirmDialog';
 import RejectionReasonDialog from '../molecules/RejectionReasonDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import FilterMenu from './EmpTimeSheetFilterMenu';
 import { TimesheetStatus } from '@tms/shared';
 import EmployeeTimesheetCalendar from './EmployeeTimesheetCalendar';
 import {
@@ -17,30 +16,57 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../styles/theme';
 import { useToast } from '../contexts/ToastContext';
-import { useTimesheetFiltering } from '../../hooks/useTimesheetFiltering';
 import { useTimesheetApproval } from '../../hooks/useTimesheetApproval';
 import ApprovalActionButtons from '../molecules/ApprovalActionButtons';
+import { useSelector } from 'react-redux';
 
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
   
-  // Use custom hooks for filtering and approval logic
-  const {
-    statusFilter,
-    dateRangeFilter,
-    specificDay,
-    specificMonth,
-    specificYear,
-    employeeGroups,
-    pendingIdsInFiltered,
-    handleFilterByDate,
-    handleFilterByStatus,
-    clearFilters,
-    setSpecificDay,
-    setSpecificMonth,
-    setSpecificYear,
-  } = useTimesheetFiltering(rows);
+  // Get search text from Redux store
+  const searchText = useSelector((state: any) => state.searchBar.searchText);
+  
+  // Filter out draft timesheets
+  const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
+  const pendingIdsInFiltered = filteredRows
+    .filter(row => row.status === TimesheetStatus.Pending)
+    .map(row => row._id);
+  
+  // Group employees from filtered rows
+  const employeeGroups = filteredRows.reduce((groups: any[], row) => {
+    // Skip rows without employee data
+    if (!row.employee) return groups;
+    
+    const existingGroup = groups.find(g => g.employee._id === row.employee._id);
+    if (existingGroup) {
+      existingGroup.timesheets.push(row);
+    } else {
+      groups.push({
+        employee: {
+          _id: row.employee._id,
+          firstName: row.employee.firstName || '',
+          lastName: row.employee.lastName || '',
+          email: row.employee.email || '',
+          contactNumber: row.employee.contactNumber || '',
+          designation: row.employee.designation || '',
+        },
+        timesheets: [row]
+      });
+    }
+    return groups;
+  }, []);
+
+  // Filter employee groups by search text
+  const filteredEmployeeGroups = employeeGroups.filter(group => {
+    if (!searchText.trim()) return true;
+    
+    const fullName = `${group.employee.firstName} ${group.employee.lastName}`.toLowerCase();
+    const email = group.employee.email?.toLowerCase() || '';
+    const searchLower = searchText.toLowerCase();
+    
+    return fullName.includes(searchLower) || email.includes(searchLower);
+  });
   
   const {
     selectedIds,
@@ -73,16 +99,19 @@ const ReviewTimesheetsWindow: React.FC = () => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {employeeGroups.length === 0 ? (
+        {filteredEmployeeGroups.length === 0 ? (
           <TableRow>
             <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
               <Typography color="textSecondary">
-                No timesheets to review. Employees may not have submitted any timesheets yet.
+                {searchText.trim() 
+                  ? `No employees found matching "${searchText}"`
+                  : "No timesheets to review. Employees may not have submitted any timesheets yet."
+                }
               </Typography>
             </TableCell>
           </TableRow>
         ) : (
-          employeeGroups.map((group, index) => (
+          filteredEmployeeGroups.map((group, index) => (
             <React.Fragment key={group.employee._id}>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
                 <TableCell>
@@ -127,7 +156,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
         title="Review Timesheets"
         buttons={[
           <Box
-            key="filters"
+            key="actions"
             sx={{
               display: 'flex',
               gap: 2,
@@ -135,21 +164,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
               flexWrap: 'wrap',
             }}
           >
-            <FilterMenu
-              onFilterByDate={handleFilterByDate}
-              onFilterByStatus={handleFilterByStatus}
-              selectedDateRange={dateRangeFilter}
-              selectedStatus={statusFilter}
-              selectedDay={specificDay}
-              selectedMonth={specificMonth}
-              selectedYear={specificYear}
-              onChangeDay={setSpecificDay}
-              onChangeMonth={setSpecificMonth}
-              onChangeYear={setSpecificYear}
-              onClear={clearFilters}
-              statusOptions={['All', TimesheetStatus.Pending, TimesheetStatus.Approved, TimesheetStatus.Rejected]}
-            />
-            
             <ApprovalActionButtons
               isSelectionMode={isSelectionMode}
               selectedDaysCount={selectedDays.length}

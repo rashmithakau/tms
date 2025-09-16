@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   IconButton,
   Badge,
   Popover,
   Box,
   Typography,
-  Stack,
   Divider,
   List,
   ListItem,
@@ -14,27 +13,14 @@ import {
   Avatar,
 } from '@mui/material';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
-import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useSocket } from '../contexts/SocketContext';
 import { listMyNotifications, markAllNotificationsRead } from '../../api/notification';
 
 interface NotificationDropdownProps {
-  /**
-   * Custom styling for the notification icon button
-   */
+
   iconButtonSx?: object;
-  /**
-   * Custom styling for the popover
-   */
   popoverSx?: object;
-  /**
-   * Width of the notification dropdown
-   */
   dropdownWidth?: number;
-  /**
-   * Maximum height of the notification dropdown
-   */
   maxHeight?: number;
 }
 
@@ -48,10 +34,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     notifications, 
     unreadCount, 
     markAllRead, 
-    clearNotifications, 
     setNotificationsFromServer 
   } = useSocket();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const previousNotificationCount = useRef(notifications.length);
+  const isInitialMount = useRef(true);
 
   const open = Boolean(anchorEl);
   const id = open ? 'notification-popover' : undefined;
@@ -59,6 +47,26 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const sortedNotifications = useMemo(() => {
     return [...notifications].sort((a, b) => b.createdAt - a.createdAt);
   }, [notifications]);
+
+  useEffect(() => {
+    const currentNotificationCount = notifications.length;
+    const hasNewNotification = currentNotificationCount > previousNotificationCount.current;
+    
+    if (hasNewNotification && !isInitialMount.current && !open && buttonRef.current) {
+      setAnchorEl(buttonRef.current);
+      
+      // Auto-close after 5 seconds
+      const autoCloseTimer = setTimeout(() => {
+        setAnchorEl(null);
+      }, 5000);
+      
+      // Cleanup timer if component unmounts or dropdown is manually closed
+      return () => clearTimeout(autoCloseTimer);
+    }
+    
+    previousNotificationCount.current = currentNotificationCount;
+    isInitialMount.current = false;
+  }, [notifications.length, open]);
 
   const handleNotificationClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -95,14 +103,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     setAnchorEl(null);
   };
 
-  const handleMarkAllRead = () => {
-    markAllRead();
-  };
-
-  const handleClearAll = () => {
-    clearNotifications();
-  };
-
   const formatTime = (timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
@@ -120,6 +120,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   return (
     <>
       <IconButton
+        ref={buttonRef}
         sx={{
           '&:hover': {
             color: 'primary.main',
@@ -164,31 +165,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: 'space-between', 
           px: 1, 
           py: 0.5 
         }}>
           <Typography variant="subtitle1" fontWeight="bold">
             Notifications
           </Typography>
-          <Stack direction="row" spacing={1}>
-            <IconButton 
-              size="small" 
-              title="Mark all read" 
-              onClick={handleMarkAllRead}
-              disabled={unreadCount === 0}
-            >
-              <MarkEmailReadOutlinedIcon fontSize="small" />
-            </IconButton>
-            <IconButton 
-              size="small" 
-              title="Clear all" 
-              onClick={handleClearAll}
-              disabled={sortedNotifications.length === 0}
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Stack>
         </Box>
         
         <Divider />

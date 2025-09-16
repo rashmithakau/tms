@@ -13,7 +13,6 @@ export { useUsers } from '../hooks/useUsers';
 export { useApiCall } from '../hooks/useApiCall';
 export { useTimesheetWeekNavigation } from '../hooks/useTimesheetWeekNavigation';
 export { useTimesheetSubmission } from '../hooks/useTimesheetSubmission';
-export { useTimesheetFiltering } from '../hooks/useTimesheetFiltering';
 export { useTimesheetApproval } from '../hooks/useTimesheetApproval';
 export { useTimesheetDataManagement } from '../hooks/useTimesheetDataManagement';
 export { useTimesheetCellEditing } from '../hooks/useTimesheetCellEditing';

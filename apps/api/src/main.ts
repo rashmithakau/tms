@@ -12,6 +12,7 @@ import timesheetRoutes from './routes/timesheet.route';
 import notificationRoutes from './routes/notification.route';
 import teamRoutes from './routes/team.route';
 import { socketService } from './config/socket';
+import { CronJobService } from './services/cronJob.service';
 
 const port = Number(PORT);
 
@@ -41,5 +42,10 @@ app.use(errorHandler);
 server.listen(port,async () => {
   await connectDB();
   socketService.init(server);
+  
+  // Initialize and start cron jobs
+  const cronJobService = new CronJobService();
+  cronJobService.startScheduledJobs();
+  
    console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
 });

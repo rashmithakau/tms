@@ -101,6 +101,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         await createMyTimesheet(payload);
         toast.success('Timesheet created');
       }
+      
       await refresh();
     } catch (e: any) {
       console.error('Save error:', e);
@@ -111,9 +112,19 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   };
 
   // Check if actions are disabled
-  const isSubmitDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '') || isUnderMinimumHours;
-  const isSaveDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '') ||
-    JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '');
+  // Check if current data matches what's saved in DB (no pending changes)
+  const isDataSavedInDB = JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '');
+  
+  // Sign and Submit: Only enabled if status is Draft/Rejected AND total >= 40 AND all current data is saved in DB
+  const isSubmitDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '') || 
+    isUnderMinimumHours || 
+    (timesheetData.status === 'Draft' && !isDataSavedInDB);
+    
+  // Save as Draft: Only enabled if status is Draft AND has unsaved changes. Disabled for Rejected status.
+  const isSaveDisabled = timesheetData.status === 'Rejected' || 
+    !['Draft'].includes(timesheetData.status || '') ||
+    isDataSavedInDB;
+    
   const isSelectWorkDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '');
 
   return {
