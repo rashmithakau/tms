@@ -41,3 +41,10 @@ export interface ITokenPayload {
 export interface IRefreshTokenParams {
   refreshToken: string;
 }
+
+// Service interfaces
+export interface LoginParams {
+  email: string;
+  password: string;
+  userAgent?: string;
+}

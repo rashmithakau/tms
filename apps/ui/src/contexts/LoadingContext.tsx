@@ -1,17 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-interface LoadingState {
-  isLoading: boolean;
-  message?: string;
-  variant?: 'fullscreen' | 'inline' | 'overlay';
-}
-
-interface LoadingContextType {
-  loadingState: LoadingState;
-  showLoading: (message?: string, variant?: 'fullscreen' | 'inline' | 'overlay') => void;
-  hideLoading: () => void;
-  setLoadingMessage: (message: string) => void;
-}
+import { LoadingState, LoadingContextType, LoadingProviderProps } from '../interfaces';
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
@@ -22,10 +10,6 @@ export const useLoading = () => {
   }
   return context;
 };
-
-interface LoadingProviderProps {
-  children: ReactNode;
-}
 
 export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) => {
   const [loadingState, setLoadingState] = useState<LoadingState>({

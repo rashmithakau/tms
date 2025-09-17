@@ -3,19 +3,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import { red } from '@mui/material/colors';
 import { TimesheetStatus } from '@tms/shared';
-
-export type EmpTimesheetRow = {
-  _id: string;
-  date: string;
-  projectId: string;
-  projectName: string; // populated from project reference
-  tasks: string;
-  billableType: 'Billable' | 'Non Billable';
-  status: TimesheetStatus;
-  plannedHours?: number;
-  hoursSpent?: number;
-  description?: string;
-};
+import { EmpTimesheetRow } from '../../../interfaces';
 
 export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] }) {
   const statusColor = (status: TimesheetStatus) => {

@@ -10,12 +10,7 @@ import { login } from '../../../../api/auth';
 import { UserRole } from '@tms/shared';
 import { useApiCall } from '../../../../hooks/api/useApiCall';
 import { useAuth } from '../../../../contexts/AuthContext';
- 
-
-type LoginData = {
-  email: string;
-  password: string;
-};
+import { LoginData } from '../../../../interfaces';
 
 const LoginFormSection: React.FC = () => {
   const navigate = useNavigate();

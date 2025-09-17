@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listProjects } from '../api/project';
-import { ProjectListItem } from '../api/project';
+import { listProjects } from '../../api/project';
+import { ProjectListItem } from '../../interfaces';
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);

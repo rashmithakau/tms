@@ -5,12 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import SupervisorMemberCard from '../../molecules/supervisor/SupervisorMemberCard';
 import TeamMemberCard from '../../molecules/team/TeamMemberCard';
 import BaseButton from '../../atoms/button/BaseBtn';
-export type TeamMember = {
-  id: string;
-  name: string;
-  email?: string;
-  designation?: string;
-};
+import { TeamMember } from '../../../interfaces';
 
 export interface ViewTeamMembersProps {
   open: boolean;

@@ -7,25 +7,11 @@ import ProtectedRoute from './ProtectedRoute';
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
 import ResetChangePasswordPage from '../pages/ResetChangePasswordPage';
 import PasswordResetPage from '../pages/PasswordResetPage';
-import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
-import PageLoading from '../components/molecules/loading/PageLoading';
 import EmployeePage from '../pages/EmployeePage';
 import LandingPage from '../pages/LandingPage';
-const AppRoute: React.FC = () => {
-  const { authState } = useAuth();
-  const { isAuthenticated, user, isLoading } = authState;
 
-  // Show loading while initializing auth state
-  if (isLoading) {
-    return (
-      <PageLoading
-        message="Initializing..."
-        variant="fullscreen"
-        size="medium"
-      />
-    );
-  }
+const AppRoute: React.FC = () => {
 
   return (
     <Routes>
@@ -34,13 +20,10 @@ const AppRoute: React.FC = () => {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute
-            isAllowed={
-              isAuthenticated &&
-              (user?.role === UserRole.Admin ||
-                user?.role === UserRole.SupervisorAdmin)
-            }
-            redirectPath="/"
+          <ProtectedRoute 
+            requireAuth={true}
+            allowedRoles={[UserRole.Admin, UserRole.SupervisorAdmin]}
+            redirectPath="/login"
           >
             <AdminPage />
           </ProtectedRoute>
@@ -49,9 +32,10 @@ const AppRoute: React.FC = () => {
       <Route
         path="/superadmin"
         element={
-          <ProtectedRoute
-            isAllowed={isAuthenticated && user?.role === UserRole.SuperAdmin}
-            redirectPath="/"
+          <ProtectedRoute 
+            requireAuth={true}
+            allowedRoles={[UserRole.SuperAdmin]}
+            redirectPath="/login"
           >
             <SuperAdminPage />
           </ProtectedRoute>
@@ -60,12 +44,10 @@ const AppRoute: React.FC = () => {
       <Route
         path="/employee"
         element={
-          <ProtectedRoute
-            isAllowed={
-              (isAuthenticated && user?.role === UserRole.Emp) ||
-              user?.role === UserRole.Supervisor
-            }
-            redirectPath="/"
+          <ProtectedRoute 
+            requireAuth={true}
+            allowedRoles={[UserRole.Emp, UserRole.Supervisor]}
+            redirectPath="/login"
           >
             <EmployeePage />
           </ProtectedRoute>
@@ -86,16 +68,10 @@ const AppRoute: React.FC = () => {
       <Route
         path="/change-password"
         element={
-          <ProtectedRoute
-            isAllowed={
-              isAuthenticated &&
-              (user?.role === UserRole.Admin ||
-                user?.role === UserRole.SuperAdmin ||
-                user?.role === UserRole.SupervisorAdmin ||
-                user?.role === UserRole.Emp ||
-                user?.role === UserRole.Supervisor)
-            }
-            redirectPath="/"
+          <ProtectedRoute 
+            requireAuth={true}
+            allowedRoles={[UserRole.Admin, UserRole.SuperAdmin, UserRole.SupervisorAdmin, UserRole.Emp, UserRole.Supervisor]}
+            redirectPath="/login"
           >
             <ResetPasswordFirstLogin />
           </ProtectedRoute>

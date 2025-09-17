@@ -10,11 +10,7 @@ import { Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from '../../../../api/auth';
 import { useState } from 'react';
 import { useToast } from '../../../../contexts/ToastContext';
-
-
-type SetPasswordData = {
-  email: string;
-};
+import { PasswordResetData } from '../../../../interfaces';
 
 const PasswordReset: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -26,12 +22,12 @@ const PasswordReset: React.FC = () => {
       register,
       handleSubmit,
       formState: { errors, isValid, isSubmitting },
-    } = useForm<SetPasswordData>({
+    } = useForm<PasswordResetData>({
       resolver: yupResolver(ResetPasswordFormSchema),
       mode: 'onChange',
     });
 
-    const onSubmit = async (data: SetPasswordData) => {
+    const onSubmit = async (data: PasswordResetData) => {
       setIsLoading(true);
       setError('');
       setMessage('');

@@ -1,37 +1,6 @@
 import API from '../config/apiClient';
 import { TimesheetStatus } from '@tms/shared';
-
-export type TimesheetItem = {
-  work?: string; 
-  projectId?: string; 
-  teamId?: string;
-  hours: string[]; //
-  descriptions: string[]; 
-};
-
-
-export type TimesheetCategory = {
-  category: 'Project' | 'Team' | 'Absence';
-  items: TimesheetItem[];
-};
-
-export type Timesheet = {
-  _id: string;
-  userId?: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    contactNumber?: string;
-    designation?: string;
-  };
-  weekStartDate: string;
-  data: TimesheetCategory[]; 
-  categories: TimesheetCategory[]; 
-  status: TimesheetStatus;
-  createdAt: string;
-  updatedAt: string;
-};
+import { Timesheet, CreateTimesheetPayload } from '../interfaces';
 
 export const listMyTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
@@ -47,11 +16,6 @@ export const getSupervisedProjects = async () => {
 
 export const getSupervisedTeams = async () => {
   return API.get<{ teams: Array<{ _id: string; teamName: string }> }>('/api/team/supervised');
-};
-
-export type CreateTimesheetPayload = {
-  weekStartDate: string | Date;
-  data: TimesheetCategory[];
 };
 
 export const createMyTimesheet = async (data: CreateTimesheetPayload) => {

@@ -21,3 +21,10 @@ export interface ICreateTeamParams {
 export interface IUpdateTeamParams extends Partial<ICreateTeamParams> {
   _id?: string;
 }
+
+export interface CreateTeamParams {
+  teamName: string;
+  members?: string[];
+  supervisor?: string | null;
+  status?: boolean;
+}

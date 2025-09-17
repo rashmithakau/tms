@@ -3,13 +3,7 @@ import { useUsersByRoles } from '../api/useUsers';
 import { UserRole } from '@tms/shared';
 import { IEmployeeProps } from '../../interfaces/entity/IEmployeeProps';
 import { useToast } from '../../contexts/ToastContext';
-
-interface UseStaffManagerProps {
-  open: boolean;
-  initialStaff: { id: string; name: string; designation?: string }[];
-  initialSupervisor: { id: string; name: string; designation?: string } | null;
-  onSave: (staff: string[], supervisor: string | null) => Promise<void>;
-}
+import { UseStaffManagerProps } from '../../interfaces';
 
 export const useStaffManager = ({
   open,

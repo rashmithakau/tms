@@ -1,24 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useToast } from '../../contexts/ToastContext';
-
-interface UseApiCallOptions {
-  loadingMessage?: string;
-  loadingVariant?: 'fullscreen' | 'inline' | 'overlay';
-  successMessage?: string;
-  errorMessage?: string;
-  showSuccessToast?: boolean;
-  showErrorToast?: boolean;
-  onSuccess?: (data: any) => void | Promise<void>;
-  onError?: (error: any) => void;
-}
-
-interface UseApiCallReturn {
-  execute: (apiCall: () => Promise<any>) => Promise<any>;
-  isLoading: boolean;
-  error: any;
-  resetError: () => void;
-}
+import { UseApiCallOptions, UseApiCallReturn } from '../../interfaces';
 
 export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn => {
   const [isLoading, setIsLoading] = useState(false);

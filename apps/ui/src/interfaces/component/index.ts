@@ -6,3 +6,8 @@ export * from './IRemoveButtonProps';
 export * from './ISearchFieldProps';
 export * from './ISelectedEmployeeChipsProps';
 export * from './ITimeFieldProps';
+export * from './TableProps';
+export * from './LayoutProps';
+export * from './PopupProps';
+export * from './NavigationAndUserProps';
+export * from './ComponentTypes';

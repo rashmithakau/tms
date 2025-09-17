@@ -1,12 +1,8 @@
 import React from 'react';
 import Container from '@mui/material/Container';
+import { SectionContainerProps } from '../../../interfaces';
 
-type Props = React.PropsWithChildren<{
-  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false;
-  component?: React.ElementType<any>;
-}>;
-
-const SectionContainer: React.FC<Props> = ({ children, maxWidth = 'xl', component: Component }) => {
+const SectionContainer: React.FC<SectionContainerProps> = ({ children, maxWidth = 'xl', component: Component }) => {
   return (
     <Container maxWidth={maxWidth} {...(Component ? { component: Component } : {})}>
       {children}

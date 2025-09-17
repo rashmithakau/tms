@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import CustomAppBar from '../../organisms/dashboard/AppBar';
 import NavDrawer from '../../organisms/dashboard/NavDrawer';
 import { useTheme } from '@mui/material/styles'; 
-import INavItemProps  from '../../../interfaces/INavItemProps';
+import INavItemProps from '../../../interfaces/navigation';
 
 interface MainLayoutProps {
   children: React.ReactNode;

@@ -6,7 +6,6 @@ import { UserRole } from "@tms/shared";
 const userhRoutes=Router();
 
 userhRoutes.post("/admin",authenticate([UserRole.SuperAdmin]), registerHandler(UserRole.Admin)); 
-// Allow SuperAdmin to view admin accounts
 userhRoutes.get("/admin",authenticate([UserRole.SuperAdmin, UserRole.Admin, UserRole.SupervisorAdmin]), getUserHandler([UserRole.Emp, UserRole.Supervisor, UserRole.SupervisorAdmin])); 
 userhRoutes.post("/emp",authenticate([UserRole.Admin, UserRole.SupervisorAdmin]),registerHandler(UserRole.Emp)); 
 userhRoutes.get("/emp",authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), getUserHandler(UserRole.Emp));

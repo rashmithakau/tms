@@ -7,14 +7,7 @@ import UserModel from '../models/user.model';
 import { UserRole } from '@tms/shared';
 import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../utils/data';
 import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
-
-export type CreateProjectParams = {
-  projectName: string;
-  billable: boolean;
-  employees?: string[];
-  supervisor?: string | null;
-  status?: boolean;
-};
+import { CreateProjectParams } from '../interfaces/project';
 
 export const createProject = async (data: CreateProjectParams) => {
   const existingProject = await ProjectModel.exists({
@@ -67,7 +60,6 @@ export const listProjects = async (userId: string, userRole: UserRole) => {
 };
 
 export const listMyProjects = async (userId: string) => {
-  // Always return projects where the user is an employee, regardless of role
   const projects = await ProjectModel.find({ status: true, employees: userId })
     .sort({ createdAt: -1 })
     .populate({ path: 'employees', select: 'firstName lastName email designation' })
@@ -108,22 +100,18 @@ export const updateProjectStaff = async (
       ? (project.supervisor as any)._id?.toString?.() || project.supervisor.toString()
       : null;
 
-    // Promote new supervisor if changed
     if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
       const sup = await UserModel.findById(newSupervisorId).select('role');
       if (sup) {
         if (sup.role === UserRole.Admin) {
-          // Admin -> SupervisorAdmin when assigned as project supervisor
           await UserModel.findByIdAndUpdate(newSupervisorId, {
             $set: { role: UserRole.SupervisorAdmin },
           });
         } else if (sup.role === UserRole.Emp) {
-          // Emp -> Supervisor when assigned as project supervisor
           await UserModel.findByIdAndUpdate(newSupervisorId, {
             $set: { role: UserRole.Supervisor },
           });
         }
-        // If already SupervisorAdmin or Supervisor, keep current role
       }
     }
     // Demote previous supervisor if changed or removed

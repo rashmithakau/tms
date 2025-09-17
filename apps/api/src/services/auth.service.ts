@@ -20,32 +20,22 @@ import VerificationCodeType from '../constants/verificationCodeType';
 import { sendEmail, getPasswordResetTemplate } from '../utils/email';
 import { hashValue } from '../utils/auth';
 import { JWT_SECRET } from '../constants/env';
-
-export type LoginParams = {
-  email: string;
-  password: string;
-  userAgent?: string;
-};
+import { LoginParams } from '../interfaces/auth';
 
 export const loginUser = async ({
   email,
   password,
   userAgent,
 }: LoginParams) => {
-  //get the user by email
   const user = await UserModel.findOne({ email });
   appAssert(user, UNAUTHORIZED, 'Invalid email');
-
-  // Check if user is active
   appAssert(user.status !== false, UNAUTHORIZED, 'Account is deactivated. Please contact administrator.');
 
-  //validate password
   const isValid = await user.comparePassword(password);
   appAssert(isValid, UNAUTHORIZED, 'Invalid password');
 
   const userId = user._id;
 
-  //create a session
   const session = await SessionModel.create({
     userId,
     userAgent,
@@ -55,7 +45,6 @@ export const loginUser = async ({
     sessionId: session._id,
   };
 
-  //sign access token & refresh token
   const refreshToken = signToken(sessionInfo, refreshTokenSignOptions);
 
   const accessToken = signToken({
@@ -64,7 +53,6 @@ export const loginUser = async ({
     role: user.role,
   });
 
-  //return user & tokens with isChangedPwd status
   return {
     user: user.omitPassword(),
     accessToken,
@@ -89,7 +77,6 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
     'Session expired'
   );
 
-  //refresh the session if it expires in the next 24 hours
   const sessionNeedsRefresh = session.expiresAt.getTime() - now < ONE_DAY_MS;
 
   if (sessionNeedsRefresh) {
@@ -106,11 +93,9 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
       )
     : undefined;
 
-  // Include role in refreshed access token to satisfy auth middleware checks
   const user = await UserModel.findById(session.userId).select('role status');
   appAssert(user, UNAUTHORIZED, 'User not found');
   
-  // Check if user is active
   appAssert(user.status !== false, UNAUTHORIZED, 'Account is deactivated. Please contact administrator.');
 
   const accessToken = signToken({
@@ -126,11 +111,9 @@ export const refreshUserAccessToken = async (refreshToken: string) => {
 };
 
 export const sendPasswordResetEmail = async (email: string) => {
-  //get the user by email
   const user = await UserModel.findOne({ email });
   appAssert(user, NOT_FOUND, 'User not found');
 
-  // Check if user is active
   appAssert(user.status !== false, UNAUTHORIZED, 'Account is deactivated. Please contact administrator.');
 
   //check email rate limit
@@ -147,7 +130,6 @@ export const sendPasswordResetEmail = async (email: string) => {
     'Too many requests, please try again later'
   );
 
-  //create verification code
   const expiresAt = oneHourFromNow();
   const verificationCode = await VerificationCodeModel.create({
     userId: user._id,
@@ -165,14 +147,13 @@ export const sendPasswordResetEmail = async (email: string) => {
     { expiresIn: '1h', secret: JWT_SECRET }
   );
 
-  //send verification email with user token instead of verification code
   const url = `${APP_ORIGIN}/password/reset?token=${userToken}&verificationCode=${verificationCode._id}`;
   const data = await sendEmail({
     to: user.email,
     ...getPasswordResetTemplate(url),
   });
   appAssert(data?.messageId, INTERNAL_SERVER_ERROR, `Failed to send email`);
-  //return success
+
   return {
     url,
     emailId: data.messageId,
@@ -190,7 +171,7 @@ export const resetPassword = async ({
   verificationCode,
   userId,
 }: ResetPasswordParams) => {
-  // Get the verification code and check userId matches
+  
   const validCode = await VerificationCodeModel.findOne({
     _id: verificationCode,
     type: VerificationCodeType.PasswordReset,
@@ -199,18 +180,15 @@ export const resetPassword = async ({
 
   appAssert(validCode, NOT_FOUND, 'Invalid or expired verification code');
 
-  // Verify that the userId in the token matches the userId in the verification code
   appAssert(
     validCode.userId.toString() === userId,
     UNAUTHORIZED,
     'Invalid verification code for this user'
   );
 
-  // Get the user
   const user = await UserModel.findById(validCode.userId);
   appAssert(user, NOT_FOUND, 'User not found');
 
-  // Update the user password
   const updateData: any = {
     password: await hashValue(newPassword),
     isChangedPwd: true,
@@ -223,9 +201,7 @@ export const resetPassword = async ({
   );
   appAssert(updateUser, INTERNAL_SERVER_ERROR, 'Failed to reset password');
 
-  // Delete the verification code
   await validCode.deleteOne();
-  // Delete all sessions for this user
   await SessionModel.deleteMany({ userId: updateUser._id });
 
   return {

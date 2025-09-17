@@ -23,3 +23,11 @@ export interface ICreateProjectParams {
 export interface IUpdateProjectParams extends Partial<ICreateProjectParams> {
   _id?: string;
 }
+
+export interface CreateProjectParams {
+  projectName: string;
+  billable: boolean;
+  employees?: string[];
+  supervisor?: string | null;
+  status?: boolean;
+}

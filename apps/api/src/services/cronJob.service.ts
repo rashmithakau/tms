@@ -1,8 +1,6 @@
 import cron from 'node-cron';
 import { getAllActiveUsers } from './user.service';
-import {
-  hasSubmittedTimesheetForWeek,
-} from './timesheet.service';
+import { hasSubmittedTimesheetForWeek } from './timesheet.service';
 import { sendEmail, getTimesheetReminderTemplate } from '../utils/email';
 import { APP_ORIGIN } from '../constants/env';
 import UserModel from '../models/user.model';
@@ -49,7 +47,9 @@ export class CronJobService {
         if (!userDoc) continue;
 
         // Check if employee is assigned to any project or team
-        const isAssigned = await isEmployeeAssignedToProjectOrTeam(userDoc._id.toString());
+        const isAssigned = await isEmployeeAssignedToProjectOrTeam(
+          userDoc._id.toString()
+        );
         if (!isAssigned) {
           console.log(
             `Skipping ${employee.firstName} ${employee.lastName} - not assigned to any project or team`
@@ -93,14 +93,12 @@ export class CronJobService {
   ): Promise<void> {
     const promises = employees.map(async (employee) => {
       try {
-        // Send in-app notification
         await createTimesheetReminderNotification(
           employee._id.toString(),
           weekRange.startDate,
           weekRange.endDate
         );
 
-        // Send email
         await sendEmail({
           to: employee.email,
           ...getTimesheetReminderTemplate(
