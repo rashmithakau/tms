@@ -1,13 +1,13 @@
-import MainLayout from '../components/templates/MainLayout';
+import MainLayout from '../components/templates/layout/MainLayout';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
-import AdminWindow from '../components/organisms/AdminWindow';
+import AdminWindow from '../components/organisms/user/AdminWindow';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import { useEffect } from 'react';
-import { useAuth } from '../components/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
 
 

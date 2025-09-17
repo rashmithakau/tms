@@ -1,18 +1,10 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import SectionContainer from '../../atoms/Landing/SectionContainer';
+import SectionContainer from '../../atoms/landing/SectionContainer';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
-export interface HeroSectionLayoutProps {
-  id?: string;
-  title: React.ReactNode;
-  description?: React.ReactNode;
-  actions?: React.ReactNode;
-  image?: React.ReactNode;
-  background?: string;
-  mobileImageFirst?: boolean;
-}
+import { HeroSectionLayoutProps } from '../../../interfaces/landing/ILanding';
 
 const HeroSectionLayout: React.FC<HeroSectionLayoutProps> = ({
   id = 'home',

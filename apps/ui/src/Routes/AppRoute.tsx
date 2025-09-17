@@ -7,9 +7,9 @@ import ProtectedRoute from './ProtectedRoute';
 import ResetPasswordFirstLogin from '../pages/ResetPasswordFirstLogin';
 import ResetChangePasswordPage from '../pages/ResetChangePasswordPage';
 import PasswordResetPage from '../pages/PasswordResetPage';
-import { useAuth } from '../components/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
-import PageLoading from '../components/molecules/PageLoading';
+import PageLoading from '../components/molecules/loading/PageLoading';
 import EmployeePage from '../pages/EmployeePage';
 import LandingPage from '../pages/LandingPage';
 const AppRoute: React.FC = () => {

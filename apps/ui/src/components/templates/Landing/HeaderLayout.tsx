@@ -2,15 +2,7 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-
-interface HeaderLayoutProps {
-  logo: React.ReactNode;
-  navItems: React.ReactNode;
-  signInButton: React.ReactNode;
-  isMobile: boolean;
-  onMenuClick: () => void;
-  drawer?: React.ReactNode;
-}
+import HeaderLayoutProps from '../../../interfaces/landing/ILanding';  
 
 const HeaderLayout: React.FC<HeaderLayoutProps> = ({
   logo,

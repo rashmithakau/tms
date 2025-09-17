@@ -1,6 +1,6 @@
 import React from 'react';
-import CenterContainerLayout from '../components/templates/CenterContainerLayout';
-import PasswordReset from '../components/organisms/PasswordReset';
+import CenterContainerLayout from '../components/templates/layout/CenterContainerLayout';
+import PasswordReset from '../components/organisms/authentication/password/PasswordReset';
 
 const PasswordResetPage: React.FC = () => {
   return( <CenterContainerLayout>

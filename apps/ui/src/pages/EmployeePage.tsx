@@ -1,8 +1,8 @@
-import SecondaryLayout from '../components/templates/SecondaryLayout';
+import SecondaryLayout from '../components/templates/layout/SecondaryLayout';
 import { EmpMenuItem } from '@tms/shared';
 import { useSelector } from 'react-redux';
-import MyTimesheetsWindow from '../components/organisms/MyTimesheetsWindow';
-import ReviewTimesheetsWindow from '../components/organisms/ReviewTimesheetsWindow';
+import MyTimesheetsWindow from '../components/organisms/timesheet/MyTimesheetsWindow';
+import ReviewTimesheetsWindow from '../components/organisms/timesheet/ReviewTimesheetsWindow';
 
 const EmployeePage = () => {
 	const empSelectedMenu = useSelector((state: any) => state.empMenuNav.selectedBtn);

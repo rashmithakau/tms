@@ -1,0 +1,217 @@
+import React, { useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import PageLoading from '../../molecules/loading/PageLoading';
+import TableWindowLayout from '../../templates/layout/TableWindowLayout';
+import { useSupervisedTimesheets } from '../../../hooks/timesheet/useSupervisedTimesheets';
+import { deleteMyTimesheet } from '../../../api/timesheet';
+import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
+import RejectionReasonDialog from '../../molecules/approval/RejectionReasonDialog';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { TimesheetStatus } from '@tms/shared';
+import EmployeeTimesheetCalendar from './EmployeeTimesheetCalendar';
+import {
+  Table, TableHead, TableRow, TableCell, TableBody, IconButton, Collapse
+} from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import theme from '../../../styles/theme';
+import { useToast } from '../../../contexts/ToastContext';
+import { useTimesheetApproval } from '../../../hooks/timesheet/useTimesheetApproval';
+import ApprovalActionButtons from '../../molecules/approval/ApprovalActionButtons';
+import { useSelector } from 'react-redux';
+
+const ReviewTimesheetsWindow: React.FC = () => {
+  const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, refresh } = useSupervisedTimesheets();
+  const toast = useToast();
+  
+  // Get search text from Redux store
+  const searchText = useSelector((state: any) => state.searchBar.searchText);
+  
+  // Filter out draft timesheets
+  const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
+  const pendingIdsInFiltered = filteredRows
+    .filter(row => row.status === TimesheetStatus.Pending)
+    .map(row => row._id);
+  
+  // Group employees from filtered rows
+  const employeeGroups = filteredRows.reduce((groups: any[], row) => {
+    // Skip rows without employee data
+    if (!row.employee) return groups;
+    
+    const existingGroup = groups.find(g => g.employee && row.employee && g.employee._id === row.employee._id);
+    if (existingGroup) {
+      existingGroup.timesheets.push(row);
+    } else {
+      groups.push({
+        employee: {
+          _id: row.employee._id,
+          firstName: row.employee.firstName || '',
+          lastName: row.employee.lastName || '',
+          email: row.employee.email || '',
+          contactNumber: row.employee.contactNumber || '',
+          designation: row.employee.designation || '',
+        },
+        timesheets: [row]
+      });
+    }
+    return groups;
+  }, []);
+
+  // Filter employee groups by search text
+  const filteredEmployeeGroups = employeeGroups.filter(group => {
+    if (!searchText.trim()) return true;
+    
+    const fullName = `${group.employee.firstName} ${group.employee.lastName}`.toLowerCase();
+    const email = group.employee.email?.toLowerCase() || '';
+    const searchLower = searchText.toLowerCase();
+    
+    return fullName.includes(searchLower) || email.includes(searchLower);
+  });
+  
+  const {
+    selectedIds,
+    selectedDays,
+    isSelectionMode,
+    rejectionDialog,
+    setRejectionDialog,
+    applyStatusToSelected,
+    handleRejectWithReason,
+    handleRejectClick,
+    handleDaySelectionChange,
+    toggleSelectionMode,
+    applyDailyStatusToSelected,
+  } = useTimesheetApproval(refresh);
+  
+  const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
+  const [openRow, setOpenRow] = useState<number | null>(null);
+
+  if (isLoading) return <PageLoading variant="inline" message="Loading timesheets..." />;
+
+  const employeeTable = (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell />
+          <TableCell>Name</TableCell>
+          <TableCell>Email</TableCell>
+          <TableCell>Contact</TableCell>
+          <TableCell>Designation</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {filteredEmployeeGroups.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+              <Typography color="textSecondary">
+                {searchText.trim() 
+                  ? `No employees found matching "${searchText}"`
+                  : "No timesheets to review. Employees may not have submitted any timesheets yet."
+                }
+              </Typography>
+            </TableCell>
+          </TableRow>
+        ) : (
+          filteredEmployeeGroups.map((group, index) => (
+            <React.Fragment key={group.employee._id}>
+              <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
+                <TableCell>
+                  <IconButton onClick={() => setOpenRow(openRow === index ? null : index)}>
+                    {openRow === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                  </IconButton>
+                </TableCell>
+                <TableCell>{group.employee.firstName} {group.employee.lastName}</TableCell>
+                <TableCell>{group.employee.email}</TableCell>
+                <TableCell>{group.employee.contactNumber || '-'}</TableCell>
+                <TableCell>{group.employee.designation || '-'}</TableCell>
+              </TableRow>
+              <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+                  <Collapse in={openRow === index}>
+                    <Box sx={{ m: 2, backgroundColor: theme.palette.background.paper }}>
+                      <EmployeeTimesheetCalendar
+                        employeeId={group.employee._id}
+                        employeeName={`${group.employee.firstName} ${group.employee.lastName}`}
+                        timesheets={group.timesheets}
+                        originalTimesheets={timesheets.filter(ts => ts.userId?._id === group.employee._id)}
+                        supervisedProjectIds={supervisedProjectIds}
+                        supervisedTeamIds={supervisedTeamIds}
+                        onDaySelectionChange={handleDaySelectionChange}
+                        selectedDays={selectedDays}
+                        isSelectionMode={isSelectionMode}
+                      />
+                    </Box>
+                  </Collapse>
+                </TableCell>
+              </TableRow>
+            </React.Fragment>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+
+  return (
+    <Box sx={{ padding: 2, height: '93%' }}>
+      <TableWindowLayout
+        title="Review Timesheets"
+        buttons={[
+          <Box
+            key="actions"
+            sx={{
+              display: 'flex',
+              gap: 2,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <ApprovalActionButtons
+              isSelectionMode={isSelectionMode}
+              selectedDaysCount={selectedDays.length}
+              selectedIdsCount={selectedIds.length}
+              pendingIdsCount={pendingIdsInFiltered.length}
+              onToggleSelectionMode={toggleSelectionMode}
+              onApproveDays={() => applyDailyStatusToSelected(TimesheetStatus.Approved)}
+              onRejectDays={handleRejectClick}
+              onApproveWeeks={() => applyStatusToSelected(TimesheetStatus.Approved, pendingIdsInFiltered)}
+              onRejectWeeks={() => applyStatusToSelected(TimesheetStatus.Rejected, pendingIdsInFiltered)}
+            />
+          </Box>,
+        ]}
+        table={employeeTable}
+      />
+
+      <ConfirmDialog
+        open={confirm.open}
+        title="Delete timesheet"
+        message="Are you sure you want to delete this timesheet? This action cannot be undone."
+        icon={<DeleteRoundedIcon />}
+        iconColor="error.main"
+        confirmButtonColor="error"
+        confirmText="Delete"
+        onCancel={() => setConfirm({ open: false })}
+        onConfirm={async () => {
+          if (confirm.id) {
+            try {
+              await deleteMyTimesheet(confirm.id);
+              toast.success('Timesheet deleted');
+              await refresh();
+            } catch (e) {
+              toast.error('Failed to delete timesheet');
+            }
+          }
+          setConfirm({ open: false });
+        }}
+      />
+
+      <RejectionReasonDialog
+        open={rejectionDialog.open}
+        onClose={() => setRejectionDialog({ open: false, selectedDays: [] })}
+        onConfirm={handleRejectWithReason}
+        title="Reject Selected Days"
+        message={`You are about to reject ${selectedDays.length} selected day(s). Please provide a reason:`}
+      />
+    </Box>
+  );
+};
+
+export default ReviewTimesheetsWindow;

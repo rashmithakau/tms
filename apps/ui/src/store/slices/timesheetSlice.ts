@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { TimesheetStatus, absenceActivity } from '@tms/shared';
-import { TimesheetData } from '../../components/organisms/TimeSheetTableCalander';
+import { TimesheetData } from '../../hooks/timesheet/useTimesheetDataManagement';
 
 interface ITimesheetState {
   selectedActivities: absenceActivity[];

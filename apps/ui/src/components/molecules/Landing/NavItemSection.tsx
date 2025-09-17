@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import BaseButton from '../../atoms/buttons/BaseBtn';
+import BaseButton from '../../atoms/button/BaseBtn';
 
 interface NavItemSectionProps {
   items: { label: string; target: string }[];
