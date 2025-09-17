@@ -1,5 +1,5 @@
 import { Button,Box } from '@mui/material';
-import { IBaseBtnProps } from '../../../interfaces/IBaseBtnProps';
+import { IBaseBtnProps } from '../../../interfaces/component';
 
 const BaseBtn: React.FC<IBaseBtnProps> = ({
   children,

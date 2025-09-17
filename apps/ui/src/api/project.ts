@@ -1,5 +1,5 @@
 import API from '../config/apiClient';
-import { ProjectListItem, CreateProjectPayload } from '../interfaces';
+import { CreateProjectPayload } from '../interfaces';
 
 export const listProjects = async () => {
   return API.get('/api/project');

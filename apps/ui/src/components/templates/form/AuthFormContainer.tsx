@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Grid, Paper, Box, Typography } from '@mui/material';
-import { IAuthFormContainer } from '../../../interfaces/IAuthFormContainer';
+import { IAuthFormContainer } from '../../../interfaces/auth';
 import theme from '../../../styles/theme';
 
 const StylePaper = styled(Paper)(() => ({

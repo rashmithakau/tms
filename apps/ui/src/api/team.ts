@@ -1,5 +1,5 @@
 import API from '../config/apiClient';
-import { CreateTeamPayload, TeamListItem } from '../interfaces';
+import { CreateTeamPayload } from '../interfaces';
 
 export const createTeam = async (payload: CreateTeamPayload) => {
   const res = await API.post('/api/team', payload);

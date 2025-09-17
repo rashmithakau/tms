@@ -7,7 +7,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { IEmployeeSectionProps } from '../../../interfaces/IEmployeeSectionProps';
+import { IEmployeeSectionProps } from '../../../interfaces/list';
 import BaseBtn from '../../atoms/button/BaseBtn';
 
 const EmployeeSection: React.FC<IEmployeeSectionProps> = ({

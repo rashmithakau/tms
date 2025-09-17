@@ -1,6 +1,6 @@
 import API from '../config/apiClient';
 import { TimesheetStatus } from '@tms/shared';
-import { TimesheetItem, TimesheetCategory, Timesheet, CreateTimesheetPayload } from '../interfaces';
+import { Timesheet, CreateTimesheetPayload } from '../interfaces';
 
 export const listMyTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
