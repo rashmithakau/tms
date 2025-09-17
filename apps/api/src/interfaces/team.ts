@@ -22,7 +22,6 @@ export interface IUpdateTeamParams extends Partial<ICreateTeamParams> {
   _id?: string;
 }
 
-// Service interfaces
 export interface CreateTeamParams {
   teamName: string;
   members?: string[];

@@ -60,7 +60,6 @@ export interface IVerificationCode extends Document {
 
 export interface IVerificationCodeDocument extends mongoose.Document, IVerificationCode {}
 
-// Service interfaces
 export interface CreateUserParams {
   email: string;
   designation: string;

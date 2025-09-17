@@ -1,29 +1,31 @@
 import { TimesheetStatus, NotificationType } from '@tms/shared';
 import { appAssert } from '../utils/validation';
-import {  UNAUTHORIZED, BAD_REQUEST, NOT_FOUND } from '../constants/http';
+import { UNAUTHORIZED, BAD_REQUEST, NOT_FOUND } from '../constants/http';
 import { Timesheet } from '../models/timesheet.model';
 import RejectReason from '../models/rejectReason.model';
 import ProjectModel from '../models/project.model';
 import TeamModel from '../models/team.model';
 import NotificationModel from '../models/notification.model';
 import { socketService } from '../config/socket';
-import { getMondayUTC, createFilledArray, getSupervisedUserIds } from '../utils/data';
+import {
+  getMondayUTC,
+  createFilledArray,
+  getSupervisedUserIds,
+} from '../utils/data';
 import {
   ITimesheet,
   ICreateTimesheetParams,
-  ITimesheetSubmissionParams,
   ITimesheetCategoryInput,
   UpdateTimesheetParams,
 } from '../interfaces';
 
 export const createTimesheet = async (params: ICreateTimesheetParams) => {
-
-  const dataWithDailyStatus = params.data.map(category => ({
+  const dataWithDailyStatus = params.data.map((category) => ({
     ...category,
-    items: category.items.map(item => ({
+    items: category.items.map((item) => ({
       ...item,
-      dailyStatus: createFilledArray(7, TimesheetStatus.Draft)
-    }))
+      dailyStatus: createFilledArray(7, TimesheetStatus.Draft),
+    })),
   }));
 
   let weekStartDate = new Date(params.weekStartDate);
@@ -43,20 +45,24 @@ export const createTimesheetWithBusinessLogic = async (
   weekStartDate: string | Date,
   data: ITimesheetCategoryInput[]
 ) => {
-  const dataWithDailyStatus = data.map(category => ({
+  const dataWithDailyStatus = data.map((category) => ({
     ...category,
-    items: category.items.map(item => ({
+    items: category.items.map((item) => ({
       ...item,
-      dailyStatus: Array(7).fill(TimesheetStatus.Draft)
-    }))
+      dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+    })),
   }));
 
-  return await createTimesheet({ userId, weekStartDate, data: dataWithDailyStatus });
+  return await createTimesheet({
+    userId,
+    weekStartDate,
+    data: dataWithDailyStatus,
+  });
 };
 
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
   const results = [];
-  
+
   for (const id of ids) {
     try {
       const timesheet = await Timesheet.findOne({
@@ -64,17 +70,17 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
         userId,
         $or: [
           { status: TimesheetStatus.Draft },
-          { status: TimesheetStatus.Rejected }
-        ]
+          { status: TimesheetStatus.Rejected },
+        ],
       });
-      
+
       if (!timesheet) {
         console.log('Timesheet not found or not Draft/Rejected:', id);
         continue;
       }
-      
+
       const originalStatus = timesheet.status;
-      
+
       timesheet.data.forEach((category) => {
         category.items.forEach((item) => {
           if (originalStatus === TimesheetStatus.Draft) {
@@ -83,59 +89,71 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
             if (!item.dailyStatus || item.dailyStatus.length !== 7) {
               item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
             } else {
-              item.dailyStatus = item.dailyStatus.map((status: TimesheetStatus) => 
-                status === TimesheetStatus.Rejected ? TimesheetStatus.Pending : status
+              item.dailyStatus = item.dailyStatus.map(
+                (status: TimesheetStatus) =>
+                  status === TimesheetStatus.Rejected
+                    ? TimesheetStatus.Pending
+                    : status
               );
             }
           }
         });
       });
-      
+
       timesheet.markModified('data');
       timesheet.status = TimesheetStatus.Pending;
       const savedTimesheet = await timesheet.save();
-      
+
       results.push(savedTimesheet);
     } catch (error) {
       console.error('Error updating timesheet', id, ':', error);
     }
   }
-  
+
   return { matched: ids.length, modified: results.length };
 };
 
 export const updateDailyTimesheetStatus = async (
-  supervisorId: string, 
-  timesheetId: string, 
-  categoryIndex: number, 
-  itemIndex: number, 
-  dayIndices: number[], 
+  supervisorId: string,
+  timesheetId: string,
+  categoryIndex: number,
+  itemIndex: number,
+  dayIndices: number[],
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected,
-  rejectionReason?: string,
+  rejectionReason?: string
 ) => {
-
-  appAssert(timesheetId && timesheetId.length === 24, BAD_REQUEST, `Invalid timesheet ID format: ${timesheetId}`);
+  appAssert(
+    timesheetId && timesheetId.length === 24,
+    BAD_REQUEST,
+    `Invalid timesheet ID format: ${timesheetId}`
+  );
 
   // Find the timesheet and verify supervisor has access
-  const timesheet = await Timesheet.findById(timesheetId)
-    .populate('userId', 'firstName lastName email');
+  const timesheet = await Timesheet.findById(timesheetId).populate(
+    'userId',
+    'firstName lastName email'
+  );
   appAssert(timesheet, NOT_FOUND, 'Timesheet not found');
 
-  const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedProjects = await ProjectModel.find({
+    supervisor: supervisorId,
+  });
   const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
-  
-  const supervisedProjectIds = supervisedProjects.map(p => p._id.toString());
-  const supervisedTeamIds = supervisedTeams.map(t => t._id.toString());
-  
+
+  const supervisedProjectIds = supervisedProjects.map((p) => p._id.toString());
+  const supervisedTeamIds = supervisedTeams.map((t) => t._id.toString());
+
   const projectSupervisedUserIds = Array.from(
     new Set(
-      supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+      supervisedProjects.flatMap(
+        (p) => p.employees?.map((e) => e.toString()) || []
+      )
     )
   );
-  
+
   const teamSupervisedUserIds = Array.from(
     new Set(
-      supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
+      supervisedTeams.flatMap((t) => t.members?.map((m) => m.toString()) || [])
     )
   );
 
@@ -143,25 +161,51 @@ export const updateDailyTimesheetStatus = async (
     new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
   );
 
-  const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
-  appAssert(allSupervisedUserIds.includes(timesheetUserId), UNAUTHORIZED, 'Unauthorized: You can only approve timesheets from your supervised employees');
+  const timesheetUserId = timesheet.userId._id
+    ? timesheet.userId._id.toString()
+    : timesheet.userId.toString();
+  appAssert(
+    allSupervisedUserIds.includes(timesheetUserId),
+    UNAUTHORIZED,
+    'Unauthorized: You can only approve timesheets from your supervised employees'
+  );
 
   const item = timesheet.data[categoryIndex].items[itemIndex];
-  
+
   if (item.projectId && item.teamId) {
     const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
-    appAssert(isProjectSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve project timesheet items if you supervise that specific project');
+    appAssert(
+      isProjectSupervised,
+      UNAUTHORIZED,
+      'Unauthorized: You can only approve project timesheet items if you supervise that specific project'
+    );
   } else if (item.projectId) {
     const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
-    appAssert(isProjectSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve project timesheets if you supervise that specific project');
+    appAssert(
+      isProjectSupervised,
+      UNAUTHORIZED,
+      'Unauthorized: You can only approve project timesheets if you supervise that specific project'
+    );
   } else if (item.teamId) {
     const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
-    appAssert(isTeamSupervised, UNAUTHORIZED, 'Unauthorized: You can only approve team timesheets if you supervise that specific team');
+    appAssert(
+      isTeamSupervised,
+      UNAUTHORIZED,
+      'Unauthorized: You can only approve team timesheets if you supervise that specific team'
+    );
   }
 
-  appAssert(categoryIndex >= 0 && categoryIndex < timesheet.data.length, BAD_REQUEST, `Invalid category index: ${categoryIndex}. Available categories: ${timesheet.data.length}`);
+  appAssert(
+    categoryIndex >= 0 && categoryIndex < timesheet.data.length,
+    BAD_REQUEST,
+    `Invalid category index: ${categoryIndex}. Available categories: ${timesheet.data.length}`
+  );
   const category = timesheet.data[categoryIndex];
-  appAssert(itemIndex >= 0 && itemIndex < category.items.length, BAD_REQUEST, `Invalid item index: ${itemIndex}. Available items in category '${category.category}': ${category.items.length}`);
+  appAssert(
+    itemIndex >= 0 && itemIndex < category.items.length,
+    BAD_REQUEST,
+    `Invalid item index: ${itemIndex}. Available items in category '${category.category}': ${category.items.length}`
+  );
 
   const categoryItem = category.items[itemIndex];
 
@@ -169,7 +213,7 @@ export const updateDailyTimesheetStatus = async (
     categoryItem.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
   }
 
-  dayIndices.forEach(dayIndex => {
+  dayIndices.forEach((dayIndex) => {
     if (dayIndex >= 0 && dayIndex < 7) {
       categoryItem.dailyStatus[dayIndex] = status;
     }
@@ -190,27 +234,36 @@ export const updateDailyTimesheetStatus = async (
         rejected_days_indexes: dayIndices,
       });
     } catch (err) {
-      console.error('Failed to save RejectReason for individual rejection:', err);
+      console.error(
+        'Failed to save RejectReason for individual rejection:',
+        err
+      );
     }
   }
 
   timesheet.markModified('data');
 
-  const allItemsProcessed = timesheet.data.every(cat => 
-    cat.items.every(itm => 
-      itm.dailyStatus.every(dayStatus => 
-        dayStatus === TimesheetStatus.Approved || dayStatus === TimesheetStatus.Rejected
+  const allItemsProcessed = timesheet.data.every((cat) =>
+    cat.items.every((itm) =>
+      itm.dailyStatus.every(
+        (dayStatus) =>
+          dayStatus === TimesheetStatus.Approved ||
+          dayStatus === TimesheetStatus.Rejected
       )
     )
   );
 
   if (allItemsProcessed) {
-    const allApproved = timesheet.data.every(cat => 
-      cat.items.every(itm => 
-        itm.dailyStatus.every(dayStatus => dayStatus === TimesheetStatus.Approved)
+    const allApproved = timesheet.data.every((cat) =>
+      cat.items.every((itm) =>
+        itm.dailyStatus.every(
+          (dayStatus) => dayStatus === TimesheetStatus.Approved
+        )
       )
     );
-    timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
+    timesheet.status = allApproved
+      ? TimesheetStatus.Approved
+      : TimesheetStatus.Rejected;
 
     if (timesheet.status === TimesheetStatus.Rejected && rejectionReason) {
       timesheet.rejectionReason = rejectionReason;
@@ -224,8 +277,8 @@ export const updateDailyTimesheetStatus = async (
       const weekStart = new Date(savedTimesheet.weekStartDate);
       const item: any = savedTimesheet.data[categoryIndex].items[itemIndex];
       const projectId = item.projectId || '';
-      
-      let projectName = 'Project'; 
+
+      let projectName = 'Project';
       if (projectId) {
         try {
           const project = await ProjectModel.findById(projectId);
@@ -234,7 +287,7 @@ export const updateDailyTimesheetStatus = async (
           console.error('Error fetching project name:', error);
         }
       }
-      
+
       const rejectedDates = dayIndices.map((d) => {
         const date = new Date(weekStart);
         date.setUTCDate(date.getUTCDate() + d);
@@ -245,14 +298,18 @@ export const updateDailyTimesheetStatus = async (
         userId: (savedTimesheet.userId as any)._id || savedTimesheet.userId,
         type: NotificationType.TimesheetRejected,
         title: `Timesheet Rejected - ${projectName}`,
-        message: `Timesheet rejected for ${rejectedDates.join(', ')}${rejectionReason ? ` - Reason: ${rejectionReason}` : ''}`,
+        message: `Timesheet rejected for ${rejectedDates.join(', ')}${
+          rejectionReason ? ` - Reason: ${rejectionReason}` : ''
+        }`,
         projectId,
         projectName,
         rejectedDates,
         reason: rejectionReason,
       });
 
-      const targetUserId = (((savedTimesheet.userId as any)._id) || savedTimesheet.userId).toString();
+      const targetUserId = (
+        (savedTimesheet.userId as any)._id || savedTimesheet.userId
+      ).toString();
       socketService.emitToUser(targetUserId, 'notification', {
         _id: notif._id,
         type: notif.type,
@@ -285,7 +342,7 @@ export const batchUpdateDailyTimesheetStatus = async (
   }>
 ) => {
   const groupedUpdates = new Map<string, typeof updates>();
-  updates.forEach(update => {
+  updates.forEach((update) => {
     if (!groupedUpdates.has(update.timesheetId)) {
       groupedUpdates.set(update.timesheetId, []);
     }
@@ -294,24 +351,28 @@ export const batchUpdateDailyTimesheetStatus = async (
 
   const results = [];
 
-  const supervisedProjects = await ProjectModel.find({ supervisor: supervisorId });
+  const supervisedProjects = await ProjectModel.find({
+    supervisor: supervisorId,
+  });
   const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
-  
-  const supervisedProjectIds = supervisedProjects.map(p => p._id.toString());
-  const supervisedTeamIds = supervisedTeams.map(t => t._id.toString());
-  
+
+  const supervisedProjectIds = supervisedProjects.map((p) => p._id.toString());
+  const supervisedTeamIds = supervisedTeams.map((t) => t._id.toString());
+
   const projectSupervisedUserIds = Array.from(
     new Set(
-      supervisedProjects.flatMap(p => p.employees?.map(e => e.toString()) || [])
+      supervisedProjects.flatMap(
+        (p) => p.employees?.map((e) => e.toString()) || []
+      )
     )
   );
-  
+
   const teamSupervisedUserIds = Array.from(
     new Set(
-      supervisedTeams.flatMap(t => t.members?.map(m => m.toString()) || [])
+      supervisedTeams.flatMap((t) => t.members?.map((m) => m.toString()) || [])
     )
   );
-  
+
   const allSupervisedUserIds = Array.from(
     new Set([...projectSupervisedUserIds, ...teamSupervisedUserIds])
   );
@@ -324,109 +385,139 @@ export const batchUpdateDailyTimesheetStatus = async (
         throw new Error(error);
       }
 
-      const timesheet = await Timesheet.findById(timesheetId)
-        .populate('userId', 'firstName lastName email');
-      
+      const timesheet = await Timesheet.findById(timesheetId).populate(
+        'userId',
+        'firstName lastName email'
+      );
+
       if (!timesheet) {
         const error = `Timesheet not found: ${timesheetId}`;
         console.error(error);
         throw new Error(error);
       }
 
-      const timesheetUserId = timesheet.userId._id ? timesheet.userId._id.toString() : timesheet.userId.toString();
-      
+      const timesheetUserId = timesheet.userId._id
+        ? timesheet.userId._id.toString()
+        : timesheet.userId.toString();
+
       if (!allSupervisedUserIds.includes(timesheetUserId)) {
-        const error = 'Unauthorized: You can only approve timesheets from your supervised employees';
+        const error =
+          'Unauthorized: You can only approve timesheets from your supervised employees';
         console.error(error, {
           timesheetUserId,
-          allSupervisedUserIds
+          allSupervisedUserIds,
         });
         throw new Error(error);
       }
 
       for (const update of timesheetUpdates) {
         const { categoryIndex, itemIndex } = update;
-        
+
         if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
-          console.error('Invalid category index:', { categoryIndex, availableCategories: timesheet.data.length });
+          console.error('Invalid category index:', {
+            categoryIndex,
+            availableCategories: timesheet.data.length,
+          });
           throw new Error(`Invalid category index: ${categoryIndex}`);
         }
-        
+
         const category = timesheet.data[categoryIndex];
         if (itemIndex < 0 || itemIndex >= category.items.length) {
-          console.error('Invalid item index:', { itemIndex, availableItems: category.items.length });
+          console.error('Invalid item index:', {
+            itemIndex,
+            availableItems: category.items.length,
+          });
           throw new Error(`Invalid item index: ${itemIndex}`);
         }
-        
+
         const item = category.items[itemIndex];
-        
+
         if (item.projectId && item.teamId) {
-          const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
+          const isProjectSupervised = supervisedProjectIds.includes(
+            item.projectId
+          );
           if (!isProjectSupervised) {
             console.error('Authorization failed:', {
               itemProjectId: item.projectId,
               itemTeamId: item.teamId,
               supervisedProjectIds,
-              message: 'You can only approve project timesheet items if you supervise that specific project'
+              message:
+                'You can only approve project timesheet items if you supervise that specific project',
             });
-            throw new Error('Unauthorized: You can only approve project timesheet items if you supervise that specific project');
+            throw new Error(
+              'Unauthorized: You can only approve project timesheet items if you supervise that specific project'
+            );
           }
         } else if (item.projectId) {
           // Project timesheet - only project supervisors can approve
-          const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
+          const isProjectSupervised = supervisedProjectIds.includes(
+            item.projectId
+          );
           if (!isProjectSupervised) {
             console.error('Authorization failed:', {
               itemProjectId: item.projectId,
               supervisedProjectIds,
-              message: 'You can only approve project timesheets if you supervise that specific project'
+              message:
+                'You can only approve project timesheets if you supervise that specific project',
             });
-            throw new Error('Unauthorized: You can only approve project timesheets if you supervise that specific project');
+            throw new Error(
+              'Unauthorized: You can only approve project timesheets if you supervise that specific project'
+            );
           }
         } else if (item.teamId) {
-          // Team timesheet - only team supervisors can approve
           const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
           if (!isTeamSupervised) {
             console.error('Authorization failed:', {
               itemTeamId: item.teamId,
               supervisedTeamIds,
-              message: 'You can only approve team timesheets if you supervise that specific team'
+              message:
+                'You can only approve team timesheets if you supervise that specific team',
             });
-            throw new Error('Unauthorized: You can only approve team timesheets if you supervise that specific team');
+            throw new Error(
+              'Unauthorized: You can only approve team timesheets if you supervise that specific team'
+            );
           }
         }
       }
 
-      // Apply all updates for this timesheet
       for (const update of timesheetUpdates) {
-        const { categoryIndex, itemIndex, dayIndices, status, rejectionReason } = update;
-        
-        // Validate indices
+        const {
+          categoryIndex,
+          itemIndex,
+          dayIndices,
+          status,
+          rejectionReason,
+        } = update;
+
         if (categoryIndex < 0 || categoryIndex >= timesheet.data.length) {
-          const error = `Invalid category index: ${categoryIndex}. Available: 0-${timesheet.data.length - 1}`;
+          const error = `Invalid category index: ${categoryIndex}. Available: 0-${
+            timesheet.data.length - 1
+          }`;
           console.error(error);
           throw new Error(error);
         }
-        
+
         const category = timesheet.data[categoryIndex];
         if (itemIndex < 0 || itemIndex >= category.items.length) {
-          const error = `Invalid item index: ${itemIndex}. Available: 0-${category.items.length - 1}`;
+          const error = `Invalid item index: ${itemIndex}. Available: 0-${
+            category.items.length - 1
+          }`;
           console.error(error);
           throw new Error(error);
         }
-        
+
         const item = category.items[itemIndex];
-        
-        
-        // Ensure dailyStatus array exists
+
         if (!item.dailyStatus || item.dailyStatus.length !== 7) {
           console.log('Initializing dailyStatus array for item');
           item.dailyStatus = Array(7).fill(TimesheetStatus.Pending);
         }
-        
-        // Update the specified days
+
         dayIndices.forEach((dayIndex) => {
           if (dayIndex >= 0 && dayIndex < 7) {
-            console.log(`Updating day ${dayIndex} from ${item.dailyStatus[dayIndex]} to ${status}`);
+            console.log(
+              `Updating day ${dayIndex} from ${item.dailyStatus[dayIndex]} to ${status}`
+            );
             item.dailyStatus[dayIndex] = status;
           } else {
             const error = `Invalid day index: ${dayIndex}. Must be 0-6`;
@@ -435,12 +526,11 @@ export const batchUpdateDailyTimesheetStatus = async (
           }
         });
 
-        if(status ===TimesheetStatus.Rejected) {
+        if (status === TimesheetStatus.Rejected) {
           console.log('Rejection timeshet recieved');
-          timesheet.status=TimesheetStatus.Rejected;
+          timesheet.status = TimesheetStatus.Rejected;
         }
-        
-        // Save rejection reason immediately for each rejected item
+
         if (status === TimesheetStatus.Rejected && rejectionReason) {
           try {
             const rejectReasonData: any = {
@@ -450,7 +540,6 @@ export const batchUpdateDailyTimesheetStatus = async (
               rejected_days_indexes: dayIndices,
             };
 
-            // Add project_id or team_id based on what's available
             if (item.projectId) {
               rejectReasonData.project_id = item.projectId;
             }
@@ -459,88 +548,122 @@ export const batchUpdateDailyTimesheetStatus = async (
             }
 
             await RejectReason.create(rejectReasonData);
-            console.log('RejectReason saved for individual rejection:', rejectReasonData);
+            console.log(
+              'RejectReason saved for individual rejection:',
+              rejectReasonData
+            );
           } catch (err) {
-            console.error('Failed to save RejectReason for individual rejection:', err);
+            console.error(
+              'Failed to save RejectReason for individual rejection:',
+              err
+            );
           }
         }
-        
+
         console.log('Updated dailyStatus:', item.dailyStatus);
       }
-      
-      // Mark as modified
+
       timesheet.markModified('data');
-      
-      // Check if all days for all items are now approved/rejected
-      const allItemsProcessed = timesheet.data.every(cat => 
-        cat.items.every(itm => 
-          itm.dailyStatus.every(dayStatus => 
-            dayStatus === TimesheetStatus.Approved || dayStatus === TimesheetStatus.Rejected
+
+      const allItemsProcessed = timesheet.data.every((cat) =>
+        cat.items.every((itm) =>
+          itm.dailyStatus.every(
+            (dayStatus) =>
+              dayStatus === TimesheetStatus.Approved ||
+              dayStatus === TimesheetStatus.Rejected
           )
         )
       );
-      
+
       console.log('All items processed:', allItemsProcessed);
-      
-      // If all items are processed, update overall status
+
       if (allItemsProcessed) {
-        const allApproved = timesheet.data.every(cat => 
-          cat.items.every(itm => 
-            itm.dailyStatus.every(dayStatus => dayStatus === TimesheetStatus.Approved)
+        const allApproved = timesheet.data.every((cat) =>
+          cat.items.every((itm) =>
+            itm.dailyStatus.every(
+              (dayStatus) => dayStatus === TimesheetStatus.Approved
+            )
           )
         );
-        
+
         console.log('All approved:', allApproved);
-        
-        timesheet.status = allApproved ? TimesheetStatus.Approved : TimesheetStatus.Rejected;
-        
-        // Set overall rejection reason if the overall timesheet status is rejected
+
+        timesheet.status = allApproved
+          ? TimesheetStatus.Approved
+          : TimesheetStatus.Rejected;
+
         if (timesheet.status === TimesheetStatus.Rejected) {
-          const rejectionUpdate = timesheetUpdates.find(u => u.rejectionReason);
+          const rejectionUpdate = timesheetUpdates.find(
+            (u) => u.rejectionReason
+          );
           if (rejectionUpdate?.rejectionReason) {
             timesheet.rejectionReason = rejectionUpdate.rejectionReason;
           }
         }
       }
-      
+
       const savedTimesheet = await timesheet.save();
       results.push(savedTimesheet);
 
-      // Emit rejection notifications per updated item (if any rejection occurred)
-      const hadRejection = timesheetUpdates.some(u => u.status === TimesheetStatus.Rejected);
+      const hadRejection = timesheetUpdates.some(
+        (u) => u.status === TimesheetStatus.Rejected
+      );
       if (hadRejection) {
         try {
           const weekStart = new Date(timesheet.weekStartDate);
-          const rejectedSummaries: Array<{ projectId?: string; projectName?: string; rejectedDates: string[]; reason?: string; }> = [];
+          const rejectedSummaries: Array<{
+            projectId?: string;
+            projectName?: string;
+            rejectedDates: string[];
+            reason?: string;
+          }> = [];
 
-          for (const u of timesheetUpdates.filter(u => u.status === TimesheetStatus.Rejected)) {
-            const item = timesheet.data[u.categoryIndex].items[u.itemIndex] as any;
+          for (const u of timesheetUpdates.filter(
+            (u) => u.status === TimesheetStatus.Rejected
+          )) {
+            const item = timesheet.data[u.categoryIndex].items[
+              u.itemIndex
+            ] as any;
             const projectId = item.projectId;
-            
-            // Fetch the actual project name from the database
+
             let projectName = undefined;
             if (projectId) {
               try {
                 const project = await ProjectModel.findById(projectId);
                 projectName = project?.projectName;
               } catch (error) {
-                console.error('Error fetching project name for batch update:', error);
+                console.error(
+                  'Error fetching project name for batch update:',
+                  error
+                );
               }
             }
-            
+
             const rejectedDates = u.dayIndices.map((d) => {
               const date = new Date(weekStart);
               date.setUTCDate(date.getUTCDate() + d);
               return date.toISOString().split('T')[0];
             });
-            rejectedSummaries.push({ projectId, projectName, rejectedDates, reason: u.rejectionReason });
+            rejectedSummaries.push({
+              projectId,
+              projectName,
+              rejectedDates,
+              reason: u.rejectionReason,
+            });
           }
 
-          // Create a single consolidated message
-          const allDates = Array.from(new Set(rejectedSummaries.flatMap(s => s.rejectedDates))).sort();
-          const firstProjectName = rejectedSummaries.find(s => !!s.projectName)?.projectName || 'Project';
-          const reasons = Array.from(new Set(rejectedSummaries.map(s => s.reason).filter(Boolean))) as string[];
-          const message = `Timesheet rejected for ${allDates.join(', ')}${reasons.length ? ` - Reason: ${reasons.join('; ')}` : ''}`;
+          const allDates = Array.from(
+            new Set(rejectedSummaries.flatMap((s) => s.rejectedDates))
+          ).sort();
+          const firstProjectName =
+            rejectedSummaries.find((s) => !!s.projectName)?.projectName ||
+            'Project';
+          const reasons = Array.from(
+            new Set(rejectedSummaries.map((s) => s.reason).filter(Boolean))
+          ) as string[];
+          const message = `Timesheet rejected for ${allDates.join(', ')}${
+            reasons.length ? ` - Reason: ${reasons.join('; ')}` : ''
+          }`;
 
           const notif = await NotificationModel.create({
             userId: (timesheet.userId as any)._id || timesheet.userId,
@@ -553,8 +676,9 @@ export const batchUpdateDailyTimesheetStatus = async (
             reason: reasons[0],
           });
 
-          // Emit to the employee in real-time
-          const targetUserId = ((timesheet.userId as any)._id || timesheet.userId).toString();
+          const targetUserId = (
+            (timesheet.userId as any)._id || timesheet.userId
+          ).toString();
           socketService.emitToUser(targetUserId, 'notification', {
             _id: notif._id,
             type: notif.type,
@@ -571,9 +695,8 @@ export const batchUpdateDailyTimesheetStatus = async (
           console.error('Failed to create/emit rejection notification', e);
         }
       }
-      
     } catch (error: any) {
-      throw error; 
+      throw error;
     }
   }
 
@@ -588,7 +711,7 @@ export const hasSubmittedTimesheetForWeek = async (
   try {
     const startDate = new Date(weekStartDate);
     startDate.setUTCHours(0, 0, 0, 0);
-    
+
     const endDate = new Date(weekEndDate);
     endDate.setUTCHours(23, 59, 59, 999);
 
@@ -596,11 +719,11 @@ export const hasSubmittedTimesheetForWeek = async (
       userId,
       weekStartDate: {
         $gte: startDate,
-        $lte: endDate
+        $lte: endDate,
       },
-      status: { 
-        $in: [TimesheetStatus.Pending, TimesheetStatus.Approved] 
-      }
+      status: {
+        $in: [TimesheetStatus.Pending, TimesheetStatus.Approved],
+      },
     });
 
     return !!timesheet;
@@ -621,16 +744,18 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
     return [];
   }
 
-  const timesheets = await Timesheet.find({ userId: { $in: allSupervisedUserIds } })
+  const timesheets = await Timesheet.find({
+    userId: { $in: allSupervisedUserIds },
+  })
     .populate('userId', 'firstName lastName email contactNumber designation')
     .sort({ weekStartDate: -1 });
 
   const projectIds = new Set<string>();
   const teamIds = new Set<string>();
-  
-  timesheets.forEach(ts => {
-    ts.data?.forEach(category => {
-      category.items?.forEach(item => {
+
+  timesheets.forEach((ts) => {
+    ts.data?.forEach((category) => {
+      category.items?.forEach((item) => {
         if (item.projectId) {
           projectIds.add(item.projectId);
         }
@@ -641,15 +766,19 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
     });
   });
 
-  const projects = await ProjectModel.find({ _id: { $in: Array.from(projectIds) } });
+  const projects = await ProjectModel.find({
+    _id: { $in: Array.from(projectIds) },
+  });
   const teams = await TeamModel.find({ _id: { $in: Array.from(teamIds) } });
-  
-  const projectMap = new Map(projects.map(p => [p._id.toString(), p.projectName]));
-  const teamMap = new Map(teams.map(t => [t._id.toString(), t.teamName]));
 
-  timesheets.forEach(ts => {
-    ts.data?.forEach(category => {
-      category.items?.forEach(item => {
+  const projectMap = new Map(
+    projects.map((p) => [p._id.toString(), p.projectName])
+  );
+  const teamMap = new Map(teams.map((t) => [t._id.toString(), t.teamName]));
+
+  timesheets.forEach((ts) => {
+    ts.data?.forEach((category) => {
+      category.items?.forEach((item) => {
         if (item.projectId && projectMap.has(item.projectId)) {
           (item as any).projectName = projectMap.get(item.projectId);
         }
@@ -664,8 +793,8 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
 };
 
 export const updateSupervisedTimesheetsStatus = async (
-  supervisorId: string, 
-  ids: string[], 
+  supervisorId: string,
+  ids: string[],
   status: TimesheetStatus
 ) => {
   const allSupervisedUserIds = await getSupervisedUserIds(supervisorId);
@@ -675,10 +804,10 @@ export const updateSupervisedTimesheetsStatus = async (
   }
 
   return await Timesheet.updateMany(
-    { 
-      _id: { $in: ids }, 
+    {
+      _id: { $in: ids },
       userId: { $in: allSupervisedUserIds },
-      status: TimesheetStatus.Pending 
+      status: TimesheetStatus.Pending,
     },
     { $set: { status } }
   );
@@ -693,27 +822,37 @@ export const updateUserTimesheet = async (
   const updateFields: Partial<ITimesheet> = {};
 
   if (weekStartDate) {
-    updateFields.weekStartDate = weekStartDate instanceof Date ? weekStartDate : new Date(weekStartDate);
+    updateFields.weekStartDate =
+      weekStartDate instanceof Date ? weekStartDate : new Date(weekStartDate);
   }
 
   if (data) {
-    const existingTimesheet = await Timesheet.findOne({ _id: timesheetId, userId });
-    
-    const dataWithDailyStatus = data.map((category: any, categoryIndex: number) => ({
-      ...category,
-      items: category.items.map((item: any, itemIndex: number) => {
-        const existingDailyStatus = existingTimesheet?.data?.[categoryIndex]?.items?.[itemIndex]?.dailyStatus;
-        
-        return {
-          ...item,
-          dailyStatus: existingDailyStatus && existingDailyStatus.length === 7
-            ? existingDailyStatus
-            : (item as any).dailyStatus && (item as any).dailyStatus.length === 7 
-              ? (item as any).dailyStatus 
-              : Array(7).fill(TimesheetStatus.Draft)
-        };
+    const existingTimesheet = await Timesheet.findOne({
+      _id: timesheetId,
+      userId,
+    });
+
+    const dataWithDailyStatus = data.map(
+      (category: any, categoryIndex: number) => ({
+        ...category,
+        items: category.items.map((item: any, itemIndex: number) => {
+          const existingDailyStatus =
+            existingTimesheet?.data?.[categoryIndex]?.items?.[itemIndex]
+              ?.dailyStatus;
+
+          return {
+            ...item,
+            dailyStatus:
+              existingDailyStatus && existingDailyStatus.length === 7
+                ? existingDailyStatus
+                : (item as any).dailyStatus &&
+                  (item as any).dailyStatus.length === 7
+                ? (item as any).dailyStatus
+                : Array(7).fill(TimesheetStatus.Draft),
+          };
+        }),
       })
-    }));
+    );
     (updateFields as any).data = dataWithDailyStatus;
   }
 
@@ -726,18 +865,31 @@ export const updateUserTimesheet = async (
   );
 };
 
-export const deleteUserTimesheet = async (userId: string, timesheetId: string) => {
+export const deleteUserTimesheet = async (
+  userId: string,
+  timesheetId: string
+) => {
   return await Timesheet.findOneAndDelete({ _id: timesheetId, userId });
 };
 
-export const getOrCreateTimesheetForWeek = async (userId: string, weekStartDateRaw?: string) => {
-  let weekStartDate = getMondayUTC(weekStartDateRaw ? weekStartDateRaw : new Date());
+export const getOrCreateTimesheetForWeek = async (
+  userId: string,
+  weekStartDateRaw?: string
+) => {
+  let weekStartDate = getMondayUTC(
+    weekStartDateRaw ? weekStartDateRaw : new Date()
+  );
 
   return await Timesheet.findOneAndUpdate(
     { userId, weekStartDate },
-    { $setOnInsert: { userId, weekStartDate, status: TimesheetStatus.Draft, data: [] } },
+    {
+      $setOnInsert: {
+        userId,
+        weekStartDate,
+        status: TimesheetStatus.Draft,
+        data: [],
+      },
+    },
     { new: true, upsert: true }
   );
 };
-
-

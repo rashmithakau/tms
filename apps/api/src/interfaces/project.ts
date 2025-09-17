@@ -24,7 +24,6 @@ export interface IUpdateProjectParams extends Partial<ICreateProjectParams> {
   _id?: string;
 }
 
-// Service interfaces
 export interface CreateProjectParams {
   projectName: string;
   billable: boolean;

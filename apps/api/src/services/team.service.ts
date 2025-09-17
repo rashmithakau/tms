@@ -67,7 +67,6 @@ export const listTeamsForUser = async (userId: string, userRole: UserRole) => {
 };
 
 export const listMyMemberTeams = async (userId: string) => {
-  // Always return teams where the user is a member, regardless of role
   const teams = await TeamModel.find({ status: true, members: userId })
     .sort({ createdAt: -1 })
     .populate({ path: 'members', select: 'firstName lastName email designation' })
@@ -90,7 +89,6 @@ export const updateTeamStaff = async (
   teamId: string,
   data: { members?: string[]; supervisor?: string | null }
 ) => {
-  // Get the previous supervisor
   const existing = await TeamModel.findById(teamId).select('supervisor');
   const update: any = {};
   
@@ -116,33 +114,27 @@ export const updateTeamStaff = async (
     
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team update failed');
 
-  // Update roles based on supervisor change
   if (data.supervisor !== undefined) {
     const previousSupervisorId = existing?.supervisor?.toString() || null;
     const newSupervisorId = team.supervisor
       ? (team.supervisor as any)._id?.toString?.() || team.supervisor.toString()
       : null;
 
-    // Promote new supervisor if changed
     if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
       const sup = await UserModel.findById(newSupervisorId).select('role');
       if (sup) {
         if (sup.role === UserRole.Admin) {
-          // Admin -> SupervisorAdmin when assigned as team supervisor
           await UserModel.findByIdAndUpdate(newSupervisorId, {
             $set: { role: UserRole.SupervisorAdmin },
           });
         } else if (sup.role === UserRole.Emp) {
-          // Emp -> Supervisor when assigned as team supervisor
           await UserModel.findByIdAndUpdate(newSupervisorId, {
             $set: { role: UserRole.Supervisor },
           });
         }
-        // If already SupervisorAdmin or Supervisor, keep current role
       }
     }
     
-    // Demote previous supervisor if changed or removed
     if (
       previousSupervisorId &&
       (previousSupervisorId !== newSupervisorId || !newSupervisorId)
@@ -151,21 +143,18 @@ export const updateTeamStaff = async (
       
       if (prev) {
         if (prev.role === UserRole.SupervisorAdmin) {
-          // For SupervisorAdmin: check if still supervising any other teams
           const stillSupervisingAnotherTeam = await TeamModel.exists({
             _id: { $ne: teamId },
             supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
             status: true,
           });
           
-          // Only demote to Admin if not supervising any other teams
           if (!stillSupervisingAnotherTeam) {
             await UserModel.findByIdAndUpdate(previousSupervisorId, {
               $set: { role: UserRole.Admin },
             });
           }
         } else if (prev.role === UserRole.Supervisor) {
-          // For Supervisor: check if still supervising any other teams or projects
           const stillSupervisingAnotherTeam = await TeamModel.exists({
             _id: { $ne: teamId },
             supervisor: new mongoose.Types.ObjectId(previousSupervisorId),
@@ -177,7 +166,6 @@ export const updateTeamStaff = async (
             status: true,
           });
           
-          // Only demote to Emp if not supervising any other teams or projects
           if (!stillSupervisingAnotherTeam && !stillSupervisingAnotherProject) {
             await UserModel.findByIdAndUpdate(previousSupervisorId, {
               $set: { role: UserRole.Emp },
@@ -192,7 +180,6 @@ export const updateTeamStaff = async (
 };
 
 export const softDeleteTeam = async (teamId: string) => {
-  // Capture the current team data before deletion
   const existing = await TeamModel.findById(teamId).select('supervisor members');
 
   const team = await TeamModel.findByIdAndUpdate(
@@ -202,28 +189,24 @@ export const softDeleteTeam = async (teamId: string) => {
   );
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team delete failed');
 
-  // Handle supervisor role management
   const supervisorId = existing?.supervisor?.toString();
   if (supervisorId) {
     const prev = await UserModel.findById(supervisorId).select('role');
     
     if (prev) {
       if (prev.role === UserRole.SupervisorAdmin) {
-        // For SupervisorAdmin: check if still supervising any other teams
         const stillSupervisingAnotherTeam = await TeamModel.exists({
           _id: { $ne: teamId },
           supervisor: new mongoose.Types.ObjectId(supervisorId),
           status: true,
         });
         
-        // Only demote to Admin if not supervising any other teams
         if (!stillSupervisingAnotherTeam) {
           await UserModel.findByIdAndUpdate(supervisorId, {
             $set: { role: UserRole.Admin },
           });
         }
       } else if (prev.role === UserRole.Supervisor) {
-        // For Supervisor: check if still supervising any other teams or projects
         const stillSupervisingAnotherTeam = await TeamModel.exists({
           _id: { $ne: teamId },
           supervisor: new mongoose.Types.ObjectId(supervisorId),
@@ -235,7 +218,6 @@ export const softDeleteTeam = async (teamId: string) => {
           status: true,
         });
         
-        // Only demote to Emp if not supervising any other teams or projects
         if (!stillSupervisingAnotherTeam && !stillSupervisingAnotherProject) {
           await UserModel.findByIdAndUpdate(supervisorId, {
             $set: { role: UserRole.Emp },
@@ -245,7 +227,6 @@ export const softDeleteTeam = async (teamId: string) => {
     }
   }
 
-  // Remove team from all users' teams array
   if (existing?.members && existing.members.length > 0) {
     await UserModel.updateMany(
       { _id: { $in: existing.members } },

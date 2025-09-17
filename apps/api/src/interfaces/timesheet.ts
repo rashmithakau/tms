@@ -71,7 +71,6 @@ export interface IBatchDailyStatusUpdateParams {
   updates: IDailyStatusUpdateParams[];
 }
 
-// Service interfaces
 export interface UpdateTimesheetParams {
   weekStartDate?: string | Date;
   data?: ITimesheetCategoryInput[];
