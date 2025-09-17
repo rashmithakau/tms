@@ -59,3 +59,19 @@ export interface IVerificationCode extends Document {
 }
 
 export interface IVerificationCodeDocument extends mongoose.Document, IVerificationCode {}
+
+// Service interfaces
+export interface CreateUserParams {
+  email: string;
+  designation: string;
+  firstName: string;
+  lastName: string;
+  contactNumber: string;
+  role: UserRole;
+  userAgent?: string;
+}
+
+export interface ChangePasswordParams {
+  userId: string;
+  newPassword: string;
+}

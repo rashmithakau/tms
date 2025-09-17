@@ -20,12 +20,7 @@ import VerificationCodeType from '../constants/verificationCodeType';
 import { sendEmail, getPasswordResetTemplate } from '../utils/email';
 import { hashValue } from '../utils/auth';
 import { JWT_SECRET } from '../constants/env';
-
-export type LoginParams = {
-  email: string;
-  password: string;
-  userAgent?: string;
-};
+import { LoginParams } from '../interfaces/auth';
 
 export const loginUser = async ({
   email,

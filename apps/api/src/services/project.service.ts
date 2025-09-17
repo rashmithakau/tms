@@ -7,14 +7,7 @@ import UserModel from '../models/user.model';
 import { UserRole } from '@tms/shared';
 import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../utils/data';
 import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
-
-export type CreateProjectParams = {
-  projectName: string;
-  billable: boolean;
-  employees?: string[];
-  supervisor?: string | null;
-  status?: boolean;
-};
+import { CreateProjectParams } from '../interfaces/project';
 
 export const createProject = async (data: CreateProjectParams) => {
   const existingProject = await ProjectModel.exists({

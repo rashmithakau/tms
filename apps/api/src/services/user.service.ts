@@ -5,21 +5,7 @@ import { UserRole } from '@tms/shared';
 import { sendEmail, getWelcomeTmsTemplate } from '../utils/email';
 import { generateRandomPassword } from '../utils/auth';
 import { APP_ORIGIN } from '../constants/env';
-
-export type CreateUserParams = {
-  email: string;
-  designation: string;
-  firstName: string;
-  lastName: string;
-  contactNumber: string;
-  role:UserRole;
-  userAgent?: string;
-};
-
-export type ChangePasswordParams = {
-  userId:string;
-  newPassword:string;
-}
+import { CreateUserParams, ChangePasswordParams } from '../interfaces/user';
 
 export const createUser = async (data: CreateUserParams) => {
   const existingUser = await UserModel.exists({

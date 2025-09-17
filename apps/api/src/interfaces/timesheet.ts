@@ -70,3 +70,11 @@ export interface IDailyStatusUpdateParams {
 export interface IBatchDailyStatusUpdateParams {
   updates: IDailyStatusUpdateParams[];
 }
+
+// Service interfaces
+export interface UpdateTimesheetParams {
+  weekStartDate?: string | Date;
+  data?: ITimesheetCategoryInput[];
+  status?: TimesheetStatus;
+  rejectionReason?: string;
+}

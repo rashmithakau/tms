@@ -8,13 +8,7 @@ import { UserRole } from '@tms/shared';
 import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../utils/data';
 import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
 import { updateUserTeamMemberships } from '../utils/data';
-
-export type CreateTeamParams = {
-  teamName: string;
-  members?: string[];
-  supervisor?: string | null;
-  status?: boolean;
-};
+import { CreateTeamParams } from '../interfaces/team';
 
 export const createTeam = async (data: CreateTeamParams) => {
   const exists = await TeamModel.exists({ teamName: data.teamName });

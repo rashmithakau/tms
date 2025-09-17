@@ -143,7 +143,6 @@ export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
   const userId = (payload as any).userId;
   const verificationCodeId = (payload as any).verificationCodeId;
 
-  // Verify the verification code still exists and is valid
   const validCode = await VerificationCodeModel.findOne({
     _id: verificationCodeId,
     userId: new mongoose.Types.ObjectId(userId),
@@ -199,6 +198,29 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
       lastName: user.lastName,
     },
     verificationCodeId: verificationCode,
+  });
+});
+
+export const getCurrentUser = catchErrors(async (req, res) => {
+  const user = await UserModel.findById(req.userId).select('-password');
+  
+  if (!user) {
+    return res.status(NOT_FOUND).json({
+      message: 'User not found',
+    });
+  }
+
+  return res.status(OK).json({
+    user: {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      designation: user.designation,
+      contactNumber: user.contactNumber,
+      isChangedPwd: user.isChangedPwd,
+    },
   });
 });
 

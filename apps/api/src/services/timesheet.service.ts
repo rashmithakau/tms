@@ -11,14 +11,10 @@ import { getMondayUTC, createFilledArray, getSupervisedUserIds } from '../utils/
 import {
   ITimesheet,
   ICreateTimesheetParams,
-  IUpdateTimesheetParams,
   ITimesheetSubmissionParams,
   ITimesheetCategoryInput,
+  UpdateTimesheetParams,
 } from '../interfaces';
-
-export type UpdateTimesheetParams = Partial<IUpdateTimesheetParams> & {
-  status?: TimesheetStatus;
-};
 
 export const createTimesheet = async (params: ICreateTimesheetParams) => {
 
@@ -691,7 +687,7 @@ export const updateSupervisedTimesheetsStatus = async (
 export const updateUserTimesheet = async (
   userId: string,
   timesheetId: string,
-  updateData: IUpdateTimesheetParams
+  updateData: UpdateTimesheetParams
 ) => {
   const { weekStartDate, data, status } = updateData;
   const updateFields: Partial<ITimesheet> = {};
