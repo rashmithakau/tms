@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import SectionContainer from '../../atoms/Landing/SectionContainer';
+import SectionContainer from '../../atoms/landing/SectionContainer';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate, useLocation } from 'react-router-dom';
 import WebSiteLogo from '../../../assets/images/WebSiteLogo.png';
-import BrandLogo from '../../atoms/Landing/BrandLogo';
-import BaseButton from '../../atoms/buttons/BaseBtn';
-import HeaderDrawer from '../../molecules/Landing/HeaderDrawer';
-import NavItemSection from '../../molecules/Landing/NavItemSection';
-import HeaderLayout from '../../templates/Landing/HeaderLayout';
+import BrandLogo from '../../atoms/landing/BrandLogo';
+import BaseButton from '../../atoms/button/BaseBtn';
+import HeaderDrawer from '../../molecules/landing/HeaderDrawer';
+import NavItemSection from '../../molecules/landing/NavItemSection';
+import HeaderLayout from '../../templates/landing/HeaderLayout';
 
 const Header: React.FC = () => {
   const theme = useTheme();

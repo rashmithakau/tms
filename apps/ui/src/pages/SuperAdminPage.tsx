@@ -1,7 +1,7 @@
-import MainLayout from '../components/templates/MainLayout';
+import MainLayout from '../components/templates/layout/MainLayout';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import SuperAdminWindow from '../components/organisms/SuperAdminWindow';
+import SuperAdminWindow from '../components/organisms/user/SuperAdminWindow';
 const SuperAdminPage = () => {
   const items = [
     [

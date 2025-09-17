@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import { SvgIconComponent } from '@mui/icons-material';
 import Box from '@mui/material/Box';
-import AppIcon from '../../atoms/Landing/AppIcon';
+import AppIcon from '../../atoms/landing/AppIcon';
 
 
 export interface FeatureCardProps {

@@ -2,7 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "ignoreDeprecations": "6.0",
     "types": [
       "node",
       "@nx/react/typings/cssmodule.d.ts",

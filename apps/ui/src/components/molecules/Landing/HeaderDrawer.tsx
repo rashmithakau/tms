@@ -2,8 +2,8 @@ import React from 'react';
 import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import BaseButton from '../../atoms/buttons/BaseBtn';
-import NavItemSection from '../../molecules/Landing/NavItemSection';
+import BaseButton from '../../atoms/button/BaseBtn';
+import NavItemSection from './NavItemSection';
 import { useTheme } from '@mui/material/styles';
 
 interface HeaderDrawerProps {

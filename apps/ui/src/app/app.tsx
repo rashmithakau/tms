@@ -2,11 +2,11 @@ import './app.css';
 import theme from '../styles/theme';
 import { ThemeProvider } from '@emotion/react';
 import AppRoute from '../Routes/AppRoute';
-import { LoadingProvider } from '../components/contexts/LoadingContext';
-import { AuthProvider } from '../components/contexts/AuthContext';
-import GlobalLoading from '../components/organisms/GlobalLoading';
-import { ToastProvider } from '../components/contexts/ToastContext';
-import { SocketProvider } from '../components/contexts/SocketContext';
+import { LoadingProvider } from '../contexts/LoadingContext';
+import { AuthProvider } from '../contexts/AuthContext';
+import GlobalLoading from '../components/organisms/loading/GlobalLoading';
+import { ToastProvider } from '../contexts/ToastContext';
+import { SocketProvider } from '../contexts/SocketContext';
 
 export default function App() {
   return (

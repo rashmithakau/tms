@@ -1,6 +1,6 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import FeatureListItem from '../../atoms/Landing/FeatureListItem'
+import FeatureListItem from '../../atoms/landing/FeatureListItem'
 
 interface FeatureListProps {
   features: string[]
