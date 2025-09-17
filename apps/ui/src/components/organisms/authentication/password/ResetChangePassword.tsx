@@ -5,15 +5,11 @@ import WebSiteLogo from '../../../../assets/images/WebSiteLogo.png';
 import BaseBtn from '../../../atoms/button/BaseBtn';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ResetPasswordFormSchema as PasswordResetChangePasswordPageSchema } from '../../../../validations/auth';
+import ResetPasswordFirstLoginSchema from '../../../../validations/auth/ResetPasswordFirstLoginSchema';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { verifyPasswordResetToken, resetPassword } from '../../../../api/auth';
-
-type SetPasswordData = {
-  newPassword: string;
-  confirmPassword: string;
-};
+import { SetPasswordData } from '../../../../interfaces';
 
 const ResetChangePassword: React.FC = () => {
   const navigate = useNavigate();
@@ -32,7 +28,7 @@ const ResetChangePassword: React.FC = () => {
     handleSubmit,
     formState: { errors, isValid, isSubmitting },
   } = useForm<SetPasswordData>({
-    resolver: yupResolver(PasswordResetChangePasswordPageSchema),
+    resolver: yupResolver(ResetPasswordFirstLoginSchema),
     mode: 'onChange',
   });
 

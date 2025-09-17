@@ -1,26 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getUsers, getAllActiveUsers, getAllUsersIncludingInactive } from '../../api/user';
 import { UserRole } from '@tms/shared';
-
-interface User {
-  _id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  designation: string;
-  status: string;
-  contactNumber: string;
-  role: UserRole;
-  createdAt?: string;
-}
-
-interface UseUsersReturn {
-  users: User[];
-  isLoading: boolean;
-  error: string | null;
-  refreshUsers: () => Promise<void>;
-  clearError: () => void;
-}
+import { User, UseUsersReturn } from '../../interfaces';
 
 export const useUsers = (role: UserRole): UseUsersReturn => {
   const [users, setUsers] = useState<User[]>([]);

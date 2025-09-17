@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { listTeams, TeamListItem, deleteTeam } from '../../../api/team';
+import { listTeams, deleteTeam } from '../../../api/team';
+import { TeamListItem, DataTableColumn } from '../../../interfaces';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import ViewTeamMembers from '../../organisms/popup/ViewTeamMembers';
 import TeamStaffManager from '../../organisms/popup/TeamStaffManager';
 import { TeamRow } from '../../templates/layout/TableWindowLayout';
-import DataTable, { DataTableColumn } from './DataTable';
+import DataTable from './DataTable';
 import { useTheme } from '@mui/material/styles';
 import ActionButtons from '../../molecules/other/ActionButtons';
 import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';

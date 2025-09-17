@@ -1,5 +1,5 @@
 import API  from "../config/apiClient";
-import { IChangePwdFirstLogin, ILoginDetails } from "../interfaces/ILoginDetails";
+import { IChangePwdFirstLogin, ILoginDetails } from "../interfaces/auth";
 
 export const login = async (data: ILoginDetails) => {
     try {
@@ -9,6 +9,17 @@ export const login = async (data: ILoginDetails) => {
       throw error; 
     }
   };
+
+export const getCurrentUser = async () => {
+  try {
+    return await API.get("/auth/me");
+  } catch (error: any) {
+    if (error?.response?.status !== 401) {
+      console.error("Get current user failed:", error);
+    }
+    throw error;
+  }
+};
 
 
 export const changePwdFirstLogin = async (data:IChangePwdFirstLogin) => {
@@ -31,9 +42,6 @@ export const logout = async () => {
     }
   }
 
-
-
-// Password Reset Flow
 export const sendPasswordResetEmail = async (email: string) => {
   try {
     return await API.post("/auth/password/forgot", { email });

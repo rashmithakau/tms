@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserRole } from '@tms/shared';
+import { getCurrentUser, logout as logoutAPI } from '../api/auth';
 
 interface User {
   _id: string;
@@ -13,7 +14,6 @@ interface User {
 }
 
 interface AuthState {
-  isAuthenticated: boolean;
   user: User | null;
   isLoading: boolean;
 }
@@ -21,8 +21,9 @@ interface AuthState {
 interface AuthContextType {
   authState: AuthState;
   login: (user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
+  checkAuth: () => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -40,72 +41,23 @@ export const useAuth = () => {
   return context;
 };
 
+export const useIsAuthenticated = () => {
+  const { authState } = useAuth();
+  return !!authState.user;
+};
+
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
-    isAuthenticated: false,
     user: null,
-    isLoading: true,
+    isLoading: false, 
   });
-
-  // Initialize auth state from localStorage on mount
-  useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        
-        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-        const user = isAuthenticated ? {
-          _id: localStorage.getItem('_id') || '',
-          firstName: localStorage.getItem('firstName') || '',
-          lastName: localStorage.getItem('lastName') || '',
-          email: localStorage.getItem('email') || '',
-          role: (localStorage.getItem('role') as UserRole) || UserRole.Emp,
-          designation: localStorage.getItem('designation') || '',
-          contactNumber: localStorage.getItem('contactNumber') || '',
-          isChangedPwd: localStorage.getItem('isChangedPwd') === 'true',
-        } : null;
-
-        
-        setAuthState({
-          isAuthenticated,
-          user,
-          isLoading: false,
-        });
-      } catch (error) {
-        console.error('AuthContext: Error initializing auth state:', error);
-        setAuthState({
-          isAuthenticated: false,
-          user: null,
-          isLoading: false,
-        });
-      }
-    };
-
-    initializeAuth();
-  }, []);
 
   const login = (user: User) => {
     try {
       console.log('AuthContext: Login called with user:', user);
       
-      // Set localStorage
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('_id', user._id);
-      localStorage.setItem('firstName', user.firstName);
-      localStorage.setItem('lastName', user.lastName);
-      localStorage.setItem('email', user.email);
-      localStorage.setItem('role', user.role);
-      localStorage.setItem('designation', user.designation);
-      if (user.contactNumber) {
-        localStorage.setItem('contactNumber', user.contactNumber);
-      } else {
-        localStorage.removeItem('contactNumber');
-      }
-      localStorage.setItem('isChangedPwd', user.isChangedPwd.toString());
-
-      // Update state
       setAuthState({
-        isAuthenticated: true,
         user,
         isLoading: false,
       });
@@ -117,54 +69,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
+      await logoutAPI();
       
-      
-      // Clear localStorage
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('_id');
-      localStorage.removeItem('firstName');
-      localStorage.removeItem('lastName');
-      localStorage.removeItem('email');
-      localStorage.removeItem('role');
-      localStorage.removeItem('designation');
-      localStorage.removeItem('contactNumber');
-      localStorage.removeItem('isChangedPwd');
-
-      // Update state
       setAuthState({
-        isAuthenticated: false,
         user: null,
         isLoading: false,
       });
       
-      
     } catch (error) {
       console.error('AuthContext: Error during logout:', error);
+      setAuthState({
+        user: null,
+        isLoading: false,
+      });
     }
   };
 
   const updateUser = (updates: Partial<User>) => {
     if (authState.user) {
-      
-      
       const updatedUser = { ...authState.user, ...updates };
       
-      // Update localStorage for changed fields
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value !== undefined) {
-          localStorage.setItem(key, value.toString());
-        }
-      });
-
-      // Update state
       setAuthState(prev => ({
         ...prev,
         user: updatedUser,
       }));
+    }
+  };
+
+  const checkAuth = async () => {
+    setAuthState(prev => ({
+      ...prev,
+      isLoading: true,
+    }));
+
+    try {
+      const response = await getCurrentUser();
+      const user = response.data.user;
       
-      
+      setAuthState({
+        user,
+        isLoading: false,
+      });
+    } catch (error) {
+      setAuthState({
+        user: null,
+        isLoading: false,
+      });
+      throw error; 
     }
   };
 
@@ -173,6 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     updateUser,
+    checkAuth,
   };
 
   return (

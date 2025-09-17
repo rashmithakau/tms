@@ -1,21 +1,5 @@
 import API from '../config/apiClient';
-
-export type ProjectListItem = {
-  _id: string;
-  projectName: string;
-  billable: boolean;
-  employees: { _id: string; firstName: string; lastName: string; email: string; designation?: string }[];
-  supervisor?: { _id: string; firstName: string; lastName: string; email: string; designation?: string } | null;
-  createdAt?: string;
-  status?: boolean;
-};
-
-export type CreateProjectPayload = {
-  projectName: string;
-  billable: 'yes' | 'no';
-  employees: string[];
-  supervisor?: string | null;
-};
+import { ProjectListItem, CreateProjectPayload } from '../interfaces';
 
 export const listProjects = async () => {
   return API.get('/api/project');

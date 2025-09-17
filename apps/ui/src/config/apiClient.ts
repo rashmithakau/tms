@@ -30,7 +30,7 @@ apiClient.interceptors.response.use(
 
     // Avoid refresh attempts for auth endpoints (e.g., failed login) to prevent noise
     const urlPath = (originalRequest.url || '').toString();
-    const isAuthEndpoint = /\/auth\/(login|refresh|password)/.test(urlPath);
+    const isAuthEndpoint = /\/auth\/(login|refresh|password|me)/.test(urlPath);
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true; // Prevent infinite retry loop
@@ -47,17 +47,7 @@ apiClient.interceptors.response.use(
           // Attempt server-side logout to clear cookies
           await apiClient.get('/auth/logout');
         } catch {}
-        // Clear any client state and redirect to login
-        try {
-          localStorage.removeItem('isAuthenticated');
-          localStorage.removeItem('_id');
-          localStorage.removeItem('firstName');
-          localStorage.removeItem('lastName');
-          localStorage.removeItem('email');
-          localStorage.removeItem('role');
-          localStorage.removeItem('designation');
-          localStorage.removeItem('isChangedPwd');
-        } catch {}
+        // Redirect to login page - cookies will be cleared by server
         if (typeof window !== 'undefined') {
           window.location.assign('/');
         }

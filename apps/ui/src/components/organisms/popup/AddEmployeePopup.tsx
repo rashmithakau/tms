@@ -8,10 +8,7 @@ import { Box } from '@mui/material';
 import { useUsersByRoles } from '../../../hooks/api/useUsers';
 import { UserRole } from '@tms/shared';
 import Divider from '@mui/material/Divider';
-
-type AddEmployeePopupPropsWithRoles = IAddEmployeePopupProps & {
-  roles?: UserRole[];
-};
+import { AddEmployeePopupPropsWithRoles } from '../../../interfaces';
 
 const AddEmployeePopup: React.FC<AddEmployeePopupPropsWithRoles> = ({
   open,

@@ -5,7 +5,7 @@ import { absenceActivity } from '@tms/shared';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedActivities } from '../../../store/slices/timesheetSlice';
-import { RootState } from '../../../store/store';
+import { RootState } from '../../../interfaces';
 
 interface SelectActivityPopupProps {
   open: boolean;

@@ -2,31 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 import { io, Socket } from 'socket.io-client';
 import { getApiBaseURL } from '../config/apiClient';
 import { useToast } from './ToastContext';
-
-
-type AppNotification = {
-  id: string;
-  title?: string;
-  message: string;
-  createdAt: number;
-  read: boolean;
-  projectName?: string;
-  projectId?: string;
-  rejectedDates?: string[];
-  reason?: string;
-};
-
-
-type SocketContextValue = {
-  socket: Socket | null;
-  notifications: AppNotification[];
-  unreadCount: number;
-  markAllRead: () => void;
-  clearNotifications: () => void;
-  setNotificationsFromServer: (items: AppNotification[]) => void;
-  addNotificationSilent: (item: AppNotification) => void;
-};
-
+import { AppNotification, SocketContextValue } from '../interfaces';
 
 const SocketContext = createContext<SocketContextValue>({ socket: null, notifications: [], unreadCount: 0, markAllRead: () => {}, clearNotifications: () => {}, setNotificationsFromServer: () => {}, addNotificationSilent: () => {} });
 

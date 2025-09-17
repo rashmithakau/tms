@@ -5,7 +5,8 @@ import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { deleteUser } from '../../../api/user';
 import { useToast } from '../../../contexts/ToastContext';
-import DataTable, { DataTableColumn } from './DataTable';
+import DataTable from './DataTable';
+import { DataTableColumn } from '../../../interfaces';
 import { useTheme } from '@mui/material/styles';
 export interface TimeSheetRow {
   id?: string;

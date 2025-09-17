@@ -9,11 +9,8 @@ import { ResetPasswordFirstLoginSchema } from '../../../../validations/auth';
 import { changePwdFirstLogin } from '../../../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@tms/shared';
+import { SetPasswordData } from '../../../../interfaces';
 
-type SetPasswordData = {
-  newPassword: string;
-  confirmPassword: string;
-};
 const ResetPasswordFirstLoginForm: React.FC = () => {
   const navigate = useNavigate();
 

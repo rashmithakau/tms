@@ -12,14 +12,7 @@ import { Box } from '@mui/material';
 import { useApiCall } from '../../../../hooks/api/useApiCall';
 import PageLoading from '../../../molecules/loading/PageLoading';
 import Divider from '@mui/material/Divider';
-
-type CreateAccountData = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  contactNumber: string;
-  designation: string;
-};
+import { CreateAccountData } from '../../../../interfaces';
 
 interface CreateAccountPopupProps {
   open: boolean;

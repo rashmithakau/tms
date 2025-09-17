@@ -1,12 +1,7 @@
 import { useMemo } from 'react';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
-
-interface DayInfo {
-  day: string;
-  date: Date;
-}
+import { RootState, DayInfo } from '../../interfaces';
 
 export const useWeekDays = () => {
   const selectedWeekStartIso = useSelector((state: RootState) => state.timesheet.weekStartDate);

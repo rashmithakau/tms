@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { TimesheetStatus } from '@tms/shared';
 import { TimesheetData, TimesheetItem } from './useTimesheetDataManagement';
-
-interface EditState {
-  cat: number;
-  row: number;
-  col: number;
-}
+import { EditState } from '../../interfaces';
 
 export const useTimesheetCellEditing = (
   data: TimesheetData[],

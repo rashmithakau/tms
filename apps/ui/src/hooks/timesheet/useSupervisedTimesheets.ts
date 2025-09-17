@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import { listSupervisedTimesheets, Timesheet, getSupervisedProjects, getSupervisedTeams } from '../../api/timesheet';
+import { useState, useEffect, useCallback } from 'react';
+import { listSupervisedTimesheets, getSupervisedProjects, getSupervisedTeams } from '../../api/timesheet';
+import { Timesheet } from '../../interfaces';
 import { TimeSheetRow } from '../../types/timesheet';
 
 export const useSupervisedTimesheets = () => {

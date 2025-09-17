@@ -12,7 +12,6 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import UserPopoverBox from '../user/UserPopoverBox';
 import EmpMenu from '../timesheet/EmpMenu';
-import { logout } from '../../../api/auth';
 import { useAuth } from '../../../contexts/AuthContext';
 import logo from '../../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
@@ -34,18 +33,15 @@ export default function CustomAppBar({
     null
   );
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { authState, logout: authLogout } = useAuth();
+  const { authState, logout } = useAuth();
   const dispatch = useDispatch();
   
-  // Get current selected menu from Redux store
   const empSelectedMenu = useSelector((state: any) => state.empMenuNav.selectedBtn);
   const adminSelectedMenu = useSelector((state: any) => state.dashboardNav.selectedBtn);
   
-  // Check if we're in the Review Timesheets section (either as employee or admin)
   const shouldShowSearchBar = empSelectedMenu === EmpMenuItem.ReviewTimesheets || 
                               adminSelectedMenu === 'Review Timesheets';
 
-  // Clear search text when navigating away from Review Timesheets
   useEffect(() => {
     if (!shouldShowSearchBar) {
       dispatch(search_txt(''));
@@ -77,14 +73,12 @@ export default function CustomAppBar({
 
   const handleLogoutClick = async () => {
     try {
-      await logout();
-      authLogout();
+      await logout(); // This now handles both API call and state clearing
       toast.success('Logged out successfully');
       window.location.href = '/login';
     } catch (error) {
-      authLogout();
-      toast.error('Logout failed on server.');
-      window.location.reload();
+      toast.error('Logout failed, but you will be redirected to login.');
+      window.location.href = '/login';
     }
   };
 

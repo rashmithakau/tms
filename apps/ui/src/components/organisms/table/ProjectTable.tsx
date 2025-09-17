@@ -9,7 +9,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import { useTheme } from '@mui/material/styles';
 import DataTable from './DataTable';
-import { DataTableColumn } from './DataTable';
+import { DataTableColumn } from '../../../interfaces';
 import ProjectStaffManager from '../popup/ProjectStaffManager';
 interface ProjectTableProps {
   rows: ProjectRow[];

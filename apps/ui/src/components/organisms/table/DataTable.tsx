@@ -7,18 +7,7 @@ import {
   TableBody,
   TableContainer,
 } from '@mui/material';
-
-export interface DataTableColumn<T> {
-  label: string;
-  render: (row: T) => React.ReactNode;
-  key: string;
-}
-
-interface DataTableProps<T> {
-  columns: DataTableColumn<T>[];
-  rows: T[];
-  getRowKey: (row: T) => string | number;
-}
+import { DataTableColumn, DataTableProps } from '../../../interfaces';
 
 function DataTable<T>({ columns, rows, getRowKey }: DataTableProps<T>) {
   return (
