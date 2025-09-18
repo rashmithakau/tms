@@ -1,14 +1,7 @@
 import React from 'react';
 import { Checkbox, FormControlLabel, Box } from '@mui/material';
 import { TimesheetStatus } from '@tms/shared';
-
-interface DayCheckboxProps {
-  day: string;
-  isSelected: boolean;
-  onSelectionChange: (selected: boolean) => void;
-  status?: TimesheetStatus;
-  disabled?: boolean;
-}
+import { IDayCheckboxProps } from '../../../interfaces';
 
 const getStatusColor = (status?: TimesheetStatus) => {
   switch (status) {
@@ -25,7 +18,7 @@ const getStatusColor = (status?: TimesheetStatus) => {
   }
 };
 
-const DayCheckbox: React.FC<DayCheckboxProps> = ({
+const DayCheckbox: React.FC<IDayCheckboxProps> = ({
   day,
   isSelected,
   onSelectionChange,

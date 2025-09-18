@@ -10,7 +10,7 @@ import {
   Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { IPopupLayoutProps } from '../../interfaces/layout/IPopupLayoutProps';
+import { IPopupLayoutProps } from '../../../interfaces/layout/IPopupLayoutProps';
 import { useTheme } from '@mui/material/styles';
 
 const PopupLayout: React.FC<IPopupLayoutProps> = ({

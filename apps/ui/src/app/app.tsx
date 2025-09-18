@@ -1,7 +1,7 @@
 import './app.css';
 import theme from '../styles/theme';
 import { ThemeProvider } from '@emotion/react';
-import AppRoute from '../routes/AppRoute';
+import AppRoute from '../Routes/AppRoute';
 import { LoadingProvider } from '../contexts/LoadingContext';
 import { AuthProvider } from '../contexts/AuthContext';
 import GlobalLoading from '../components/organisms/loading/GlobalLoading';

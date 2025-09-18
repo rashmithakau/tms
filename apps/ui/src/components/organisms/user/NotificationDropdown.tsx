@@ -15,16 +15,9 @@ import {
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import { useSocket } from '../../../contexts/SocketContext';
 import { listMyNotifications, markAllNotificationsRead } from '../../../api/notification';
+import { INotificationDropdownProps } from '../../../interfaces/organisms';
 
-interface NotificationDropdownProps {
-
-  iconButtonSx?: object;
-  popoverSx?: object;
-  dropdownWidth?: number;
-  maxHeight?: number;
-}
-
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
+const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
   iconButtonSx = {},
   popoverSx = {},
   dropdownWidth = 360,
@@ -55,12 +48,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     if (hasNewNotification && !isInitialMount.current && !open && buttonRef.current) {
       setAnchorEl(buttonRef.current);
       
-      // Auto-close after 5 seconds
       const autoCloseTimer = setTimeout(() => {
         setAnchorEl(null);
       }, 5000);
       
-      // Cleanup timer if component unmounts or dropdown is manually closed
       return () => clearTimeout(autoCloseTimer);
     }
     
@@ -71,7 +62,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const handleNotificationClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
     
-    // Fetch notifications from server
+    
     try {
       const response = await listMyNotifications();
       const apiNotifications = (response.data?.notifications || []).map((n: any) => ({
@@ -90,7 +81,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       console.error('Error fetching notifications:', error);
     }
 
-    // Mark all as read on server
+    
     try {
       await markAllNotificationsRead();
       markAllRead();

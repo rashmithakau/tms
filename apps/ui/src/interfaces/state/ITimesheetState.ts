@@ -1,5 +1,5 @@
 import { TimesheetStatus, absenceActivity } from '@tms/shared';
-import { TimesheetData } from '../../hooks/timesheet/useTimesheetDataManagement';
+import { TimesheetData } from '../hooks/timesheet';
 
 export interface ITimesheetState {
   selectedActivities: absenceActivity[];

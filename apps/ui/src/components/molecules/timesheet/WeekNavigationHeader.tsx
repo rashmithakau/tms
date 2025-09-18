@@ -2,16 +2,9 @@ import React from 'react';
 import { IconButton, Typography, Box } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { IWeekNavigationHeaderProps } from '../../../interfaces/component/timesheet';
 
-interface WeekNavigationHeaderProps {
-  employeeName: string;
-  currentWeekStart: Date;
-  weekEndDate: Date;
-  onPrev: () => void;
-  onNext: () => void;
-}
-
-const WeekNavigationHeader: React.FC<WeekNavigationHeaderProps> = ({ employeeName, currentWeekStart, weekEndDate, onPrev, onNext }) => (
+const WeekNavigationHeader: React.FC<IWeekNavigationHeaderProps> = ({ employeeName, currentWeekStart, weekEndDate, onPrev, onNext }) => (
   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2 }}>
     <Typography variant="h6" component="h3">{employeeName}'s Timesheet</Typography>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

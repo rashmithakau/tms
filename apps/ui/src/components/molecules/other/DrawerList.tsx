@@ -6,11 +6,11 @@ import CustomListItemIcon from '../../atoms/Icon/ListItemIcon';
 import CustomListItemText from '../../atoms/text/ListItemText';
 import { ListItem } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import INavItemProps from '../../../interfaces/navigation/INavItemProps';
+import type { IDrawerListProps } from '../../../interfaces/component/IDrawerListProps';
 import { useDispatch, useSelector } from 'react-redux';
 import {select_btn} from '../../../store/slices/dashboardNavSlice';
 
-export default function DrawerList({ items}: { items: INavItemProps[][],selected?: string }) {
+export default function DrawerList({ items, selected}: IDrawerListProps) {
 
   const dispatch=useDispatch();
   const selectedBtn = useSelector(

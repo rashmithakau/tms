@@ -1,18 +1,9 @@
 import React from 'react';
 import SearchField from '../other/SearchField';
 import EmployeeList from './EmployeeList';
-import type { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
+import type { IStaffSearchSectionProps } from '../../../interfaces/component/employee';
 
-interface StaffSearchSectionProps {
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-  availableStaff: IEmployeeProps[];
-  selectedStaff: IEmployeeProps[];
-  onStaffToggle: (staff: IEmployeeProps) => void;
-  staffType: 'employees' | 'members';
-}
-
-const StaffSearchSection: React.FC<StaffSearchSectionProps> = ({
+const StaffSearchSection: React.FC<IStaffSearchSectionProps> = ({
   searchTerm,
   onSearchChange,
   availableStaff,

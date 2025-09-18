@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listMyTimesheets } from '../../api/timesheet';
-import { TimeSheetRow } from '../../types/timesheet';
+import { ITimeSheetRow } from '../../interfaces/entity/ITimeSheetRow';
 
 export const useTimesheets = () => {
-  const [rows, setRows] = useState<TimeSheetRow[]>([]);
+  const [rows, setRows] = useState<ITimeSheetRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +13,7 @@ export const useTimesheets = () => {
       setError(null);
       const resp = await listMyTimesheets();
       const data = resp.data?.timesheets || [];
-      const mapped: TimeSheetRow[] = data.map((t: any) => ({
+      const mapped: ITimeSheetRow[] = data.map((t: any) => ({
         _id: t._id,
         date: t.date,
         projectId: t.projectId,

@@ -7,16 +7,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
+import { ISupervisorSelectorProps } from '../../../interfaces/component/supervisor';
 
-interface SupervisorSelectorProps {
-  selectedEmployees: IEmployeeProps[];
-  supervisor: string;
-  onSupervisorChange: (supervisor: string) => void;
-  caption?: string;
-}
-
-const SupervisorSelector: React.FC<SupervisorSelectorProps> = ({
+const SupervisorSelector: React.FC<ISupervisorSelectorProps> = ({
   selectedEmployees,
   supervisor,
   onSupervisorChange,

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { LoadingState, LoadingContextType, LoadingProviderProps } from '../interfaces';
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);

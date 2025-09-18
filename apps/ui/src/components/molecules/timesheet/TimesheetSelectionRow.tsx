@@ -1,16 +1,9 @@
 import React from 'react';
 import { TableRow, TableCell, Checkbox, Chip } from '@mui/material';
 import { TimesheetStatus } from '@tms/shared';
-import { TimeSheetRow } from '../../../types/timesheet';
+import { ITimesheetSelectionRowProps } from '../../../interfaces/component/timesheet';
 
-interface TimesheetSelectionRowProps {
-  timesheet: TimeSheetRow;
-  isSelected: boolean;
-  isPending: boolean;
-  onSelectionChange: (id: string, selected: boolean) => void;
-}
-
-const TimesheetSelectionRow: React.FC<TimesheetSelectionRowProps> = ({
+const TimesheetSelectionRow: React.FC<ITimesheetSelectionRowProps> = ({
   timesheet,
   isSelected,
   isPending,

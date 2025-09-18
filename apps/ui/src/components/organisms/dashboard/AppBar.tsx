@@ -73,7 +73,7 @@ export default function CustomAppBar({
 
   const handleLogoutClick = async () => {
     try {
-      await logout(); // This now handles both API call and state clearing
+      await logout(); 
       toast.success('Logged out successfully');
       window.location.href = '/login';
     } catch (error) {

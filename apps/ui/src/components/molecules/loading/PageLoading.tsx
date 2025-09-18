@@ -1,13 +1,7 @@
 import { Box, CircularProgress, Typography, Fade } from '@mui/material';
+import { IPageLoadingProps } from '../../../interfaces/component/IPageLoadingProps';
 
-interface PageLoadingProps {
-  message?: string;
-  size?: 'small' | 'medium' | 'large';
-  variant?: 'fullscreen' | 'inline' | 'overlay';
-  showMessage?: boolean;
-}
-
-const PageLoading: React.FC<PageLoadingProps> = ({
+const PageLoading: React.FC<IPageLoadingProps> = ({
   message = 'Loading...',
   size = 'medium',
   variant = 'fullscreen',
@@ -30,6 +24,14 @@ const PageLoading: React.FC<PageLoadingProps> = ({
           alignItems: 'center',
           padding: 2,
           minHeight: '100px',
+          position: 'static',
+          top: 'auto',
+          left: 'auto',
+          right: 'auto',
+          bottom: 'auto',
+          backgroundColor: 'transparent',
+          zIndex: 'auto',
+          height: 'auto',
         };
       case 'overlay':
         return {
@@ -43,6 +45,9 @@ const PageLoading: React.FC<PageLoadingProps> = ({
           alignItems: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           zIndex: 1000,
+          padding: 0,
+          minHeight: 'auto',
+          height: 'auto',
         };
       default: 
         return {
@@ -51,6 +56,14 @@ const PageLoading: React.FC<PageLoadingProps> = ({
           alignItems: 'center',
           height: '100vh',
           backgroundColor: '#f5f5f5',
+          position: 'static',
+          top: 'auto',
+          left: 'auto',
+          right: 'auto',
+          bottom: 'auto',
+          zIndex: 'auto',
+          padding: 0,
+          minHeight: 'auto',
         };
     }
   };

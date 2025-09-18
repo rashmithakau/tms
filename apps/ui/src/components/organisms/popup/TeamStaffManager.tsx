@@ -10,6 +10,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import StaffSelector from '../../molecules/employee/StaffSelector';
 import SupervisorSelector from '../../molecules/supervisor/SupervisorSelector';
 import SelectedEmployeeChips from '../../molecules/employee/SelectedEmployeeChips';
+import { TeamStaffManagerProps } from '../../../interfaces/organisms/popup';
 
 export default function TeamStaffManager({
   open,
@@ -18,14 +19,7 @@ export default function TeamStaffManager({
   initialMembers,
   initialSupervisor,
   onSaved,
-}: {
-  open: boolean;
-  onClose: () => void;
-  teamId: string;
-  initialMembers: { id: string; name: string; designation?: string }[];
-  initialSupervisor: { id: string; name: string; designation?: string } | null;
-  onSaved?: () => void;
-}) {
+}: TeamStaffManagerProps) {
   const { users } = useUsersByRoles([UserRole.Emp, UserRole.Supervisor, UserRole.SupervisorAdmin, UserRole.Admin]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<IEmployeeProps[]>([]);

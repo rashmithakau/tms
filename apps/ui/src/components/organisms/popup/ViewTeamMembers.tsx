@@ -1,21 +1,11 @@
 import React from 'react';
-import { Box, Typography, Divider, Paper } from '@mui/material';
+import { Box, Typography, Divider } from '@mui/material';
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import { useTheme } from '@mui/material/styles';
 import SupervisorMemberCard from '../../molecules/supervisor/SupervisorMemberCard';
 import TeamMemberCard from '../../molecules/team/TeamMemberCard';
 import BaseButton from '../../atoms/button/BaseBtn';
-import { TeamMember } from '../../../interfaces';
-
-export interface ViewTeamMembersProps {
-  open: boolean;
-  onClose: () => void;
-  team: {
-    teamName: string;
-    supervisor: TeamMember | null;
-    members: TeamMember[];
-  } | null;
-}
+import { ViewTeamMembersProps } from '../../../interfaces/organisms/team';
 
 const ViewTeamMembers: React.FC<ViewTeamMembersProps> = ({
   open,

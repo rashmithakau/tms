@@ -4,13 +4,9 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import BaseBtn from '../../atoms/button/BaseBtn'; 
 import { useAuth } from '../../../contexts/AuthContext';
+import { IUserPopoverBoxProps } from '../../../interfaces/organisms';
 
-interface UserPopoverBoxProps {
-  onProfileClick: () => void;
-  onLogoutClick: () => void;
-}
-
-const UserPopoverBox: React.FC<UserPopoverBoxProps> = ({
+const UserPopoverBox: React.FC<IUserPopoverBoxProps> = ({
   onProfileClick,
   onLogoutClick,
 }) => {

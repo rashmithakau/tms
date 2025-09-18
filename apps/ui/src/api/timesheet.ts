@@ -1,6 +1,6 @@
 import API from '../config/apiClient';
 import { TimesheetStatus } from '@tms/shared';
-import { Timesheet, CreateTimesheetPayload } from '../interfaces';
+import { Timesheet, CreateTimesheetPayload } from '../interfaces/api/Timesheet';
 
 export const listMyTimesheets = async () => {
   return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
@@ -81,3 +81,4 @@ export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
 }>) => {
   return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
 };
+

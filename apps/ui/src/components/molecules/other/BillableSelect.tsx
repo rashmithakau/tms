@@ -1,15 +1,9 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import type { IBillableSelectProps } from "../../../interfaces/component/IBillableSelectProps";
 
-interface BillableSelectProps {
-  value: string;
-  onChange: (value: string) => void;
-  error?: boolean;
-  helperText?: string;
-}
-
-const BillableSelect: React.FC<BillableSelectProps> = ({ value, onChange, error, helperText }) => {
+const BillableSelect: React.FC<IBillableSelectProps> = ({ value, onChange, error, helperText }) => {
   const theme = useTheme();
   return (
     <FormControl size="small" fullWidth variant="outlined" error={error}>

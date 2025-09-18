@@ -6,12 +6,8 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import AdminWindow from '../components/organisms/user/AdminWindow';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
-
-
-
 
 
 const AdminPage = () => {

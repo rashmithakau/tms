@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect,  useState } from 'react';
 import { listTeams, deleteTeam } from '../../../api/team';
 import { TeamListItem, DataTableColumn } from '../../../interfaces';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import ViewTeamMembers from '../../organisms/popup/ViewTeamMembers';
 import TeamStaffManager from '../../organisms/popup/TeamStaffManager';
-import { TeamRow } from '../../templates/layout/TableWindowLayout';
+import { TeamRow } from '../../../interfaces/component/table/ITableRowTypes';
 import DataTable from './DataTable';
 import { useTheme } from '@mui/material/styles';
 import ActionButtons from '../../molecules/other/ActionButtons';
@@ -35,7 +35,7 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
-  // TeamStaffManager popup
+
   const [staffManagerTeam, setStaffManagerTeam] = useState<TeamRow | null>(null);
 
   useEffect(() => {
@@ -71,7 +71,7 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
     run();
   }, [externalRows]);
 
-  // Keep a local display copy so we can update immediately after edits
+  
   useEffect(() => {
     if (externalRows) {
       setDisplayRows(externalRows as TeamRow[]);
@@ -176,7 +176,7 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
         initialMembers={staffManagerTeam?.members || []}
         initialSupervisor={staffManagerTeam?.supervisor || null}
         onSaved={() => {
-          // Always refresh immediately to reflect changes in the table
+        
           const run = async () => {
             try {
               const resp = await listTeams();
@@ -229,7 +229,7 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
             try {
               await deleteTeam(confirm.id);
               toast.success('Team deleted');
-              // Refresh the team data after deletion
+             
               const run = async () => {
                 try {
                   const resp = await listTeams();

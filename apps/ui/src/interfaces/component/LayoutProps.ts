@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-// Layout component interfaces
+
 export interface SecondaryLayoutProps {
   children: ReactNode;
 }

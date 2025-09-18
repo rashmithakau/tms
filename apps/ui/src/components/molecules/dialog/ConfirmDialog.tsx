@@ -7,27 +7,8 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import { ReactNode } from 'react';
 import { useTheme } from '@mui/material/styles';
-
-interface ConfirmDialogProps {
-  open: boolean;
-  title?: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  icon?: ReactNode;
-  iconColor?: string;
-  confirmButtonColor?:
-    | 'primary'
-    | 'secondary'
-    | 'error'
-    | 'warning'
-    | 'info'
-    | 'success';
-  onConfirm: () => void;
-  onCancel: () => void;
-}
+import { IConfirmDialogProps } from '../../../interfaces';
 
 export default function ConfirmDialog({
   open,
@@ -39,7 +20,7 @@ export default function ConfirmDialog({
   confirmButtonColor = 'primary',
   onConfirm,
   onCancel,
-}: ConfirmDialogProps) {
+}: IConfirmDialogProps) {
   const theme = useTheme();
   return (
     <Dialog

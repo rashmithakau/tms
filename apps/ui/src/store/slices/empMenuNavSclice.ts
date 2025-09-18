@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import {EmpMenuItem} from '@tms/shared';
-import IDashboardNavState from "../../interfaces/IDashboardNavState";
+import {IDashboardNavState} from "../../interfaces/navigation/IDashboardNavState";
 
 const initialState: IDashboardNavState = {
   selectedBtn: EmpMenuItem.MyTimesheets,

@@ -12,16 +12,14 @@ import {
 import BaseBtn from '../../atoms/button/BaseBtn';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTheme } from '@mui/material';
+import { IProjectTableToolbarProps } from '../../../interfaces/component/project';
 
 const BILLABLE_OPTIONS: Array<'all' | 'Yes' | 'No'> = ['all', 'Yes', 'No'];
 
 export default function ProjectTableToolbar({
   billable,
   onBillableChange,
-}: {
-  billable: 'all' | 'Yes' | 'No';
-  onBillableChange: (val: 'all' | 'Yes' | 'No') => void;
-}) {
+}: IProjectTableToolbarProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 

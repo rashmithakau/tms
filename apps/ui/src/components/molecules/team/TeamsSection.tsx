@@ -1,18 +1,11 @@
 import { Box } from '@mui/material';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import TeamTable from '../../organisms/table/TeamTable';
-import { TeamRow } from '../../templates/layout/TableWindowLayout';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import ErrorAlert from '../../atoms/feedback/ErrorAlert';
 import PageLoading from '../loading/PageLoading';
-
-interface TeamsSectionProps {
-  error?: string;
-  isLoading: boolean;
-  onAddTeam: () => void;
-  rows?: TeamRow[];
-}
+import { TeamsSectionProps } from '../../../interfaces/molecules/team';
 
 const TeamsSection: React.FC<TeamsSectionProps> = ({
   error,

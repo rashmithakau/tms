@@ -3,14 +3,9 @@ import Box from '@mui/material/Box';
 import CustomAppBar from '../../organisms/dashboard/AppBar';
 import NavDrawer from '../../organisms/dashboard/NavDrawer';
 import { useTheme } from '@mui/material/styles'; 
-import INavItemProps from '../../../interfaces/navigation';
+import { IMainLayoutProps } from '../../../interfaces/layout';
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-  items: INavItemProps[][];
-}
-
-export default function MainLayout({ children,items}: MainLayoutProps) {
+export default function MainLayout({ children,items}: IMainLayoutProps) {
   const [open, setOpen] = useState(false);
 
   const handleDrawerOpen = (isOpen: boolean) => {
@@ -23,7 +18,7 @@ export default function MainLayout({ children,items}: MainLayoutProps) {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh'}}>
-      {/* <CssBaseline /> */}
+     
       <CustomAppBar/>
       <NavDrawer open={open} handleDrawer={handleDrawerOpen} items={items}/>
       <Box

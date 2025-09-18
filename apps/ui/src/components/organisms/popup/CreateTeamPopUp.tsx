@@ -19,13 +19,9 @@ import AddEmployeePopup from './AddEmployeePopup';
 import { UserRole } from '@tms/shared';
 import { createTeam } from '../../../api/team';
 import { useToast } from '../../../contexts/ToastContext';
+import { CreateTeamFormData, CreateTeamPopupProps } from '../../../interfaces/organisms/popup';
 
-interface CreateDeptPopUpProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-function CreateDeptPopUp({ open, onClose }: CreateDeptPopUpProps) {
+function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
   const [openEmployeeDialog, setOpenEmployeeDialog] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
     []
@@ -37,7 +33,7 @@ function CreateDeptPopUp({ open, onClose }: CreateDeptPopUpProps) {
     handleSubmit,
     formState: { isValid, isSubmitting },
     reset,
-  } = useForm({
+  } = useForm<CreateTeamFormData>({
     mode: 'onChange',
     defaultValues: {
       teamName: '',
@@ -59,7 +55,7 @@ function CreateDeptPopUp({ open, onClose }: CreateDeptPopUpProps) {
   const handleCloseEmployeeDialog = () => {
     setOpenEmployeeDialog(false);
   };
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CreateTeamFormData) => {
     try {
       await createTeam({
         teamName: data.teamName,

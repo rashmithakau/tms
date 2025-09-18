@@ -6,25 +6,10 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { deleteUser } from '../../../api/user';
 import { useToast } from '../../../contexts/ToastContext';
 import DataTable from './DataTable';
-import { DataTableColumn } from '../../../interfaces';
+import { DataTableColumn, EmployeeRow, EmpTableProps } from '../../../interfaces';
 import { useTheme } from '@mui/material/styles';
-export interface TimeSheetRow {
-  id?: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  team?: string;
-  status: 'Active' | 'Inactive' | string;
-  contactNumber: string;
-  createdAt?: string;
-}
 
-interface TimeSheetTableProps {
-  rows: TimeSheetRow[];
-  onRefresh?: () => Promise<void>;
-}
-
-const EmpTable: React.FC<TimeSheetTableProps> = ({ rows, onRefresh }) => {
+const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -33,7 +18,7 @@ const EmpTable: React.FC<TimeSheetTableProps> = ({ rows, onRefresh }) => {
   const toast = useToast();
   const theme = useTheme();
 
-  const columns: DataTableColumn<TimeSheetRow>[] = [
+  const columns: DataTableColumn<EmployeeRow>[] = [
     { label: '', key: 'empty', render: () => null },
     { label: 'Email', key: 'email', render: (row) => row.email },
     {

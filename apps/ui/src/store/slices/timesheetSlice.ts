@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { TimesheetStatus, absenceActivity } from '@tms/shared';
-import { TimesheetData } from '../../hooks/timesheet/useTimesheetDataManagement';
+import { TimesheetData } from '../../interfaces/hooks/timesheet';
 import { ITimesheetState } from '../../interfaces';
 
 const initialState: ITimesheetState = {

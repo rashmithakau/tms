@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { TimesheetStatus } from '@tms/shared';
-import { DaySelection } from './useEmployeeTimesheetCalendar';
+import { DaySelection, TimesheetApprovalReturn } from '../../interfaces/hooks/timesheet';
 import { useToast } from '../../contexts/ToastContext';
 import { batchUpdateDailyTimesheetStatusApi } from '../../api/timesheet';
 
-export const useTimesheetApproval = (refresh: () => Promise<void>) => {
+export const useTimesheetApproval = (refresh: () => Promise<void>): TimesheetApprovalReturn => {
   const toast = useToast();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<DaySelection[]>([]);
@@ -14,7 +14,6 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
     selectedDays: DaySelection[];
   }>({ open: false, selectedDays: [] });
 
-  // Apply status to selected week-based timesheets
   const applyStatusToSelected = async (status: TimesheetStatus, pendingIdsInFiltered: string[]) => {
     const selectedPendingIds = selectedIds.filter((id) => pendingIdsInFiltered.includes(id));
     if (selectedPendingIds.length === 0) return;
@@ -32,7 +31,7 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
     }
   };
 
-  // Apply status to selected daily entries
+  
   const applyDailyStatusToSelected = async (
     status: TimesheetStatus.Approved | TimesheetStatus.Rejected,
     rejectionReason?: string
@@ -43,7 +42,7 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
     }
 
     try {
-      // Prepare batch updates
+   
       const updates: Array<{
         timesheetId: string;
         categoryIndex: number;
@@ -53,7 +52,7 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
         rejectionReason?: string;
       }> = [];
 
-      // Group by timesheet and item to consolidate day indices
+
       const groupedUpdates = new Map<string, {
         timesheetId: string;
         categoryIndex: number;
@@ -83,17 +82,16 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
       updates.push(...Array.from(groupedUpdates.values()));
       
       await batchUpdateDailyTimesheetStatusApi(updates);
-      
-      // Refresh data to get the latest state
+
       await refresh();
       
-      // Get the unique timesheet IDs that were updated
+
       const timesheetIds = Array.from(new Set(selectedDays.map(s => s.timesheetId)));
       
-      // Small delay to ensure data is refreshed
+
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Re-fetch the latest timesheet data to check completion state
+      
       const { listSupervisedTimesheets } = await import('../../api/timesheet');
       const latestResponse = await listSupervisedTimesheets();
       const latestTimesheets = latestResponse.data?.timesheets || [];
@@ -101,11 +99,11 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
       const timesheetsToUpdateOverall: string[] = [];
       
       for (const timesheetId of timesheetIds) {
-        // Find the updated timesheet data from the latest fetch
+    
         const updatedTimesheet = latestTimesheets.find((ts: any) => ts._id === timesheetId);
         if (!updatedTimesheet) continue;
 
-        // Check if all selectable days (days with hours > 0) are now approved
+  
         let allSelectableDaysApproved = true;
         let hasSelectableDays = false;
         
@@ -123,17 +121,17 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
           });
         });
         
-        // If all selectable days are approved and we're doing an approval action, add to list for overall status update
+       
         if (hasSelectableDays && allSelectableDaysApproved && status === TimesheetStatus.Approved) {
           timesheetsToUpdateOverall.push(timesheetId);
         }
       }
 
-      // Update overall status for timesheets where all selectable days are now approved
+      
       if (timesheetsToUpdateOverall.length > 0) {
         const { updateSupervisedTimesheetsStatusApi } = await import('../../api/timesheet');
         await updateSupervisedTimesheetsStatusApi(timesheetsToUpdateOverall, TimesheetStatus.Approved);
-        await refresh(); // Refresh again to show updated overall status
+        await refresh(); 
       }
       
       setSelectedDays([]);
@@ -160,12 +158,11 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
     }
   };
 
-  // Handle rejection with reason
   const handleRejectWithReason = (reason: string) => {
     applyDailyStatusToSelected(TimesheetStatus.Rejected, reason);
   };
 
-  // Handle reject button click
+
   const handleRejectClick = () => {
     if (selectedDays.length === 0) {
       toast.error('No days selected for rejection');
@@ -174,12 +171,12 @@ export const useTimesheetApproval = (refresh: () => Promise<void>) => {
     setRejectionDialog({ open: true, selectedDays: [...selectedDays] });
   };
 
-  // Handle day selection changes
+
   const handleDaySelectionChange = (selections: DaySelection[]) => {
     setSelectedDays(selections);
   };
 
-  // Toggle selection mode
+
   const toggleSelectionMode = () => {
     setIsSelectionMode(!isSelectionMode);
     if (isSelectionMode) {

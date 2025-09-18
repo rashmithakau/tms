@@ -7,12 +7,9 @@ import { useDispatch } from 'react-redux';
 import { select_btn } from '../../../store/slices/empMenuNavSclice';
 import { EmpMenuItem, UserRole } from '@tms/shared';
 import { useAuth } from '../../../contexts/AuthContext';
+import { IEmpMenuProps } from '../../../interfaces/organisms/timesheet';
 
-interface EmpMenuProps {
-  onClose: () => void;
-}
-
-const EmpMenu: React.FC<EmpMenuProps> = ({ onClose }) => {
+const EmpMenu: React.FC<IEmpMenuProps> = ({ onClose }) => {
   const dispatch = useDispatch();
   const { authState } = useAuth();
   const role = authState.user?.role;

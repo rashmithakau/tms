@@ -1,12 +1,8 @@
 import React from 'react';
 import { ListItemIcon as MuiListItemIcon } from '@mui/material';
+import { IListItemIconProps } from '../../../interfaces/component';
 
-interface ListItemIconProps {
-  children: React.ReactNode;
-  open?: boolean;
-}
-
-const ListItemIcon: React.FC<ListItemIconProps> = ({ children }) => {
+const ListItemIcon: React.FC<IListItemIconProps> = ({ children }) => {
   return (
     <MuiListItemIcon
       sx={[

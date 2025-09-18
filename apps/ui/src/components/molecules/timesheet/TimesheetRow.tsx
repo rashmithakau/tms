@@ -2,20 +2,9 @@ import React from 'react';
 import { TableRow, TableCell, Checkbox, Tooltip } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import { TimesheetStatus } from '@tms/shared';
+import { ITimesheetRowProps } from '../../../interfaces/component/timesheet';
 
-interface TimesheetRowProps {
-  row: any;
-  rowIndex: number;
-  catIndex: number;
-  days: { day: string; date: Date }[];
-  isSelectionMode: boolean;
-  isDaySelected: (catIndex: number, rowIndex: number, colIndex: number) => boolean;
-  handleDaySelectionChange: (catIndex: number, rowIndex: number, colIndex: number, checked: boolean) => void;
-  supervisedProjectIds: string[];
-  supervisedTeamIds: string[];
-}
-
-const TimesheetRow: React.FC<TimesheetRowProps> = ({
+const TimesheetRow: React.FC<ITimesheetRowProps> = ({
   row,
   rowIndex,
   catIndex,
@@ -35,20 +24,20 @@ const TimesheetRow: React.FC<TimesheetRowProps> = ({
       const hasHours = parseFloat(hour) > 0;
       const isDisabled = dailyStatus === TimesheetStatus.Approved || dailyStatus === TimesheetStatus.Rejected;
       
-      // Authorization logic: Supervisors can only approve specific types of timesheets
+      
       let canApprove = false;
       let tooltipMessage = '';
       
       if (row.projectId) {
-        // Project timesheet - only project supervisors can approve
+        
         canApprove = supervisedProjectIds.includes(row.projectId);
         tooltipMessage = 'You can only approve projects you supervise';
       } else if (row.teamId) {
-        // Team timesheet - only team supervisors can approve
+        
         canApprove = supervisedTeamIds.includes(row.teamId);
         tooltipMessage = 'You can only approve teams you supervise';
       } else {
-        // Items with neither projectId nor teamId (like absence) - allow if user has any supervision
+        
         canApprove = supervisedProjectIds.length > 0 || supervisedTeamIds.length > 0;
         tooltipMessage = 'You need supervision permissions to approve this item';
       }

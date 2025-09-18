@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseTextField from './BaseTextField';
-import { INumberFieldProps } from 'apps/ui/src/interfaces/INumberFieldProps';
+import { INumberFieldProps } from '../../../interfaces';
 
 const NumberField = React.forwardRef<HTMLInputElement, INumberFieldProps>(
   ({ onChange, onKeyDown, type = 'int', ...rest }, ref) => {

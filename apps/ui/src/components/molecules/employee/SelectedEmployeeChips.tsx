@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Chip, Typography, Avatar, Tooltip } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
-import type { ISelectedEmployeeChipsProps } from '../../interfaces/component/ISelectedEmployeeChipsProps';
+import type { ISelectedEmployeeChipsProps } from '../../../interfaces/component/ISelectedEmployeeChipsProps';
 import { useTheme } from '@mui/material/styles';
 
 const SelectedEmployeeChips: React.FC<ISelectedEmployeeChipsProps> = ({

@@ -8,21 +8,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import StatusChip from "../../atoms/button/StatusChip";
 import ActionButtons from "../../molecules/other/ActionButtons";
-import { TimeSheetRow } from "../../../types/timesheet";
 import { TimesheetStatus } from "@tms/shared";
-
-interface TimeSheetTableProps {
-  rows: TimeSheetRow[];
-  onEdit?: (row: TimeSheetRow) => void;
-  onDelete?: (row: TimeSheetRow) => void;
-  selectableStatus?: TimesheetStatus[]; // rows with these statuses become selectable; header checkbox toggles only those
-  selectedIds?: string[];
-  onToggleOne?: (id: string, checked: boolean) => void;
-  onToggleAll?: (checked: boolean, ids: string[]) => void;
-  showActions?: boolean;
-  showEmployee?: boolean; // Show employee column for supervised timesheets
-  onEmployeeClick?: (row: TimeSheetRow) => void;
-}
+import { TimeSheetTableProps } from "../../../interfaces";
 
 const TimeSheetTable: React.FC<TimeSheetTableProps> = ({ 
   rows, 
@@ -38,40 +25,39 @@ const TimeSheetTable: React.FC<TimeSheetTableProps> = ({
 }) => {
   const [openRow, setOpenRow] = useState<number | null>(null);
 
-  // Check if timesheet can be edited (only Draft status allows editing)
+ 
   const canEditTimesheet = (status: TimesheetStatus): boolean => {
     return status === TimesheetStatus.Draft;
   };
 
-  // Convert decimal hours to HH.MM format for display
   const formatTimeDisplay = (decimalHours?: number): string => {
     if (!decimalHours || decimalHours === 0) return '-';
     
-    // Round to 2 decimal places to avoid floating-point precision issues
+    
     const roundedHours = Math.round(decimalHours * 100) / 100;
     
     const hours = Math.floor(roundedHours);
     const minutes = Math.round((roundedHours - hours) * 60);
     
-    // Ensure minutes don't exceed 59
+  
     if (minutes >= 60) {
       return `${(hours + 1).toString().padStart(2, '0')}.00`;
     }
     
-    // Format as HH.MM
+
     const formattedHours = hours.toString().padStart(2, '0');
     const formattedMinutes = minutes.toString().padStart(2, '0');
     
     return `${formattedHours}.${formattedMinutes}`;
   };
 
-  // Derived selection state for header checkbox (avoid hooks inside conditionals in JSX)
+
   const selectableIds = useMemo(() => rows.filter(r => selectableStatus.includes(r.status)).map(r => r._id), [rows, selectableStatus]);
   const selectedInSelectableCount = useMemo(() => selectableIds.filter(id => selectedIds.includes(id)).length, [selectableIds, selectedIds]);
   const allSelectableChecked = selectableIds.length > 0 && selectedInSelectableCount === selectableIds.length;
   const someSelectableChecked = selectedInSelectableCount > 0 && !allSelectableChecked;
 
-  const headerColsBase = showActions ? (showEmployee ? 10 : 9) : (showEmployee ? 9 : 8); // includes expand column
+  const headerColsBase = showActions ? (showEmployee ? 10 : 9) : (showEmployee ? 9 : 8); 
   const colSpan = headerColsBase + (selectableStatus.length > 0 ? 1 : 0);
 
   return (

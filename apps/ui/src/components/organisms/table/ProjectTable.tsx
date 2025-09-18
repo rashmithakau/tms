@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { deleteProject } from '../../../api/project';
-import { ProjectRow } from '../../templates/layout/TableWindowLayout';
+import { ProjectRow } from '../../../interfaces/component/table/ITableRowTypes';
+import { ProjectTableProps } from '../../../interfaces';
 import ViewProjectTeam from '../popup/ViewProjectTeam';
 import ActionButtons from '../../molecules/other/ActionButtons';
 import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
@@ -11,11 +12,6 @@ import { useTheme } from '@mui/material/styles';
 import DataTable from './DataTable';
 import { DataTableColumn } from '../../../interfaces';
 import ProjectStaffManager from '../popup/ProjectStaffManager';
-interface ProjectTableProps {
-  rows: ProjectRow[];
-  onRefresh?: () => Promise<void> | void;
-  billableFilter?: 'all' | 'Yes' | 'No';
-}
 
 const ProjectTable: React.FC<ProjectTableProps> = ({
   rows,
@@ -23,11 +19,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   billableFilter = 'all',
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  //  confirm dialog state for delete
+
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
-  // ViewProjectTeam popup
+
   const [viewTeamProject, setViewTeamProject] = useState<ProjectRow | null>(
     null
   );
@@ -144,7 +140,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         initialEmployees={staffManagerTeam?.employees || []}
         initialSupervisor={staffManagerTeam?.supervisor || null}
         onSaved={() => {
-          // Refresh the project data after staff update
+         
           if (onRefresh) {
             onRefresh();
           }

@@ -2,15 +2,9 @@ import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { IWeekNavigatorProps } from '../../../interfaces/navigation';
 
-interface WeekNavigatorProps {
-  startDate: string;
-  endDate: string;
-  onPreviousWeek: () => void;
-  onNextWeek: () => void;
-}
-
-const WeekNavigator: React.FC<WeekNavigatorProps> = ({
+const WeekNavigator: React.FC<IWeekNavigatorProps> = ({
   startDate,
   endDate,
   onPreviousWeek,

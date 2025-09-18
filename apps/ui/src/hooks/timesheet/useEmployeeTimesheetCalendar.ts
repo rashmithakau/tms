@@ -2,41 +2,20 @@ import { useState, useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay, format } from 'date-fns';
 import { listProjects } from '../../api/project';
 import { TimesheetStatus } from '@tms/shared';
-import { TimeSheetRow } from '../../types/timesheet';
-
-export interface TimesheetItem {
-  work?: string;
-  projectId?: string;
-  teamId?: string;
-  hours: string[];
-  descriptions: string[];
-  dailyStatus?: TimesheetStatus[];
-}
-
-export interface TimesheetData {
-  category: 'Project' | 'Team' | 'Absence';
-  items: TimesheetItem[];
-}
-
-export interface DaySelection {
-  timesheetId: string;
-  categoryIndex: number;
-  itemIndex: number;
-  dayIndex: number;
-}
+import { 
+  TimesheetData as ITimesheetData, 
+  TimesheetItem as ITimesheetItem,
+  EmployeeTimesheetCalendarParams,
+  EmployeeTimesheetCalendarReturn
+} from '../../interfaces/hooks/timesheet';
 
 export function useEmployeeTimesheetCalendar({
   timesheets,
   originalTimesheets = [],
   supervisedProjectIds = [],
   supervisedTeamIds = [],
-}: {
-  timesheets: TimeSheetRow[];
-  originalTimesheets?: any[];
-  supervisedProjectIds?: string[];
-  supervisedTeamIds?: string[];
-}) {
-  const [data, setData] = useState<TimesheetData[]>([]);
+}: EmployeeTimesheetCalendarParams): EmployeeTimesheetCalendarReturn {
+  const [data, setData] = useState<ITimesheetData[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
     const now = new Date();
     const utcDay = now.getUTCDay();
@@ -93,11 +72,11 @@ export function useEmployeeTimesheetCalendar({
   useEffect(() => {
     if (projects.length === 0 && teams.length === 0) return;
     
-    const transformedData: TimesheetData[] = [];
+    const transformedData: ITimesheetData[] = [];
     
-    // If we have the original timesheet data, use it directly for better accuracy
+    
     if (weekOriginalTimesheet && weekOriginalTimesheet.data) {
-      // Use the original timesheet structure which already contains all categories and items
+      
       weekOriginalTimesheet.data.forEach((category: any) => {
         if (category.items && category.items.length > 0) {
           const categoryItems = category.items.filter((item: any) => 
@@ -112,12 +91,12 @@ export function useEmployeeTimesheetCalendar({
         }
       });
     } else {
-      // Fallback to reconstruction from flattened data
-      const projectMap = new Map<string, TimesheetItem>();
-      const teamMap = new Map<string, TimesheetItem>();
-      const absenceMap = new Map<string, TimesheetItem>();
+
+      const projectMap = new Map<string, ITimesheetItem>();
+      const teamMap = new Map<string, ITimesheetItem>();
+      const absenceMap = new Map<string, ITimesheetItem>();
       
-      // Initialize project items
+
       projects.forEach(project => {
         projectMap.set(project._id, {
           work: project.projectName,
@@ -128,7 +107,7 @@ export function useEmployeeTimesheetCalendar({
         });
       });
       
-      // Initialize team items
+
       teams.forEach(team => {
         teamMap.set(team._id, {
           work: team.teamName,
@@ -150,7 +129,7 @@ export function useEmployeeTimesheetCalendar({
               item.dailyStatus![dayIndex] = ts.dailyStatus[dayIndex];
             }
           } else if (ts.task && ts.task.includes('Team:')) {
-            // Handle team entries - extract team ID or name from task
+           
             const teamName = ts.task.replace('Team:', '').trim();
             const team = teams.find(t => t.teamName === teamName);
             if (team && teamMap.has(team._id)) {
@@ -162,7 +141,7 @@ export function useEmployeeTimesheetCalendar({
               }
             }
           } else if (ts.task) {
-            // Handle absence/other entries
+          
             if (!absenceMap.has(ts.task)) {
               absenceMap.set(ts.task, {
                 work: ts.task,

@@ -1,11 +1,7 @@
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import type { TeamMember } from '../organisms/ViewTeamMembers';
-
-interface TeamMemberCardProps {
-  member: TeamMember;
-}
+import { TeamMemberCardProps } from '../../../interfaces/molecules/team';
 
 const TeamMemberCard: React.FC<TeamMemberCardProps> = ({ member }) => {
   const theme = useTheme();

@@ -28,7 +28,7 @@ export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn =>
 
       const result = await apiCall();
 
-      // Hide loading first
+    
       hideLoading();
       setIsLoading(false);
 
@@ -36,9 +36,9 @@ export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn =>
         toast.success(successMessage);
       }
 
-      // Execute onSuccess callback asynchronously to ensure proper timing
+      
       if (onSuccess) {
-        // Use setTimeout to ensure the callback runs after the current execution context
+        
         setTimeout(async () => {
           try {
             await onSuccess(result);
@@ -60,7 +60,7 @@ export const useApiCall = (options: UseApiCallOptions = {}): UseApiCallReturn =>
         onError(err);
       }
 
-      // Ensure loading is hidden on error
+  
       hideLoading();
       setIsLoading(false);
 

@@ -2,20 +2,9 @@ import React from 'react';
 import { Checkbox, Tooltip } from '@mui/material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import { TimesheetStatus } from '@tms/shared';
+import { ITimesheetMoleculeCellProps } from '../../../interfaces/component/timesheet';
 
-interface TimesheetCellProps {
-  hour: string;
-  description: string;
-  dailyStatus: TimesheetStatus;
-  isSelected: boolean;
-  isSelectionMode: boolean;
-  isCheckboxDisabled: boolean;
-  hasHours: boolean;
-  onCheckboxChange: (checked: boolean) => void;
-  canApprove: boolean;
-}
-
-const TimesheetCell: React.FC<TimesheetCellProps> = ({
+const TimesheetCell: React.FC<ITimesheetMoleculeCellProps> = ({
   hour,
   description,
   dailyStatus,

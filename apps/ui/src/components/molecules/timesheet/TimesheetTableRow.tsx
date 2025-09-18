@@ -2,25 +2,9 @@ import React from 'react';
 import { TableRow, TableCell } from '@mui/material';
 import { TimesheetStatus } from '@tms/shared';
 import TimesheetCell from '../../atoms/timesheet/TimesheetCell';
-import { TimesheetItem } from '../../../hooks/useTimesheetDataManagement';
+import { ITimesheetTableRowProps } from '../../../interfaces/component/timesheet';
 
-interface TimesheetTableRowProps {
-  item: TimesheetItem;
-  categoryName?: string;
-  rowSpan?: number;
-  isFirstRowInCategory: boolean;
-  catIndex: number;
-  rowIndex: number;
-  editCell: { cat: number; row: number; col: number } | null;
-  isCellEditable: (catIndex: number, rowIndex: number, colIndex: number) => boolean;
-  onCellClick: (catIndex: number, rowIndex: number, colIndex: number) => void;
-  onCellChange: (catIndex: number, rowIndex: number, colIndex: number, value: string) => void;
-  onCellKeyDown: (e: React.KeyboardEvent) => void;
-  onDescriptionClick: (e: React.MouseEvent<HTMLButtonElement>, catIndex: number, rowIndex: number, colIndex: number) => void;
-  calcRowTotal: (hours: string[]) => string;
-}
-
-const TimesheetTableRow: React.FC<TimesheetTableRowProps> = ({
+const TimesheetTableRow: React.FC<ITimesheetTableRowProps> = ({
   item,
   categoryName,
   rowSpan,
@@ -37,7 +21,7 @@ const TimesheetTableRow: React.FC<TimesheetTableRowProps> = ({
 }) => {
   return (
     <TableRow>
-      {/* Category cell - only show on first row of each category */}
+      {/* only show on first row of each category */}
       {isFirstRowInCategory && categoryName && (
         <TableCell
           rowSpan={rowSpan}

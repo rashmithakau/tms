@@ -12,7 +12,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   const toast = useToast();
   const [isActivityPopupOpen, setActivityPopupOpen] = useState(false);
 
-  // Calculate total hours from timesheet data
+
   const calculateTotalHours = () => {
     if (
       !timesheetData.timesheetData ||
@@ -37,7 +37,6 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   const totalHours = calculateTotalHours();
   const isUnderMinimumHours = totalHours < 40.0;
 
-  // Activity popup handlers
   const handleActivityOpenPopup = () => {
     setActivityPopupOpen(true);
   };
@@ -46,7 +45,6 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     setActivityPopupOpen(false);
   };
 
-  // Submit timesheet for approval
   const handleSubmit = async () => {
     try {
       const currentId = timesheetData.currentTimesheetId;
@@ -69,7 +67,6 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         return;
       }
       
-      // For rejected timesheets, save the current data first before submitting
       if (currentStatus === 'Rejected') {
         await updateMyTimesheet(currentId, {
           data: timesheetData.timesheetData,
@@ -84,7 +81,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     }
   };
 
-  // Save timesheet as draft
+  
   const handleSaveAsDraft = async () => {
     try {
       const payload = {
@@ -105,22 +102,20 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
       await refresh();
     } catch (e: any) {
       console.error('Save error:', e);
-      // Show more detailed error message from backend if available
+
       const errorMessage = e?.response?.data?.message || e?.message || 'Failed to save timesheet';
       toast.error(errorMessage);
     }
   };
 
-  // Check if actions are disabled
-  // Check if current data matches what's saved in DB (no pending changes)
   const isDataSavedInDB = JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '');
   
-  // Sign and Submit: Only enabled if status is Draft/Rejected AND total >= 40 AND all current data is saved in DB
+
   const isSubmitDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '') || 
     isUnderMinimumHours || 
     (timesheetData.status === 'Draft' && !isDataSavedInDB);
     
-  // Save as Draft: Only enabled if status is Draft AND has unsaved changes. Disabled for Rejected status.
+  
   const isSaveDisabled = timesheetData.status === 'Rejected' || 
     !['Draft'].includes(timesheetData.status || '') ||
     isDataSavedInDB;

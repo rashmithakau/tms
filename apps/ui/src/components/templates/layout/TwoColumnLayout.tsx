@@ -1,6 +1,6 @@
 import { Grid } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { ITwoColumnLayoutProps } from '../../interfaces/ITwoColumnLayoutProps';
+import { ITwoColumnLayoutProps } from '../../../interfaces/layout';
 
 const TwoColumnLayout: React.FC<ITwoColumnLayoutProps> = ({
   leftContent,

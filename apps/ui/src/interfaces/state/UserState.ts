@@ -1,4 +1,4 @@
-import { IUser } from "./IUser";
+import { IUser } from "../entity";
 
 export interface UserState {
     loading: boolean;

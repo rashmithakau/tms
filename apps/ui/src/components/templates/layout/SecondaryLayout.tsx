@@ -1,12 +1,9 @@
 import Box from '@mui/material/Box';
 import CustomAppBar from '../../organisms/dashboard/AppBar';
 import { useTheme } from '@mui/material/styles';
+import { ISecondaryLayoutProps } from '../../../interfaces/layout';
 
-interface SecondaryLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function SecondaryLayout({ children }: SecondaryLayoutProps) {
+export default function SecondaryLayout({ children }: ISecondaryLayoutProps) {
   const theme = useTheme();
 
   return (

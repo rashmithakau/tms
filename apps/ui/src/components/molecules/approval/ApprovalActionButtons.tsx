@@ -4,21 +4,9 @@ import BaseBtn from '../../atoms/button/BaseBtn';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
 import ChecklistOutlinedIcon from '@mui/icons-material/ChecklistOutlined';
-import { TimesheetStatus } from '@tms/shared';
+import { IApprovalActionButtonsProps } from '../../../interfaces';
 
-interface ApprovalActionButtonsProps {
-  isSelectionMode: boolean;
-  selectedDaysCount: number;
-  selectedIdsCount: number;
-  pendingIdsCount: number;
-  onToggleSelectionMode: () => void;
-  onApproveDays: () => void;
-  onRejectDays: () => void;
-  onApproveWeeks: () => void;
-  onRejectWeeks: () => void;
-}
-
-const ApprovalActionButtons: React.FC<ApprovalActionButtonsProps> = ({
+const ApprovalActionButtons: React.FC<IApprovalActionButtonsProps> = ({
   isSelectionMode,
   selectedDaysCount,
   selectedIdsCount,

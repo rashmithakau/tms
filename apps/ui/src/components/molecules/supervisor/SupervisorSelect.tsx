@@ -1,16 +1,9 @@
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { IEmployeeProps } from '../../interfaces/IEmployeeProps';
+import { ISupervisorSelectProps } from '../../../interfaces/component/supervisor';
 
-interface SupervisorSelectProps {
-  employees: IEmployeeProps[];
-  value: string | null;
-  onChange: (value: string | null) => void;
-  disabled?: boolean;
-}
-
-const SupervisorSelect: React.FC<SupervisorSelectProps> = ({
+const SupervisorSelect: React.FC<ISupervisorSelectProps> = ({
   employees,
   value,
   onChange,

@@ -1,6 +1,4 @@
-import { ChangeEvent } from 'react';
 
-// Navigation interfaces
 export interface NavDrawerProps {
   selectedIndex: number;
   open: boolean;
@@ -13,10 +11,6 @@ export interface WeekNavigatorProps {
   onNextWeek: () => void;
 }
 
-// Employee/User interfaces
-export interface EmployeeTimesheetCalendarProps {
-  employeeId: string;
-}
 
 export interface NotificationDropdownProps {
   notifications: any[];
