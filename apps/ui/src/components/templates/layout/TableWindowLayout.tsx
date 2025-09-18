@@ -1,44 +1,9 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ITableWindowLayoutProps } from '../../../interfaces/layout';
 
-export interface EmpRow {
-  id?: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  team?: string;
-  status: 'Active' | 'Inactive' | string;
-  contactNumber: string;
-  createdAt?: string;
-}
-
-export interface ProjectRow {
-  id: string;
-  projectName: string;
-  billable: 'Yes' | 'No';
-  createdAt?: string;
-  employees?: { id: string; name: string; designation?: string; email?: string }[];
-  supervisor?: { id: string; name: string; designation?: string; email?: string ;} | null;
-}
-
-export interface TeamRow {
-  id: string;
-  teamName: string;
-  createdAt?: string;
-  members: { id: string; name: string; designation?: string; email?: string }[];
-  supervisor: { id: string; name: string; designation?: string; email?: string } | null;
-}
-
-interface TableWindowLayoutProps {
-  title: string;
-  buttons: React.ReactNode[];
-  table: React.ReactNode;
-  search?: React.ReactNode;
-  filter?: React.ReactNode;
-}
-
-const TableWindowLayout: React.FC<TableWindowLayoutProps> = ({
+const TableWindowLayout: React.FC<ITableWindowLayoutProps> = ({
   title,
   buttons,
   table,

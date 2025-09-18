@@ -1,13 +1,8 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles'
-
-interface BrandLogoProps {
-  src: string;
-  alt?: string;
-  title?: string;
-}
+import { useTheme } from '@mui/material/styles';
+import { BrandLogoProps } from '../../../interfaces/landing';
 
 const BrandLogo: React.FC<BrandLogoProps> = ({ src, alt = 'Logo', title }) => {
   const theme = useTheme();

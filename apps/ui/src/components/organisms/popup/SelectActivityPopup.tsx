@@ -6,12 +6,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedActivities } from '../../../store/slices/timesheetSlice';
 import { RootState } from '../../../interfaces';
-
-interface SelectActivityPopupProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
+import { SelectActivityPopupProps } from '../../../interfaces/organisms/popup';
 
 const absenceActivitiesArray = Object.values(absenceActivity);
 

@@ -1,5 +1,5 @@
 import { Box, Grid } from '@mui/material';
-import { ICenterContainer } from '../../interfaces/ICenterContainer';
+import { ICenterContainer } from '../../../interfaces/layout';
 import theme from '../../../styles/theme';
 
 const CenterContainerLayout: React.FC<ICenterContainer> = ({

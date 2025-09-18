@@ -1,4 +1,4 @@
-import { IEmployeeProps } from './IEmployeeProps';
+import { IEmployeeProps } from '../entity/IEmployeeProps';
 
 export interface IAddEmployeePopupProps {
   open: boolean;

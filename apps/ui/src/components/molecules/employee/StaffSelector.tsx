@@ -2,21 +2,9 @@ import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
 import EmployeeList from './EmployeeList';
 import SearchField from '../other/SearchField';
-import type { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
+import type { IStaffSelectorProps } from '../../../interfaces/component/employee/IStaffSelectorProps';
 
-interface StaffSelectorProps {
-  selectedEmployees: IEmployeeProps[];
-  availableEmployees: IEmployeeProps[];
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-  onEmployeeToggle: (employee: IEmployeeProps) => void;
-  onRemoveEmployee: (employeeId: string) => void;
-  title?: string;
-  searchPlaceholder?: string;
-  searchLabel?: string;
-}
-
-const StaffSelector: React.FC<StaffSelectorProps> = ({
+const StaffSelector: React.FC<IStaffSelectorProps> = ({
   selectedEmployees,
   availableEmployees,
   searchTerm,

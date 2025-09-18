@@ -2,17 +2,9 @@ import React from 'react';
 import { TableHead, TableRow, TableCell } from '@mui/material';
 import { isSameDay } from 'date-fns';
 import theme from '../../../styles/theme';
+import { ITimesheetTableHeaderProps } from '../../../interfaces/component/timesheet';
 
-interface DayInfo {
-  day: string;
-  date: Date;
-}
-
-interface TimesheetTableHeaderProps {
-  days: DayInfo[];
-}
-
-const TimesheetTableHeader: React.FC<TimesheetTableHeaderProps> = ({ days }) => {
+const TimesheetTableHeader: React.FC<ITimesheetTableHeaderProps> = ({ days }) => {
   return (
     <TableHead>
       <TableRow sx={{ backgroundColor: theme.palette.background.paper }}>

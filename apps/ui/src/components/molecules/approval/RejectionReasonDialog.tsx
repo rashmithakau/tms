@@ -4,22 +4,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
   Box,
   Typography,
 } from '@mui/material';
 import BaseTextField from '../../atoms/inputField/BaseTextField';
+import { IRejectionReasonDialogProps } from '../../../interfaces';
 
-interface RejectionReasonDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: (reason: string) => void;
-  title?: string;
-  message?: string;
-}
-
-const RejectionReasonDialog: React.FC<RejectionReasonDialogProps> = ({
+const RejectionReasonDialog: React.FC<IRejectionReasonDialogProps> = ({
   open,
   onClose,
   onConfirm,

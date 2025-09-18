@@ -1,19 +1,11 @@
 import React from 'react'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
 import AppIcon from '../../atoms/landing/AppIcon'
 import Box from '@mui/material/Box'
 import FeatureList from './FeatureList'
-import { SvgIconComponent } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles';
-
-export interface RoleCardProps {
-  icon: SvgIconComponent
-  title: string
-  description: string
-  features: string[]
-}
+import { RoleCardProps } from '../../../interfaces/landing';
 
 const RoleCard: React.FC<RoleCardProps> = ({ icon, title, description, features }) => {
   const theme = useTheme();

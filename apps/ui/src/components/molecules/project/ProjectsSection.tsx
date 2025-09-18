@@ -6,19 +6,9 @@ import BaseBtn from '../../atoms/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import ErrorAlert from '../../atoms/feedback/ErrorAlert';
 import PageLoading from '../loading/PageLoading';
-import { ProjectRow } from '../../templates/layout/TableWindowLayout';
+import { IProjectsSectionProps } from '../../../interfaces/component/project';
 
-interface ProjectsSectionProps {
-  error?: string;
-  isLoading: boolean;
-  rows: ProjectRow[];
-  billable: 'all' | 'Yes' | 'No';
-  onBillableChange: (billable: 'all' | 'Yes' | 'No') => void;
-  onAddProject: () => void;
-  onRefresh: () => Promise<void>;
-}
-
-const ProjectsSection: React.FC<ProjectsSectionProps> = ({
+const ProjectsSection: React.FC<IProjectsSectionProps> = ({
   error,
   isLoading,
   rows,

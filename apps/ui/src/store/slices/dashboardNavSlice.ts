@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import  IDashboardNavState  from "../../interfaces/IDashboardNavState";
+import  {IDashboardNavState}  from "../../interfaces/navigation/IDashboardNavState";
 
 const initialState: IDashboardNavState = {
   selectedBtn: "Dashboard",

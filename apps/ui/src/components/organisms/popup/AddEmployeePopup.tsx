@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import EmployeePicker from '../../molecules/employee/EmployeePicker';
-import { IAddEmployeePopupProps } from '../../../interfaces/form/IAddEmployeePopupProps';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import { Box } from '@mui/material';
 import { useUsersByRoles } from '../../../hooks/api/useUsers';
 import { UserRole } from '@tms/shared';
 import Divider from '@mui/material/Divider';
-import { AddEmployeePopupPropsWithRoles } from '../../../interfaces';
+import { AddEmployeePopupProps } from '../../../interfaces/organisms/popup';
 
-const AddEmployeePopup: React.FC<AddEmployeePopupPropsWithRoles> = ({
+const AddEmployeePopup: React.FC<AddEmployeePopupProps> = ({
   open,
   onClose,
   onSave,
@@ -21,13 +20,12 @@ const AddEmployeePopup: React.FC<AddEmployeePopupPropsWithRoles> = ({
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
     initialSelectedEmployees
   );
-  // Fetch users based on provided roles (defaults to Emp + Supervisor)
+  
   const { users } = useUsersByRoles(roles);
   const [filteredEmployees, setFilteredEmployees] = useState<IEmployeeProps[]>(
     []
   );
 
-  // Filter employees based on search term
   useEffect(() => {
     const mapped: IEmployeeProps[] = users.map((u: any) => ({
       id: u._id,
@@ -43,7 +41,6 @@ const AddEmployeePopup: React.FC<AddEmployeePopupPropsWithRoles> = ({
     setFilteredEmployees(filtered);
   }, [searchTerm, users]);
 
-  // Reset selected employees when popup opens
   useEffect(() => {
     if (open) {
       setSelectedEmployees(initialSelectedEmployees);

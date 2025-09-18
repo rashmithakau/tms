@@ -12,19 +12,14 @@ import {
 import BaseBtn from '../../atoms/button/BaseBtn';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTheme } from '@mui/material';
+import type { IEmpTableToolbarProps } from '../../../interfaces/component/IEmpTableToolbarProps';
 
 export default function EmpTableToolbar({
   selectedProjectIds,
   onSelectedProjectIdsChange,
   statusFilter,
   onStatusFilterChange,
-}: {
-  projectsOptions: Array<{ id: string; name: string }>;
-  selectedProjectIds: string[];
-  onSelectedProjectIdsChange: (val: string[]) => void;
-  statusFilter: 'all' | 'Active' | 'Inactive';
-  onStatusFilterChange: (val: 'all' | 'Active' | 'Inactive') => void;
-}) {
+}: IEmpTableToolbarProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 

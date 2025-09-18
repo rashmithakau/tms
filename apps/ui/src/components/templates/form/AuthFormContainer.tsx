@@ -29,7 +29,7 @@ const AuthFormContainer: React.FC<IAuthFormContainer> = ({
           justifyContent: 'center',
           alignItems: 'center',
           padding: '20px 16px',
-            // Use transparent to avoid any extra color band at the bottom
+            
             bgcolor: theme.palette.background.default,
           }}
         >

@@ -1,12 +1,8 @@
 import React from 'react';
 import { Box, Alert } from '@mui/material';
+import { IErrorAlertProps } from '../../../interfaces/component';
 
-interface ErrorAlertProps {
-  error: string;
-  onClose?: () => void;
-}
-
-const ErrorAlert: React.FC<ErrorAlertProps> = ({ error, onClose }) => {
+const ErrorAlert: React.FC<IErrorAlertProps> = ({ error, onClose }) => {
   if (!error) return null;
 
   return (

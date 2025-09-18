@@ -1,10 +1,14 @@
-import React from 'react';
 
-// Popup component interfaces
+import { UserRole } from '@tms/shared';
+
 export interface CreateAccountPopupProps {
   open: boolean;
+  role: UserRole;
   onClose: () => void;
+  onSuccess?: () => void;
 }
+
+
 
 export interface ProfilePopupProps {
   open: boolean;

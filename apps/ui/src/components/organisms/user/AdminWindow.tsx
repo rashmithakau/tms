@@ -11,7 +11,7 @@ import TeamsSection from '../../molecules/team/TeamsSection';
 import CreateAccountPopup from '../authentication/popup/CreateAccountPopup';
 import CreateProjectPopUp from '../popup/CreateProjectPopUp';
 import CreateTeamPopUp from '../popup/CreateTeamPopUp';
-import { EmpRow, ProjectRow, TeamRow } from '../../templates/layout/TableWindowLayout';
+import { EmployeeRow, ProjectRow, TeamRow } from '../../../interfaces/component/table/ITableRowTypes';
 import { listTeams } from '../../../api/team';
 import { TeamListItem } from '../../../interfaces';
 import MyTimesheetsWindow from '../timesheet/MyTimesheetsWindow';
@@ -40,7 +40,7 @@ const AdminWindow: React.FC = () => {
   );
 
   useEffect(() => {
-    // Ensure the correct tab is selected when visiting Admin page
+    
     if (selectedBtn !== 'Employee') {
       dispatch(select_btn('Employee'));
     }
@@ -54,7 +54,7 @@ const AdminWindow: React.FC = () => {
         const data = resp.data?.projects as ProjectListItem[];
         setProjects(Array.isArray(data) ? data : []);
       } catch (e) {
-        // ignore for now, keep empty
+        
         setProjects([]);
       }
     };
@@ -76,7 +76,7 @@ const AdminWindow: React.FC = () => {
     [projects]
   );
 
-  const rows: EmpRow[] = useMemo(() => {
+  const rows: EmployeeRow[] = useMemo(() => {
     const mappedRows = users.map((user) => {
       const uid = (user as any)._id as string;
       return {
@@ -95,13 +95,13 @@ const AdminWindow: React.FC = () => {
             : 'Active',
         contactNumber: user.contactNumber || '',
         createdAt: user.createdAt || '',
-      } as EmpRow;
+      } as EmployeeRow;
     });
 
     return mappedRows;
   }, [users]);
 
-  const filteredRows: EmpRow[] = useMemo(() => {
+  const filteredRows: EmployeeRow[] = useMemo(() => {
     let res = rows;
 
     if (statusFilter !== 'all') {
@@ -110,7 +110,7 @@ const AdminWindow: React.FC = () => {
     return res;
   }, [rows, statusFilter]);
 
-  // Project rows
+
   const projectRows: ProjectRow[] = useMemo(
     () =>
       projects.map((p) => ({
@@ -169,14 +169,14 @@ const AdminWindow: React.FC = () => {
   };
 
   const handleAccountCreated = () => {
-    // Refresh the table data after account creation
+    
     refreshUsers();
   };
 
   const handleCloseTeamPopup = async () => {
     setIsTeamPopupOpen(false);
     setTeamsKey((k) => k + 1);
-    // Refresh teams data after team creation
+    
     try {
       const resp = await listTeams();
       const data = resp.data?.teams as TeamListItem[];
@@ -202,7 +202,7 @@ const AdminWindow: React.FC = () => {
       const resp = await listProjects();
       const data = resp.data?.projects as ProjectListItem[];
       setProjects(Array.isArray(data) ? data : []);
-      // Keep user roles in sync after project creation
+      
       await refreshUsers();
     } catch {}
   };

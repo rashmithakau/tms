@@ -1,19 +1,8 @@
 import React from 'react';
 import { InputBase, IconButton, Tooltip } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
+import { TimesheetCellProps } from '../../../interfaces';
 import { TimesheetStatus } from '@tms/shared';
-
-interface TimesheetCellProps {
-  hour: string;
-  description: string;
-  dayStatus: TimesheetStatus;
-  isEditing: boolean;
-  isEditable: boolean;
-  onCellClick: () => void;
-  onCellChange: (value: string) => void;
-  onCellKeyDown: (e: React.KeyboardEvent) => void;
-  onDescriptionClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}
 
 const TimesheetCell: React.FC<TimesheetCellProps> = ({
   hour,

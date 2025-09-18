@@ -1,13 +1,8 @@
 import React from 'react';
 import { TableCell, TableRow } from '@mui/material';
+import { ITimesheetTotalRowProps } from '../../../interfaces/component/timesheet';
 
-interface TimesheetTotalRowProps {
-  days: { day: string; date: Date }[];
-  calcColTotal: (colIndex: number) => string;
-  calcGrandTotal: () => string;
-}
-
-const TimesheetTotalRow: React.FC<TimesheetTotalRowProps> = ({ days, calcColTotal, calcGrandTotal }) => (
+const TimesheetTotalRow: React.FC<ITimesheetTotalRowProps> = ({ days, calcColTotal, calcGrandTotal }) => (
   <TableRow style={{ backgroundColor: '#f5f5f5' }}>
     <TableCell style={{ fontWeight: 'bold' }}>Total</TableCell>
     <TableCell />

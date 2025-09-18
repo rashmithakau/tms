@@ -7,21 +7,11 @@ import theme from '../../../styles/theme';
 import TimesheetTableHeader from '../../molecules/timesheet/TimesheetTableHeader';
 import TimesheetRow from '../../molecules/timesheet/TimesheetRow';
 import TimesheetTotalRow from '../../molecules/timesheet/TimesheetTotalRow';
-import { useEmployeeTimesheetCalendar, DaySelection } from '../../../hooks/timesheet/useEmployeeTimesheetCalendar';
+import { useEmployeeTimesheetCalendar } from '../../../hooks/timesheet/useEmployeeTimesheetCalendar';
+import { IEmployeeTimesheetCalendarProps } from '../../../interfaces/organisms/timesheet';
+import { DaySelection } from 'apps/ui/src/interfaces';
 
-interface EmployeeTimesheetCalendarProps {
-  employeeId: string;
-  employeeName: string;
-  timesheets: any[];
-  originalTimesheets?: any[];
-  supervisedProjectIds?: string[];
-  supervisedTeamIds?: string[];
-  onDaySelectionChange?: (selections: DaySelection[]) => void;
-  selectedDays?: DaySelection[];
-  isSelectionMode?: boolean;
-}
-
-const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
+const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
   employeeId,
   employeeName,
   timesheets,
@@ -44,7 +34,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
     supervisedProjectIds: supervisedIds,
   } = useEmployeeTimesheetCalendar({ timesheets, originalTimesheets, supervisedProjectIds, supervisedTeamIds });
 
-  // Helper: map rendered indices to original timesheet indices
+  
   const getOriginalIndices = (renderCatIndex: number, renderItemIndex: number) => {
     if (!weekOriginalTimesheet) return null;
 
@@ -59,7 +49,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
 
     const originalItems: any[] = weekOriginalTimesheet.data[originalCategoryIndex]?.items || [];
 
-    // Match by projectId for Project category; otherwise match by work field
+   
     const originalItemIndex = originalItems.findIndex((itm: any) => {
       if (renderedCategory.category === 'Project') {
         return itm.projectId && renderedItem.projectId && itm.projectId === renderedItem.projectId;
@@ -72,7 +62,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
     return { categoryIndex: originalCategoryIndex, itemIndex: originalItemIndex };
   };
 
-  // Selection logic
+ 
   const isDaySelected = (categoryIndex: number, itemIndex: number, dayIndex: number) => {
     if (!isSelectionMode) return false;
 
@@ -116,7 +106,7 @@ const EmployeeTimesheetCalendar: React.FC<EmployeeTimesheetCalendarProps> = ({
     onDaySelectionChange(newSelections);
   };
 
-  // Totals
+
   const calcColTotal = (colIndex: number) =>
     data.flatMap(cat => cat.items).reduce((sum, row) => sum + parseFloat(row.hours[colIndex] || '0'), 0).toFixed(2);
   const calcGrandTotal = () =>

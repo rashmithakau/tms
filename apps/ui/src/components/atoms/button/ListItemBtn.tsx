@@ -1,14 +1,9 @@
 import React from 'react';
 import { ListItemButton as MuiListItemButton } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { IListItemButtonProps } from '../../../interfaces/component';
 
-interface ListItemButtonProps {
-  children: React.ReactNode; 
-  onClick?: () => void; 
-  sx?: object; 
-}
-
-const ListItemButton: React.FC<ListItemButtonProps> = ({ children, onClick, sx }) => {
+const ListItemButton: React.FC<IListItemButtonProps> = ({ children, onClick, sx }) => {
   const theme = useTheme();
 
   return (

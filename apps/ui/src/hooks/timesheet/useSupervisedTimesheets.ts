@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { listSupervisedTimesheets, getSupervisedProjects, getSupervisedTeams } from '../../api/timesheet';
 import { Timesheet } from '../../interfaces';
-import { TimeSheetRow } from '../../types/timesheet';
+import { ITimeSheetRow } from '../../interfaces/entity/ITimeSheetRow';
+import { SupervisedTimesheetsReturn } from '../../interfaces/hooks/timesheet';
 
-export const useSupervisedTimesheets = () => {
-  const [rows, setRows] = useState<TimeSheetRow[]>([]);
-  const [timesheets, setTimesheets] = useState<Timesheet[]>([]); // Add original timesheet data
+export const useSupervisedTimesheets = (): SupervisedTimesheetsReturn => {
+  const [rows, setRows] = useState<ITimeSheetRow[]>([]);
+  const [timesheets, setTimesheets] = useState<Timesheet[]>([]); 
   const [supervisedProjectIds, setSupervisedProjectIds] = useState<string[]>([]);
   const [supervisedTeamIds, setSupervisedTeamIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -16,7 +17,7 @@ export const useSupervisedTimesheets = () => {
       setIsLoading(true);
       setError(null);
       
-      // Fetch supervised timesheets, projects, and teams
+      
       const [timesheetsResp, projectsResp, teamsResp] = await Promise.all([
         listSupervisedTimesheets(),
         getSupervisedProjects(),
@@ -27,40 +28,39 @@ export const useSupervisedTimesheets = () => {
       const supervisedProjects = projectsResp.data?.projects || [];
       const supervisedTeams = teamsResp.data?.teams || [];
       
-      // Store original timesheets for calendar component
+
       setTimesheets(data);
-      
-      // Store supervised project and team IDs for authorization checks
+ 
       setSupervisedProjectIds(supervisedProjects.map(p => p._id));
       setSupervisedTeamIds(supervisedTeams.map(t => t._id));
       
-      // Flatten the timesheet structure into individual rows
-      const mapped: TimeSheetRow[] = [];
+
+      const mapped: ITimeSheetRow[] = [];
       
       data.forEach((timesheet: any) => {
         const weekStartDate = new Date(timesheet.weekStartDate);
         
-        // Iterate through categories (Project/Absence)
+  
         timesheet.data?.forEach((category: any) => {
-          // Iterate through items in each category
+   
           category.items?.forEach((item: any) => {
-            // Create a row for each day that has hours
+
             item.hours?.forEach((hours: string, dayIndex: number) => {
               if (hours && hours !== '0' && hours !== '0.00' && hours.trim() !== '') {
-                // Calculate the specific date for this day
+           
                 const itemDate = new Date(weekStartDate);
                 itemDate.setUTCDate(itemDate.getUTCDate() + dayIndex);
                 
                 mapped.push({
                   _id: `${timesheet._id}-${category.category}-${item.work || item.projectId || 'item'}-${dayIndex}`,
-                  date: itemDate.toISOString().split('T')[0], // YYYY-MM-DD format
+                  date: itemDate.toISOString().split('T')[0], 
                   projectId: item.projectId || '',
                   projectName: (item as any).projectName || item.work || 'Unknown',
                   task: item.work || 'Task',
                   billableType: category.category === 'Project' ? 'Billable' : 'Non Billable',
                   status: item.dailyStatus?.[dayIndex] || timesheet.status,
-                  dailyStatus: item.dailyStatus || [], // Include full daily status array
-                  plannedHours: 0, // Not available in current structure
+                  dailyStatus: item.dailyStatus || [], 
+                  plannedHours: 0,
                   hoursSpent: parseFloat(hours) || 0,
                   description: item.descriptions?.[dayIndex] || '',
                   employee: timesheet.userId ? {

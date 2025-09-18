@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { ILoginLeftPanelProps } from '../../interfaces/ILoginLeftPanelProps';
+import { ILoginLeftPanelProps } from '../../../../interfaces/auth/ILoginLeftPanelProps';
 import { useTheme } from '@mui/material/styles';
 
 const LoginLeftPanel: React.FC<ILoginLeftPanelProps> = ({

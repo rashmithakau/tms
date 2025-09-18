@@ -3,10 +3,7 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { CheckCircle } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-
-interface FeatureListItemProps {
-  text: string
-}
+import { FeatureListItemProps } from '../../../interfaces/landing'
 
 const FeatureListItem: React.FC<FeatureListItemProps> = ({ text }) => {
   const theme = useTheme()

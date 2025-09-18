@@ -10,6 +10,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import StaffSelector from '../../molecules/employee/StaffSelector';
 import SupervisorSelector from '../../molecules/supervisor/SupervisorSelector';
 import SelectedEmployeeChips from '../../molecules/employee/SelectedEmployeeChips';
+import { ProjectStaffManagerProps } from '../../../interfaces/organisms/popup';
 
 export default function ProjectStaffManager({
   open,
@@ -18,15 +19,8 @@ export default function ProjectStaffManager({
   initialEmployees,
   initialSupervisor,
   onSaved,
-}: {
-  open: boolean;
-  onClose: () => void;
-  projectId: string;
-  initialEmployees: { id: string; name: string; designation?: string }[];
-  initialSupervisor: { id: string; name: string; designation?: string } | null;
-  onSaved?: () => void;
-}) {
-  // In projects, supervisors can be from Emp/Supervisor roles (Admins remain Admin)
+}: ProjectStaffManagerProps) {
+  
   const { users } = useUsersByRoles([UserRole.Emp, UserRole.Supervisor]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(

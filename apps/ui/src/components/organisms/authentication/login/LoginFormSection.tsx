@@ -24,8 +24,6 @@ const LoginFormSection: React.FC = () => {
     onSuccess: async (response: any) => {
       try {
         const user = response.data.user;
-        
-        // Use the auth context to handle login
         authLogin({
           _id: user._id,
           firstName: user.firstName,
@@ -37,10 +35,6 @@ const LoginFormSection: React.FC = () => {
           isChangedPwd: user.isChangedPwd,
         });
 
-        
-
-        // Add a longer delay to ensure state is updated and add logging
-        console.log('Login successful, user role:', user.role, 'isChangedPwd:', user.isChangedPwd);
         await new Promise(resolve => setTimeout(resolve, 300));
 
         if (!user.isChangedPwd) {

@@ -49,7 +49,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     const userId = localStorage.getItem('_id') || '';
     const baseURL = getApiBaseURL();
-    // Use same HTTP(S) URL; socket.io handles upgrade
+
     const socket = io(baseURL, {
       withCredentials: true,
       transports: ['polling', 'websocket'],
@@ -59,7 +59,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      // console.log('Socket connected');
+   
     });
 
     socket.on('notification', (payload: any) => {

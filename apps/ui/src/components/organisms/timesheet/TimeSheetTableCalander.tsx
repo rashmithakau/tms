@@ -18,22 +18,9 @@ import TimesheetTableRow from '../../molecules/timesheet/TimesheetTableRow';
 import DescriptionEditor from '../../molecules/dialog/DescriptionEditor';
 import PageLoading from '../../molecules/loading/PageLoading';
 
-export interface TimesheetItem {
-  work?: string;
-  projectId?: string;
-  teamId?: string;
-  hours: string[];
-  descriptions: string[];
-  dailyStatus?: any[]; // Using any[] to match existing types
-}
-
-export interface TimesheetData {
-  category: 'Project' | 'Team' | 'Absence';
-  items: TimesheetItem[];
-}
 
 const TimeSheetTableCalendar: React.FC = () => {
-  // Custom hooks for business logic
+
   const { data, updateData, timesheetStatus, isLoading, error } = useTimesheetDataManagement();
   const { days } = useWeekDays();
   const {

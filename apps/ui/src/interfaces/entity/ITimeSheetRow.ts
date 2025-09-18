@@ -1,14 +1,14 @@
 import { TimesheetStatus } from '@tms/shared';
 
-export interface TimeSheetRow {
+export interface ITimeSheetRow {
   _id: string;
-  date: string; // ISO date string (YYYY-MM-DD)
+  date: string;
   projectId: string;
-  projectName: string; // populated from project reference
+  projectName: string;
   task: string;
   billableType: 'Billable' | 'Non Billable';
   status: TimesheetStatus;
-  dailyStatus?: TimesheetStatus[]; // Array of 7 daily statuses
+  dailyStatus?: TimesheetStatus[];
   description?: string;
   plannedHours?: number;
   hoursSpent?: number;
@@ -19,7 +19,5 @@ export interface TimeSheetRow {
     email: string;
     contactNumber?: string;
     designation?: string;
-  }; 
+  };
 }
-
-

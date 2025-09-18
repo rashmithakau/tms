@@ -1,12 +1,5 @@
 import { TimesheetStatus } from '@tms/shared';
-
-export interface TimesheetItem {
-  work?: string; 
-  projectId?: string; 
-  teamId?: string;
-  hours: string[]; //
-  descriptions: string[]; 
-}
+import { TimesheetItem } from '../hooks/timesheet';
 
 export interface TimesheetCategory {
   category: 'Project' | 'Team' | 'Absence';

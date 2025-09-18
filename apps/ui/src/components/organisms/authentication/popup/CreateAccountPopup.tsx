@@ -12,14 +12,7 @@ import { Box } from '@mui/material';
 import { useApiCall } from '../../../../hooks/api/useApiCall';
 import PageLoading from '../../../molecules/loading/PageLoading';
 import Divider from '@mui/material/Divider';
-import { CreateAccountData } from '../../../../interfaces';
-
-interface CreateAccountPopupProps {
-  open: boolean;
-  role: UserRole;
-  onClose: () => void;
-  onSuccess?: () => void; // Callback to refresh table data
-}
+import { CreateAccountData, CreateAccountPopupProps } from '../../../../interfaces';
 
 function CreateAccountPopup({
   open,
@@ -35,11 +28,11 @@ function CreateAccountPopup({
     successMessage: `${title} created successfully!`,
     errorMessage: 'Failed to create account. Please try again.',
     onSuccess: () => {
-      // Call the onSuccess callback to refresh table data
+      
       if (onSuccess) {
         onSuccess();
       }
-      // Close the popup
+     
       onClose();
     },
   });
@@ -54,14 +47,13 @@ function CreateAccountPopup({
     mode: 'onChange',
   });
 
-  // Reset form when popup closes
+
   useEffect(() => {
     if (!open) {
       reset();
       resetError();
     }
-    // We only want this to run when the popup visibility changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [open]);
 
   const onSubmit = async (data: CreateAccountData) => {

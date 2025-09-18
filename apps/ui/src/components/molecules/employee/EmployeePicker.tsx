@@ -4,16 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import SearchField from '../other/SearchField';
 import SelectedEmployeeChips from '../../molecules/employee/SelectedEmployeeChips';
 import EmployeeList from './EmployeeList';
-import type { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
-
-export interface EmployeePickerProps {
-  users: IEmployeeProps[];
-  selected: IEmployeeProps[];
-  onToggle: (employee: IEmployeeProps) => void;
-  onRemove: (employeeId: string) => void;
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-}
+import type { EmployeePickerProps } from '../../../interfaces/component/employee/IEmployeePickerProps';
 
 const EmployeePicker: React.FC<EmployeePickerProps> = ({
   users,

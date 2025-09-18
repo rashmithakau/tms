@@ -1,4 +1,4 @@
-import { IEmployeeProps } from "./IEmployeeProps";
+import { IEmployeeProps } from "../../interfaces/entity/IEmployeeProps";
 
 export interface IEmployeeListItemProps {
   employee: IEmployeeProps;

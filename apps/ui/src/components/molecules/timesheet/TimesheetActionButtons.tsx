@@ -5,19 +5,9 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import SelectActivityPopup from '../../organisms/popup/SelectActivityPopup';
+import { ITimesheetActionButtonsProps } from '../../../interfaces/component/timesheet';
 
-interface TimesheetActionButtonsProps {
-  onSubmit: () => void;
-  onSaveAsDraft: () => void;
-  onSelectWork: () => void;
-  isSubmitDisabled: boolean;
-  isSaveDisabled: boolean;
-  isSelectWorkDisabled: boolean;
-  isActivityPopupOpen: boolean;
-  onCloseActivityPopup: () => void;
-}
-
-const TimesheetActionButtons: React.FC<TimesheetActionButtonsProps> = ({
+const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
   onSubmit,
   onSaveAsDraft,
   onSelectWork,

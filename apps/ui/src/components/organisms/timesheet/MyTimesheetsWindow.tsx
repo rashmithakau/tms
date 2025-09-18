@@ -17,7 +17,6 @@ const MyTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useTimesheets();
   const toast = useToast();
   
-  // Use custom hooks for week navigation and submission logic
   const { handleNextWeek, handlePreviousWeek, getFormattedWeekRange } = useTimesheetWeekNavigation();
   const {
     isActivityPopupOpen,

@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useCallback, useMemo } from 'react';
 import { RootState } from '../../interfaces';
 import { TimesheetStatus } from '@tms/shared';
 import { startOfWeek } from 'date-fns';
 import { getOrCreateMyTimesheetForWeek } from '../../api/timesheet';
 import { Timesheet } from '../../interfaces';
-import { listMyProjects, listProjects } from '../../api/project';
-import { listMyMemberTeams, listMyTeams } from '../../api/team';
+import { listMyProjects } from '../../api/project';
+import { listMyMemberTeams} from '../../api/team';
 import {
   setTimesheetData,
   setWeekStartDate,
@@ -15,22 +14,13 @@ import {
   setTimesheetStatus,
   setOriginalDataHash,
 } from '../../store/slices/timesheetSlice';
+import { 
+  TimesheetItem, 
+  TimesheetData, 
+  TimesheetDataManagementReturn 
+} from '../../interfaces/hooks/timesheet';
 
-export interface TimesheetItem {
-  work?: string;
-  projectId?: string;
-  teamId?: string;
-  hours: string[];
-  descriptions: string[];
-  dailyStatus?: TimesheetStatus[];
-}
-
-export interface TimesheetData {
-  category: 'Project' | 'Team' | 'Absence';
-  items: TimesheetItem[];
-}
-
-export const useTimesheetDataManagement = () => {
+export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
   const dispatch = useDispatch();
   const [data, setData] = useState<TimesheetData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,7 +30,7 @@ export const useTimesheetDataManagement = () => {
   const timesheetStatus = useSelector((state: RootState) => state.timesheet.status);
   const selectedActivities = useSelector((state: RootState) => state.timesheet.selectedActivities);
 
-  // Create absence rows from selected activities
+
   const createAbsenceRows = (): TimesheetItem[] => {
     return selectedActivities.map((activity: string) => ({
       work: activity,
@@ -50,12 +40,10 @@ export const useTimesheetDataManagement = () => {
     }));
   };
 
-  // Update Redux store when data changes
   useEffect(() => {
     dispatch(setTimesheetData(data));
   }, [data, dispatch]);
 
-  // Initialize week start date if not set
   useEffect(() => {
     if (!selectedWeekStartIso) {
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -65,7 +53,7 @@ export const useTimesheetDataManagement = () => {
     }
   }, [dispatch, selectedWeekStartIso]);
 
-  // Fetch projects and timesheet data
+ 
   useEffect(() => {
     if (!selectedWeekStartIso) return;
 
@@ -73,8 +61,7 @@ export const useTimesheetDataManagement = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
-        // Fetch projects and teams in parallel
+     
         const [projectsResponse, teamsResponse] = await Promise.all([
           listMyProjects(),
           listMyMemberTeams()
@@ -83,7 +70,7 @@ export const useTimesheetDataManagement = () => {
         const fetchedProjects = (projectsResponse.data as any)?.projects || [];
         const fetchedTeams = (teamsResponse.data as any)?.teams || [];
 
-        // Build project rows
+  
         const projectRows: TimesheetItem[] = fetchedProjects.map((project: any) => ({
           work: project.projectName,
           projectId: project._id,
@@ -92,7 +79,7 @@ export const useTimesheetDataManagement = () => {
           dailyStatus: Array(7).fill(TimesheetStatus.Draft),
         }));
 
-        // Build team rows
+   
         const teamRows: TimesheetItem[] = fetchedTeams.map((team: any) => ({
           work: team.teamName,
           teamId: team._id,
@@ -103,7 +90,6 @@ export const useTimesheetDataManagement = () => {
 
         const absenceRows = createAbsenceRows();
 
-        // Fetch or create timesheet for current week
         const resp = await getOrCreateMyTimesheetForWeek(selectedWeekStartIso);
         const existing: Timesheet | undefined = (resp.data as any).timesheet;
 
@@ -114,7 +100,7 @@ export const useTimesheetDataManagement = () => {
           const existingData: any[] = (existing as any).data || [];
           let nextData = existingData;
 
-          // Merge in missing data if status is Draft
+
           if ((existing.status as any) === 'Draft') {
             nextData = mergeNewItems(nextData, projectRows, teamRows, absenceRows);
           }
@@ -142,7 +128,6 @@ export const useTimesheetDataManagement = () => {
     fetchData();
   }, [selectedActivities, selectedWeekStartIso, dispatch]);
 
-  // Helper function to merge new items into existing data
   const mergeNewItems = (
     existingData: any[],
     projectRows: TimesheetItem[],
@@ -151,7 +136,7 @@ export const useTimesheetDataManagement = () => {
   ) => {
     let nextData = [...existingData];
 
-    // Merge project items
+
     const projectCatIndex = nextData.findIndex((c) => c.category === 'Project');
     if (projectCatIndex >= 0) {
       const presentProjectIds = new Set(
@@ -169,7 +154,6 @@ export const useTimesheetDataManagement = () => {
       nextData = [{ category: 'Project', items: projectRows }, ...nextData];
     }
 
-    // Merge team items
     const teamCatIndex = nextData.findIndex((c) => c.category === 'Team');
     if (teamCatIndex >= 0) {
       const presentTeamIds = new Set(
@@ -184,13 +168,12 @@ export const useTimesheetDataManagement = () => {
         );
       }
     } else if (teamRows.length > 0) {
-      // Insert team category after project category or at the beginning
+  
       const projectCatIndex = nextData.findIndex((c) => c.category === 'Project');
       const insertIndex = projectCatIndex >= 0 ? projectCatIndex + 1 : 0;
       nextData.splice(insertIndex, 0, { category: 'Team', items: teamRows });
     }
 
-    // Merge absence items
     const absenceCatIndex = nextData.findIndex((c) => c.category === 'Absence');
     if (absenceCatIndex >= 0) {
       const presentWorks = new Set(
@@ -209,7 +192,7 @@ export const useTimesheetDataManagement = () => {
     return nextData;
   };
 
-  // Update data
+
   const updateData = (newData: TimesheetData[]) => {
     setData(newData);
   };

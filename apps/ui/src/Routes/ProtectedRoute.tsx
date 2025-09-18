@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<IProtectedRouteProps> = ({
         try {
           await checkAuth();
         } catch (error) {
-          console.log('ProtectedRoute: Auth check failed, user not authenticated');
+          
         } finally {
           setHasCheckedAuth(true);
         }
@@ -45,36 +45,31 @@ const ProtectedRoute: React.FC<IProtectedRouteProps> = ({
     );
   }
 
-  // Handle auth-based protection
   if (requireAuth) {
-    console.log('ProtectedRoute: requireAuth mode - isAuthenticated =', isAuthenticated);
-    
-    // Redirect if not authenticated
+
+
     if (!isAuthenticated) {
-      console.log('ProtectedRoute: User not authenticated, redirecting to:', redirectPath);
+ 
       return <Navigate to={redirectPath} replace />;
     }
 
-    // Check role permissions if specified
+   
     if (allowedRoles.length > 0 && user) {
       const hasPermission = allowedRoles.includes(user.role);
       if (!hasPermission) {
-        console.log('ProtectedRoute: User role not allowed, redirecting to homepage');
         return <Navigate to="/" replace />;
       }
     }
   }
 
   if (isAllowed !== undefined) {
-    console.log('ProtectedRoute: manual mode - isAllowed =', isAllowed, 'redirectPath =', redirectPath);
+ 
     
     if (!isAllowed) {
-      console.log('ProtectedRoute: Access denied, redirecting to:', redirectPath);
+
       return <Navigate to={redirectPath} replace />;
     }
   }
-  
-  console.log('ProtectedRoute: Access granted, rendering children');
   return <>{children}</>;
 };
 

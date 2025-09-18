@@ -19,27 +19,27 @@ export default function EmpTimeSheetTable({ rows }: { rows: EmpTimesheetRow[] })
     }
   };
 
-  // Check if timesheet can be edited (only Draft status allows editing)
+ 
   const canEditTimesheet = (status: TimesheetStatus): boolean => {
     return status === TimesheetStatus.Draft;
   };
 
-  // Convert decimal hours to HH.MM format for display
+
   const formatTimeDisplay = (decimalHours?: number): string => {
     if (!decimalHours || decimalHours === 0) return '-';
     
-    // Round to 2 decimal places to avoid floating-point precision issues
+    
     const roundedHours = Math.round(decimalHours * 100) / 100;
     
     const hours = Math.floor(roundedHours);
     const minutes = Math.round((roundedHours - hours) * 60);
     
-    // Ensure minutes don't exceed 59
+   
     if (minutes >= 60) {
       return `${(hours + 1).toString().padStart(2, '0')}`;
     }
     
-    // Format as HH.MM
+    
     const formattedHours = hours.toString().padStart(2, '0');
     const formattedMinutes = minutes.toString().padStart(2, '0');
     

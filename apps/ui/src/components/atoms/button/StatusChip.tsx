@@ -1,10 +1,7 @@
 import { Chip } from "@mui/material";
+import { IStatusChipProps } from "../../../interfaces/component";
 
-interface StatusChipProps {
-  status: "InActive" | "Active" | string;
-}
-
-const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
+const StatusChip: React.FC<IStatusChipProps> = ({ status }) => {
   const colorMap: Record<string, { color: "error" | "success"; label: string }> = {
     InActive: { color: "error", label: "In" },
     Active: { color: "success", label: "Active" },

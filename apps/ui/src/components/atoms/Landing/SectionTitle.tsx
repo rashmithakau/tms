@@ -1,13 +1,9 @@
 import React from 'react';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
+import { ISectionTitleProps } from '../../../interfaces/landing/ISectionTitleProps';
 
-interface SectionTitleProps {
-  title: string;
-  subtitle?: string;
-}
-
-const SectionTitle: React.FC<SectionTitleProps> = ({ title, subtitle }) => {
+const SectionTitle: React.FC<ISectionTitleProps> = ({ title, subtitle }) => {
   const theme = useTheme();
   return (
     <>

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import {
   Table,
   TableHead,
@@ -7,7 +7,7 @@ import {
   TableBody,
   TableContainer,
 } from '@mui/material';
-import { DataTableColumn, DataTableProps } from '../../../interfaces';
+import {  DataTableProps } from '../../../interfaces';
 
 function DataTable<T>({ columns, rows, getRowKey }: DataTableProps<T>) {
   return (

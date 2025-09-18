@@ -3,16 +3,8 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
-import { SvgIconComponent } from '@mui/icons-material';
-import Box from '@mui/material/Box';
 import AppIcon from '../../atoms/landing/AppIcon';
-
-
-export interface FeatureCardProps {
-  icon: SvgIconComponent;
-  title: string;
-  description: string;
-}
+import { FeatureCardProps } from '../../../interfaces/landing';
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => {
   const theme = useTheme();

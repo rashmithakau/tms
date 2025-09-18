@@ -4,7 +4,8 @@ import { Box, Alert } from '@mui/material';
 import PageLoading from '../../molecules/loading/PageLoading';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { UserRole } from '@tms/shared';
-import TableWindowLayout, { EmpRow } from '../../templates/layout/TableWindowLayout';
+import TableWindowLayout from '../../templates/layout/TableWindowLayout';
+import { EmployeeRow } from '../../../interfaces/component/table/ITableRowTypes';
 import CreateAccountPopup from '../authentication/popup/CreateAccountPopup';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import EmpTable from '../table/EmpTable';
@@ -25,7 +26,7 @@ const SuperAdminWindow: React.FC = () => {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  const rows: EmpRow[] = useMemo(() => {
+  const rows: EmployeeRow[] = useMemo(() => {
     return users.map((user) => ({
       id: (user as any)._id,
       email: user.email || '',

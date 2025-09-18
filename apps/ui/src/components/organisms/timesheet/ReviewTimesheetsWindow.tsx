@@ -23,19 +23,18 @@ import { useSelector } from 'react-redux';
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
-  
-  // Get search text from Redux store
+
   const searchText = useSelector((state: any) => state.searchBar.searchText);
   
-  // Filter out draft timesheets
+  
   const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
   const pendingIdsInFiltered = filteredRows
     .filter(row => row.status === TimesheetStatus.Pending)
     .map(row => row._id);
   
-  // Group employees from filtered rows
+
   const employeeGroups = filteredRows.reduce((groups: any[], row) => {
-    // Skip rows without employee data
+
     if (!row.employee) return groups;
     
     const existingGroup = groups.find(g => g.employee && row.employee && g.employee._id === row.employee._id);
@@ -57,7 +56,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
     return groups;
   }, []);
 
-  // Filter employee groups by search text
+
   const filteredEmployeeGroups = employeeGroups.filter(group => {
     if (!searchText.trim()) return true;
     

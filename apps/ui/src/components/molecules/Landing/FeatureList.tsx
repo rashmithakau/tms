@@ -1,10 +1,7 @@
 import React from 'react'
 import Box from '@mui/material/Box'
 import FeatureListItem from '../../atoms/landing/FeatureListItem'
-
-interface FeatureListProps {
-  features: string[]
-}
+import { FeatureListProps } from '../../../interfaces/landing'
 
 const FeatureList: React.FC<FeatureListProps> = ({ features }) => {
   return (

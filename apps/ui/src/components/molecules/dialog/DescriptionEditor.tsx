@@ -1,15 +1,8 @@
 import React from 'react';
 import { Popover, InputBase } from '@mui/material';
+import { IDescriptionEditorProps } from '../../../interfaces/component/dialog';
 
-interface DescriptionEditorProps {
-  open: boolean;
-  anchorEl: HTMLElement | null;
-  value: string;
-  onChange: (value: string) => void;
-  onClose: () => void;
-}
-
-const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
+const DescriptionEditor: React.FC<IDescriptionEditorProps> = ({
   open,
   anchorEl,
   value,

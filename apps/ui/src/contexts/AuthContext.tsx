@@ -1,34 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { UserRole } from '@tms/shared';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getCurrentUser, logout as logoutAPI } from '../api/auth';
-
-interface User {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: UserRole;
-  designation: string;
-  contactNumber?: string;
-  isChangedPwd: boolean;
-}
-
-interface AuthState {
-  user: User | null;
-  isLoading: boolean;
-}
-
-interface AuthContextType {
-  authState: AuthState;
-  login: (user: User) => void;
-  logout: () => Promise<void>;
-  updateUser: (updates: Partial<User>) => void;
-  checkAuth: () => Promise<void>;
-}
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
+import { IUser, AuthState, AuthContextType, AuthProviderProps } from '../interfaces';
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,7 +25,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading: false, 
   });
 
-  const login = (user: User) => {
+  const login = (user: IUser) => {
     try {
       console.log('AuthContext: Login called with user:', user);
       
@@ -87,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const updateUser = (updates: Partial<User>) => {
+  const updateUser = (updates: Partial<IUser>) => {
     if (authState.user) {
       const updatedUser = { ...authState.user, ...updates };
       

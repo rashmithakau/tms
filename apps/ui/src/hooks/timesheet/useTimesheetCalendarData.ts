@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
-import { listProjects } from '../api/project';
-import { TimesheetStatus } from '@tms/shared'; 
-import { Timesheet } from '../api/timesheet';
+import { listProjects } from '../../api/project';
+
+import { Timesheet } from '../../interfaces/api/Timesheet';
+import { TimesheetCalendarDataReturn } from '../../interfaces/hooks/timesheet';
 
 export function useTimesheetCalendarData(
   timesheets: Timesheet[], 
   originalTimesheets: Timesheet[]
-) {
+): TimesheetCalendarDataReturn {
   const [data, setData] = useState([]);
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);

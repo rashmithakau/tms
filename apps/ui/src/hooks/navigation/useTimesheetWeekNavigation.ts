@@ -16,11 +16,10 @@ export const useTimesheetWeekNavigation = () => {
     (state: any) => state.timesheet.weekStartDate
   );
 
-  // Initialize week range if not set
   const initializeWeek = () => {
     if (!timesheetData.weekStartDate || !timesheetData.weekEndDate) {
       const now = new Date();
-      const utcDay = now.getUTCDay(); // 0=Sun..6=Sat
+      const utcDay = now.getUTCDay(); 
       const diffToMonday = (utcDay + 6) % 7;
       const monday = new Date(
         Date.UTC(
@@ -41,7 +40,7 @@ export const useTimesheetWeekNavigation = () => {
     }
   };
 
-  // Load timesheet for the current selected week
+
   const loadTimesheetForWeek = async () => {
     try {
       const weekIso = timesheetData.weekStartDate ?? undefined;
@@ -56,7 +55,7 @@ export const useTimesheetWeekNavigation = () => {
     }
   };
 
-  // Navigation handlers
+
   const handleNextWeek = () => {
     getWeekRangeAndUpdateRedux(1, currentWeekStartDate, dispatch);
   };
@@ -65,7 +64,7 @@ export const useTimesheetWeekNavigation = () => {
     getWeekRangeAndUpdateRedux(-1, currentWeekStartDate, dispatch);
   };
 
-  // Format week range for display
+
   const getFormattedWeekRange = () => {
     const startDate = timesheetData.weekStartDate
       ? new Date(timesheetData.weekStartDate + 'T00:00:00Z').toLocaleDateString('en-US', {
@@ -89,7 +88,7 @@ export const useTimesheetWeekNavigation = () => {
     return { startDate, endDate };
   };
 
-  // Initialize week range and load timesheet on mount or week change
+
   useEffect(() => {
     initializeWeek();
     const load = async () => {

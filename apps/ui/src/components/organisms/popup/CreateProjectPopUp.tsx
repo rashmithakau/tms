@@ -16,14 +16,9 @@ import Divider from '@mui/material/Divider';
 import { UserRole } from '@tms/shared';
 import SupervisorSelect from '../../molecules/supervisor/SupervisorSelect';
 import BillableSelect from '../../molecules/other/BillableSelect';
+import { CreateProjectFormData, CreateProjectPopupProps } from '../../../interfaces/organisms/popup';
 
-interface CreateProjectFormData {
-  projectName: string;
-  billable: 'yes' | 'no';
-  supervisor: string | null;
-}
-
-const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
+const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
   open,
   onClose,
 }) => {
@@ -34,7 +29,7 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
   const theme = useTheme();
   const toast = useToast();
 
-  // React Hook Form
+  
   const {
     control,
     handleSubmit,
@@ -46,7 +41,6 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
     reValidateMode: 'onChange',
   });
 
-  // Form submission handler
   const onSubmit = async (data: CreateProjectFormData) => {
     try {
       await createProject({
@@ -56,12 +50,12 @@ const CreateProjectPopUp: React.FC<{ open: boolean; onClose: () => void }> = ({
         supervisor: data.supervisor ?? null,
       });
       toast.success('Project created');
-      onClose(); // Close popup after submit
+      onClose(); 
       reset();
-      setSelectedEmployees([]); // Clear selected employees
+      setSelectedEmployees([]); 
     } catch (error) {
       toast.error('Failed to create project');
-      setSelectedEmployees([]); // Clear selected employees
+      setSelectedEmployees([]); 
     }
   };
 

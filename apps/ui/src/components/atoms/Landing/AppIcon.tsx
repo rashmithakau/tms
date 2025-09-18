@@ -1,16 +1,9 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import { SvgIconComponent } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
+import { IAppIconProps } from '../../../interfaces/component'
 
-interface AppIconProps {
-  icon: SvgIconComponent
-  size?: number
-  color?: string
-  marginBottom?: number
-}
-
-const AppIcon: React.FC<AppIconProps> = ({ icon: Icon, size = 40, color, marginBottom = 2 }) => {
+const AppIcon: React.FC<IAppIconProps> = ({ icon: Icon, size = 40, color, marginBottom = 2 }) => {
   const theme = useTheme()
   const resolvedColor = color ?? theme.palette.primary.main
 

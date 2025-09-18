@@ -1,16 +1,9 @@
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ISupervisorMemberCardProps } from '../../../interfaces/component/supervisor';
 
-export interface SupervisorMemberCardProps {
-  supervisor: {
-    name: string;
-    designation?: string;
-    email?: string;
-  } | null;
-}
-
-const SupervisorMemberCard: React.FC<SupervisorMemberCardProps> = ({
+const SupervisorMemberCard: React.FC<ISupervisorMemberCardProps> = ({
   supervisor,
 }) => {
   const theme = useTheme();

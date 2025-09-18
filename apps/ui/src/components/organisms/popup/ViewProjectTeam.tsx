@@ -1,17 +1,12 @@
 import React from 'react';
 import { Box, Typography, Divider, Button, Paper } from '@mui/material';
 import PopupLayout from '../../templates/popup/PopUpLayout';
-import { ProjectRow } from '../../templates/layout/TableWindowLayout';
+import { ProjectRow } from '../../../interfaces/component/table/ITableRowTypes';
 import { useTheme } from '@mui/material/styles';
 import SupervisorMemberCard from '../../molecules/supervisor/SupervisorMemberCard';
 import TeamMemberCard from '../../molecules/team/TeamMemberCard';
 import BaseButton from '../../atoms/button/BaseBtn';
-
-interface ViewProjectTeamProps {
-  open: boolean;
-  onClose: () => void;
-  project: ProjectRow | null;
-}
+import { ViewProjectTeamProps } from '../../../interfaces/organisms/popup';
 
 const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
   open,
@@ -21,7 +16,6 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
   const theme = useTheme();
   if (!project) return null;
 
-  // Filter out supervisor from team members
   const teamMembers =
     project.employees?.filter((emp) => emp.id !== project.supervisor?.id) || [];
 

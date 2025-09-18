@@ -1,14 +1,7 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import BaseButton from '../../atoms/button/BaseBtn';
-
-interface NavItemSectionProps {
-  items: { label: string; target: string }[];
-  onNavigate: (id: string) => void;
-  display?: any;
-  direction?: 'row' | 'column';
-  alignItems?: string;
-}
+import { NavItemSectionProps } from '../../../interfaces/landing';
 
 const NavItemSection: React.FC<NavItemSectionProps> = ({
   items,

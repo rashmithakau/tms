@@ -5,11 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { listTeams } from '../../../api/team';
 import { listProjects } from '../../../api/project';
 import BaseButton from '../../atoms/button/BaseBtn';
-
-interface ProfilePopupProps {
-  open: boolean;
-  onClose: () => void;
-}
+import { ProfilePopupProps } from '../../../interfaces/organisms/popup';
 
 const FieldRow = ({ label, value }: { label: string; value?: string }) => (
   <Box>
@@ -95,7 +91,7 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose }) => {
   const supervisorDisplay = useMemo(() => {
     if (!supervisors.length || !supervisorEmails.length) return undefined;
 
-    // Combine names and emails in "name - email" format
+    
     const combined = supervisors.map((name, index) => {
       const email = supervisorEmails[index] || '';
       return `${name} - ${email}`;

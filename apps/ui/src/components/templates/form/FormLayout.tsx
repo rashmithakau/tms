@@ -1,4 +1,4 @@
-import { IFormLayoutProps } from '../../interfaces/IFormLayoutProps';
+import { IFormLayoutProps } from '../../../interfaces/layout/IFormLayoutProps';
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 

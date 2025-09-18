@@ -1,7 +1,6 @@
 import React from 'react';
 import BaseTextField from '../../atoms/inputField/BaseTextField';
-
-import type { ISearchFieldProps } from '../../interfaces/component/ISearchFieldProps';
+import type { ISearchFieldProps } from '../../../interfaces/component/ISearchFieldProps';
 
 const SearchField: React.FC<ISearchFieldProps> = ({
   value,

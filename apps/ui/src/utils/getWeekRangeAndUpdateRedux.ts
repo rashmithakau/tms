@@ -7,7 +7,7 @@ export const getWeekRangeAndUpdateRedux = (
   dispatch: Dispatch
 ): void => {
   const weekStartDate = new Date(currentWeekStartDate);
-  // Use UTC methods to prevent timezone-related date shifts
+  
   weekStartDate.setUTCDate(weekStartDate.getUTCDate() + offset * 7);
   weekStartDate.setUTCHours(0, 0, 0, 0);
 

@@ -1,11 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
+import { ILoadingSpinnerProps } from '../../../interfaces/component';
 
-interface LoadingSpinnerProps {
-  size?: number;
-  message?: string;
-}
-
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
+const LoadingSpinner: React.FC<ILoadingSpinnerProps> = ({ 
   size = 40, 
   message 
 }) => {

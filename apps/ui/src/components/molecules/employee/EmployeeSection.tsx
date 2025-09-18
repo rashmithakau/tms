@@ -5,21 +5,9 @@ import EmpTableToolbar from '../other/EmpTableToolbar';
 import BaseBtn from '../../atoms/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import PageLoading from '../loading/PageLoading';
-import { EmpRow } from '../../templates/layout/TableWindowLayout';
+import { IEmployeeManagementProps } from '../../../interfaces/list/IEmployeeManagementProps';
 
-interface EmployeeSectionProps {
-  error?: string;
-  isLoading: boolean;
-  rows: EmpRow[];
-  projectOptions: Array<{ id: string; name: string }>;
-  selectedProjectIds: string[];
-  onSelectedProjectIdsChange: (ids: string[]) => void;
-  statusFilter: 'all' | 'Active' | 'Inactive';
-  onStatusFilterChange: (filter: 'all' | 'Active' | 'Inactive') => void;
-  onAddEmployee: () => void;
-}
-
-const EmployeeSection: React.FC<EmployeeSectionProps> = ({
+const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
   error,
   isLoading,
   rows,

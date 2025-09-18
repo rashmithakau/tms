@@ -1,18 +1,14 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import FeatureCard, { FeatureCardProps } from './FeatureCard';
+import FeatureCard from './FeatureCard';
 import { useTheme } from '@mui/material/styles';
-
-interface ScrollingCardsProps {
-  items: FeatureCardProps[];
-  animationDuration?: number;
-}
+import {  ScrollingCardsProps } from '../../../interfaces/landing';
 
 const ScrollingCards: React.FC<ScrollingCardsProps> = ({ 
   items, 
   animationDuration = 30 
 }) => {
-  // Duplicate items for seamless scrolling
+  
   const duplicatedItems = [...items, ...items];
   const theme = useTheme();
   return (

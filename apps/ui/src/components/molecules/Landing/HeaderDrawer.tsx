@@ -5,14 +5,7 @@ import Box from '@mui/material/Box';
 import BaseButton from '../../atoms/button/BaseBtn';
 import NavItemSection from './NavItemSection';
 import { useTheme } from '@mui/material/styles';
-
-interface HeaderDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  navItems: { label: string; target: string }[];
-  handleScrollTo: (id: string) => void;
-  navigate: (path: string) => void;
-}
+import { HeaderDrawerProps } from '../../../interfaces/landing';
 
 const HeaderDrawer: React.FC<HeaderDrawerProps> = ({
   open,

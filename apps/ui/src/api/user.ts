@@ -26,7 +26,6 @@ import { UserRole } from "@tms/shared";
     }
   };
 
-  // Projects API
   export type ProjectListItem = {
     _id: string;
     projectName: string;

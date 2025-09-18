@@ -1,7 +1,7 @@
 import { Dayjs } from 'dayjs';
 import { DatePickerProps } from '@mui/x-date-pickers/DatePicker';
 
-export interface IDatePickerFieldProps extends Omit<DatePickerProps<Dayjs>, 'onChange' | 'value'> {
+export interface IDatePickerFieldProps extends Omit<DatePickerProps<any>, 'onChange' | 'value'> {
   label?: string;
   value: Dayjs | null;
   onChange: (value: Dayjs | null) => void;
