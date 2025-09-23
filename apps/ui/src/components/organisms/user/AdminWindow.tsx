@@ -16,6 +16,7 @@ import { listTeams } from '../../../api/team';
 import { TeamListItem } from '../../../interfaces';
 import MyTimesheetsWindow from '../timesheet/MyTimesheetsWindow';
 import ReviewTimesheetsWindow from '../timesheet/ReviewTimesheetsWindow';
+import ReportDashboard from '../report/ReportDashboard';
 
 const AdminWindow: React.FC = () => {
   const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin] as const, []);
@@ -271,6 +272,10 @@ const AdminWindow: React.FC = () => {
 
                   {selectedBtn === 'Review Timesheets' && (
         <ReviewTimesheetsWindow/>
+      )}
+
+      {selectedBtn === 'Reports' && (
+        <ReportDashboard />
       )}
     </>
   );
