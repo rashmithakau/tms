@@ -101,7 +101,7 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
           let nextData = existingData;
 
 
-          if ((existing.status as any) === 'Draft') {
+          if ((existing.status as any) === TimesheetStatus.Draft) {
             nextData = mergeNewItems(nextData, projectRows, teamRows, absenceRows);
           }
 
