@@ -17,11 +17,11 @@ export const useTimesheetCellEditing = (
 
 
   const isCellEditable = (catIndex: number, rowIndex: number, colIndex: number): boolean => {
-    if (!timesheetStatus || !['Draft', 'Rejected'].includes(timesheetStatus)) {
+    if (!timesheetStatus || ![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(timesheetStatus as TimesheetStatus)) {
       return false;
     }
 
-    if (timesheetStatus === 'Rejected') {
+    if (timesheetStatus === TimesheetStatus.Rejected) {
       const item = data[catIndex]?.items[rowIndex];
       const dayStatus = item?.dailyStatus?.[colIndex];
       return dayStatus === TimesheetStatus.Rejected;

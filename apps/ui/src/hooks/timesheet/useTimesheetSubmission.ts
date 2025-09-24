@@ -6,6 +6,7 @@ import {
   updateMyTimesheet,
 } from '../../api/timesheet';
 import { useToast } from '../../contexts/ToastContext';
+import { TimesheetStatus } from '@tms/shared';
 
 export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   const timesheetData = useSelector((state: any) => state.timesheet);
@@ -55,7 +56,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         return;
       }
       
-      if (!['Draft', 'Rejected'].includes(currentStatus || '')) {
+      if (![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(currentStatus as TimesheetStatus)) {
         toast.error('Only draft and rejected timesheets can be submitted');
         return;
       }
@@ -67,7 +68,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         return;
       }
       
-      if (currentStatus === 'Rejected') {
+      if (currentStatus === TimesheetStatus.Rejected) {
         await updateMyTimesheet(currentId, {
           data: timesheetData.timesheetData,
         });
@@ -111,16 +112,16 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   const isDataSavedInDB = JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '');
   
 
-  const isSubmitDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '') || 
+  const isSubmitDisabled = ![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(timesheetData.status as TimesheetStatus) || 
     isUnderMinimumHours || 
-    (timesheetData.status === 'Draft' && !isDataSavedInDB);
+    (timesheetData.status === TimesheetStatus.Draft && !isDataSavedInDB);
     
   
-  const isSaveDisabled = timesheetData.status === 'Rejected' || 
-    !['Draft'].includes(timesheetData.status || '') ||
+  const isSaveDisabled = timesheetData.status === TimesheetStatus.Rejected || 
+    ![TimesheetStatus.Draft].includes(timesheetData.status as TimesheetStatus) ||
     isDataSavedInDB;
     
-  const isSelectWorkDisabled = !['Draft', 'Rejected'].includes(timesheetData.status || '');
+  const isSelectWorkDisabled = ![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(timesheetData.status as TimesheetStatus);
 
   return {
     totalHours,

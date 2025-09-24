@@ -1,4 +1,5 @@
 export * from './approval';
+export * from './dashboard';
 export * from './dialog';
 export * from './employee';
 export * from './landing';

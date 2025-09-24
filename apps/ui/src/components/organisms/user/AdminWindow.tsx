@@ -16,6 +16,12 @@ import { listTeams } from '../../../api/team';
 import { TeamListItem } from '../../../interfaces';
 import MyTimesheetsWindow from '../timesheet/MyTimesheetsWindow';
 import ReviewTimesheetsWindow from '../timesheet/ReviewTimesheetsWindow';
+import { AdminDashboardWindow } from '../admin';
+import { 
+  IAdminStatsOverviewProps, 
+  ITableColumn 
+} from '../../../interfaces/dashboard';
+import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
 
 const AdminWindow: React.FC = () => {
   const roles = useMemo(() => [UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin] as const, []);
@@ -39,10 +45,82 @@ const AdminWindow: React.FC = () => {
     (state: any) => state.dashboardNav.selectedBtn
   );
 
+  const { dashboardStats, loading: statsLoading, error: statsError } = useDashboardStats();
+  const { rejectionReasons, loading: rejectionLoading, error: rejectionError } = useTimesheetRejectionReasons(5);
+
+  const dashboardStatsData: IAdminStatsOverviewProps = useMemo(() => {
+    if (!dashboardStats) {
+      return {
+        userStats: {
+          totalUsers: 0,
+          activeUsers: 0,
+          newUsersThisMonth: 0,
+          totalAdmins: 0
+        },
+        projectStats: {
+          totalProjects: 0,
+          activeProjects: 0,
+          completedProjects: 0
+        },
+        timesheetStats: {
+          pendingApprovals: 0,
+          approvedThisWeek: 0,
+          totalHoursLogged: 0
+        },
+        teamStats: {
+          totalTeams: 0
+        }
+      };
+    }
+
+    return {
+      userStats: {
+        totalUsers: dashboardStats.userStats.totalUsers,
+        activeUsers: dashboardStats.userStats.activeUsers,
+        newUsersThisMonth: Math.floor(dashboardStats.userStats.totalUsers * 0.05), // Estimate 5% as new
+        totalAdmins: dashboardStats.userStats.totalAdmins
+      },
+      projectStats: {
+        totalProjects: dashboardStats.projectStats.totalProjects,
+        activeProjects: dashboardStats.projectStats.activeProjects,
+        completedProjects: dashboardStats.projectStats.totalProjects - dashboardStats.projectStats.activeProjects
+      },
+      timesheetStats: {
+        pendingApprovals: dashboardStats.timesheetStats.pendingCount,
+        approvedThisWeek: dashboardStats.timesheetStats.approvedCount,
+        totalHoursLogged: dashboardStats.timesheetStats.submittedCount * 40 // Estimate 40 hours per timesheet
+      },
+      teamStats: {
+        totalTeams: dashboardStats.teamStats.totalTeams
+      }
+    };
+  }, [dashboardStats]);
+
+  // Dashboard table data
+  const dashboardUserColumns: ITableColumn[] = [
+    { field: 'firstName', headerName: 'First Name', width: 150 },
+    { field: 'lastName', headerName: 'Last Name', width: 150 },
+    { field: 'email', headerName: 'Email', width: 200 },
+    { field: 'status', headerName: 'Status', width: 120 },
+    { field: 'createdAt', headerName: 'Created', width: 150 }
+  ];
+
+  const dashboardProjectColumns: ITableColumn[] = [
+    { field: 'projectName', headerName: 'Project Name', width: 200 },
+    { field: 'billable', headerName: 'Billable', width: 100 },
+    { 
+      field: 'status', 
+      headerName: 'Status', 
+      width: 120,
+      renderCell: ({ value }) => value ? 'Active' : 'Inactive'
+    },
+    { field: 'createdAt', headerName: 'Created', width: 150 }
+  ];
+
   useEffect(() => {
     
-    if (selectedBtn !== 'Employee') {
-      dispatch(select_btn('Employee'));
+    if (selectedBtn !== 'Dashboard') {
+      dispatch(select_btn('Dashboard'));
     }
     
   }, []);
@@ -209,6 +287,42 @@ const AdminWindow: React.FC = () => {
 
   return (
     <>
+      {selectedBtn === 'Dashboard' && (
+        <div>
+          <AdminDashboardWindow
+            statsData={dashboardStatsData}
+            statsLoading={statsLoading}
+            statsError={statsError}
+            rejectionReasons={rejectionReasons}
+            rejectionReasonsLoading={rejectionLoading}
+            rejectionReasonsError={rejectionError}
+            timesheetStats={dashboardStats?.timesheetStats}
+            onAddUser={handleOpenPopup}
+            onAddProject={() => setIsProjectPopupOpen(true)}
+            onEditUser={(id) => console.log('Edit user:', id)}
+            onDeleteUser={(id) => console.log('Delete user:', id)}
+            onEditProject={(id) => console.log('Edit project:', id)}
+            onDeleteProject={(id) => console.log('Delete project:', id)}
+            onViewReports={() => dispatch(select_btn('Reports'))}
+            onViewTimesheet={(timesheetId) => {
+              console.log('View timesheet:', timesheetId);
+              // Navigate to timesheet view or open modal
+              dispatch(select_btn('Review Timesheets'));
+            }}
+          />
+          <CreateAccountPopup
+            open={isPopupOpen}
+            onClose={handleClosePopup}
+            role={UserRole.Emp}
+            onSuccess={handleAccountCreated}
+          />
+          <CreateProjectPopUp
+            open={isProjectPopupOpen}
+            onClose={handleProjectClose}
+          />
+        </div>
+      )}
+
       {selectedBtn === 'Employee' && (
         <div>
           <EmployeeSection
