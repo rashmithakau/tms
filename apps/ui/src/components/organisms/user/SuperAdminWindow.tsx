@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Alert } from '@mui/material';
+import { Box, Alert, Typography, useTheme } from '@mui/material';
 import PageLoading from '../../molecules/loading/PageLoading';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { UserRole } from '@tms/shared';
@@ -13,6 +13,7 @@ import { select_btn } from '../../../store/slices/dashboardNavSlice';
 import { useUsers } from '../../../hooks/api/useUsers';
 
 const SuperAdminWindow: React.FC = () => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const selectedBtn = useSelector((state: any) => state.dashboardNav.selectedBtn);
 
@@ -53,37 +54,50 @@ const SuperAdminWindow: React.FC = () => {
   if (selectedBtn !== 'Accounts') return null;
 
   return (
-    <Box>
-      {error && (
-        <Box sx={{ m: 2 }}>
-          <Alert severity="error" onClose={() => {}}>
-            {error}
-          </Alert>
+    <Box sx={{ padding: 2, height: '93%' }}>
+      <Box
+        height="auto"
+        sx={{
+          height: '100%',
+          backgroundColor: theme.palette.background.default,
+          padding: theme.spacing(2),
+          borderRadius: theme.shape.borderRadius,
+        }}
+      >
+        
+        <Box>
+          {error && (
+            <Box sx={{ m: 2 }}>
+              <Alert severity="error" onClose={() => {}}>
+                {error}
+              </Alert>
+            </Box>
+          )}
+
+          {isLoading ? (
+            <PageLoading variant="inline" message="Loading admin accounts..." />
+          ) : (
+            <TableWindowLayout
+              title="Admin Accounts"
+              buttons={[
+                <Box sx={{ mt: 2, ml: 2 }}>
+                  <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>
+                    Admin
+                  </BaseBtn>
+                </Box>,
+              ]}
+              table={<EmpTable rows={rows} />}
+            />
+          )}
+
+          <CreateAccountPopup
+            open={isPopupOpen}
+            onClose={handleClosePopup}
+            role={UserRole.Admin}
+            onSuccess={handleAccountCreated}
+          />
         </Box>
-      )}
-
-      {isLoading ? (
-        <PageLoading variant="inline" message="Loading admin accounts..." />
-      ) : (
-        <TableWindowLayout
-          title="Admin Accounts"
-          buttons={[
-            <Box sx={{ mt: 2, ml: 2 }}>
-              <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>
-                Admin
-              </BaseBtn>
-            </Box>,
-          ]}
-          table={<EmpTable rows={rows} />}
-        />
-      )}
-
-      <CreateAccountPopup
-        open={isPopupOpen}
-        onClose={handleClosePopup}
-        role={UserRole.Admin}
-        onSuccess={handleAccountCreated}
-      />
+      </Box>
     </Box>
   );
 };
