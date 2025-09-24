@@ -23,23 +23,28 @@ export class ApprovalStatusReport extends BasePDFGenerator {
   ): PDFDocument {
     this.components.addReportHeader('Timesheet Approval Status Report', filters);
     
-    // Table headers
-    const headers = ['Employee Name', 'Week Start', 'Submission Date', 'Status'];
-    const columnWidths = [120, 80, 80, 80];
-    
-    this.components.addTableHeader(headers, columnWidths);
-    
-    // Table data
-    data.forEach((item, index) => {
-      const rowData = [
-        item.employeeName,
-        this.formatDate(item.weekStartDate),
-        this.formatDate(item.submissionDate),
-        item.approvalStatus
-      ];
-      
-      this.components.addTableRow(rowData, columnWidths, index % 2 === 0);
-    });
+  // Table headers
+  const headers = ['Employee Name', 'Week Start', 'Week End', 'Status'];
+  // Increased column widths for better readability
+  const columnWidths = [180, 120, 120, 100];
+
+  this.components.addTableHeader(headers, columnWidths);
+
+  // Table data
+  data.forEach((item, index) => {
+    // Calculate week end (assuming weekStartDate is a Date or string)
+    const startDate = new Date(item.weekStartDate);
+    const weekEndDate = new Date(startDate);
+    weekEndDate.setDate(startDate.getDate() + 6);
+
+    const rowData = [
+      item.employeeName,
+      this.formatDate(item.weekStartDate),
+      this.formatDate(weekEndDate),
+      item.approvalStatus
+    ];
+    this.components.addTableRow(rowData, columnWidths, index % 2 === 0);
+  });
 
     // Add summary
     this.currentY += 30;

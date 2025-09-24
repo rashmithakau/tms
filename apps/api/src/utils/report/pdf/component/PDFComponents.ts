@@ -39,25 +39,26 @@ export class PDFComponents {
 
     let x = this.margin;
 
-    //table header
-    this.doc.rect(this.margin,this.getCurrentY()-5,
-    columnWidths.reduce((sum, width) => sum + width, 0), 20)
-      .fillAndStroke('#ffffffff', '#4f5153ff');
+    // Table header background (dark)
+    this.doc.rect(this.margin, this.getCurrentY() - 5,
+      columnWidths.reduce((sum, width) => sum + width, 0), 20)
+      .fillAndStroke('#4f5153', '#4f5153');
 
-      //header text
-      this.doc.fontSize(10)
-      .fillColor('white');
+    // Header text: bold, white, larger font
+    this.doc.fontSize(11)
+      .fillColor('white')
+      .font('Helvetica-Bold');
 
-     headers.forEach((header, index) => {
-      this.doc.text(header, x + 5, this.getCurrentY(), { 
-        width: columnWidths[index] - 10, 
-        align: 'left' 
+    headers.forEach((header, index) => {
+      this.doc.text(header, x + 5, this.getCurrentY(), {
+        width: columnWidths[index] - 10,
+        align: 'left'
       });
       x += columnWidths[index];
     });
 
-    this.setCurrentY(this.getCurrentY() + 2);
-    this.doc.fillColor('black'); 
+    this.setCurrentY(this.getCurrentY() + 20);
+    this.doc.fillColor('black').font('Helvetica');
   }
 
   //table row

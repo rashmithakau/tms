@@ -3,38 +3,39 @@ import { Box, Typography } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import  {DatePickerAtom}  from '../../../atoms/report';
 import { DateRangePickerProps } from '../../../../interfaces/report/filter';
-
 const DateRangePicker: React.FC<DateRangePickerProps> = ({
   startDate,
   endDate,
   onStartDateChange,
   onEndDateChange,
   disabled = false,
-}) => (
+}) =>  (
+
   <Box
     sx={{
       display: 'flex',
       flexDirection: 'row',
       gap: 2,
-      
+      flexWrap: 'nowrap',
     }}
   >
     {/* Start Date */}
-    <Box>
+    <Box sx={{ flex: 1, minWidth: 240 }}>
       <DatePickerAtom
         label="Start Date"
         value={startDate || null}
         onChange={onStartDateChange}
         disabled={disabled}
       />
-      {!startDate && (
+      {!startDate && 
+      (
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           Optional: choose a start date
         </Typography>
       )}
     </Box>
     {/* End Date */}
-    <Box>
+    <Box sx={{ flex: 1, minWidth: 240 }}>
       <DatePickerAtom
         label="End Date"
         value={endDate || null}

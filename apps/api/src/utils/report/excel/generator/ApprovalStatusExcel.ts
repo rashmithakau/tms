@@ -7,12 +7,16 @@ export class ApprovalStatusExcel extends BaseExcelGenerator {
   }
 
   build(data: IApprovalStatusReport[], _filters?: Record<string, any>) {
-    this.addHeaderRow(['Employee Name', 'Week Start', 'Submission Date', 'Status']);
+    this.addHeaderRow(['Employee Name', 'Week Start', 'Week End', 'Status']);
     data.forEach((item) => {
+      // Calculate week end (assuming weekStartDate is a Date or string)
+      const startDate = new Date(item.weekStartDate);
+      const weekEndDate = new Date(startDate);
+      weekEndDate.setDate(startDate.getDate() + 6);
       this.addDataRow([
         item.employeeName,
         typeof item.weekStartDate === 'string' ? item.weekStartDate : new Date(item.weekStartDate).toISOString().slice(0, 10),
-        item.submissionDate ? (typeof item.submissionDate === 'string' ? item.submissionDate : new Date(item.submissionDate).toISOString().slice(0, 10)) : 'N/A',
+        weekEndDate.toISOString().slice(0, 10),
         item.approvalStatus
       ]);
     });

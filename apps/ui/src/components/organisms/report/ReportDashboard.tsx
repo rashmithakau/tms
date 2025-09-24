@@ -12,11 +12,11 @@ import { useReportGenerator } from '../../../hooks/report/useReportGenerator';
 import ReportFilterForm from './ReportFilterForm';
 import ReportPreviewTable from '../../molecules/report/table/ReportPreviewTable';
 import {
-  ReportFilter,
   previewSubmissionStatus,
   previewApprovalStatus,
   previewDetailedTimesheet,
 } from '../../../api/report';
+import { ReportFilter } from '../../../interfaces/api';
 import { TableWindowLayout } from '../../templates';
 import { TwoColumnReportLayout } from '../../templates/report';
 import { useTheme } from '@mui/material/styles';
@@ -122,7 +122,6 @@ const ReportDashboard: React.FC = () => {
           { key: 'status', header: 'Status' },
           { key: 'category', header: 'Category' },
           { key: 'work', header: 'Work' },
-          { key: 'projectOrTeam', header: 'Project/Team' },
           { key: 'mon', header: 'Mon' },
           { key: 'tue', header: 'Tue' },
           { key: 'wed', header: 'Wed' },

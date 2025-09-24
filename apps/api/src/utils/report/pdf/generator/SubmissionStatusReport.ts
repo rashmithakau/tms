@@ -23,23 +23,28 @@ export class SubmissionStatusReport extends BasePDFGenerator {
   ): PDFDocument {
     this.components.addReportHeader('Timesheet Submission Status Report', filters);
     
-    // Table headers
-    const headers = ['Employee Name', 'Email', 'Week Start', 'Status'];
-    const columnWidths = [100, 120, 70, 70];
-    
-    this.components.addTableHeader(headers, columnWidths);
-    
-    // Table data
-    data.forEach((item, index) => {
-      const rowData = [
-        item.employeeName,
-        item.employeeEmail,
-        this.formatDate(item.weekStartDate),
-        item.submissionStatus
-      ];
-      
-      this.components.addTableRow(rowData, columnWidths, index % 2 === 0);
-    });
+  // Table headers
+  const headers = ['Employee Name', 'Email', 'Week Start', 'Week End', 'Status'];
+  // Adjusted column widths for better alignment
+  const columnWidths = [140, 180, 80, 80, 80];
+
+  this.components.addTableHeader(headers, columnWidths);
+
+  // Table data
+  data.forEach((item, index) => {
+    // Calculate week end (assuming weekStartDate is a Date or string)
+    const startDate = new Date(item.weekStartDate);
+    const weekEndDate = new Date(startDate);
+    weekEndDate.setDate(startDate.getDate() + 6);
+    const rowData = [
+      item.employeeName,
+      item.employeeEmail,
+      this.formatDate(item.weekStartDate),
+      this.formatDate(weekEndDate),
+      item.submissionStatus
+    ];
+    this.components.addTableRow(rowData, columnWidths, index % 2 === 0);
+  });
 
     // Add summary
     this.currentY += 30;

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import { listProjects } from '../../api/project';
 
-import { Timesheet } from '../../interfaces/api/Timesheet';
+import { Timesheet } from '../../interfaces/api/ITimesheet';
 import { TimesheetCalendarDataReturn } from '../../interfaces/hooks/timesheet';
 
 export function useTimesheetCalendarData(

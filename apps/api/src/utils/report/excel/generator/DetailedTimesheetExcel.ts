@@ -7,10 +7,16 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
   }
 
   build(data: ITimesheetReportData[], _filters?: Record<string, any>) {
-    this.addHeaderRow(['Employee', 'Email', 'Week Start', 'Status', 'Category', 'Work', 'Project/Team', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Total']);
+  this.addHeaderRow(['Employee', 'Email', 'Week Start', 'Status', 'Category', 'Work', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Total']);
     data.forEach((t) => {
       t.categories.forEach((category) => {
         category.items.forEach((item) => {
+          // Defensive: Ensure dailyHours is an array of numbers
+          const dailyHoursArr = Array.isArray(item.dailyHours) ? item.dailyHours : [0,0,0,0,0,0,0];
+          const totalHours = dailyHoursArr.reduce((sum: number, h) => {
+            const num = typeof h === 'number' ? h : Number(h);
+            return Number(sum) + (isNaN(num) ? 0 : num);
+          }, 0);
           this.addDataRow([
             t.employeeName,
             t.employeeEmail,
@@ -18,15 +24,14 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
             t.status,
             category.category,
             item.work,
-            item.projectName || item.teamName || 'N/A',
-            item.dailyHours[0] ?? '0',
-            item.dailyHours[1] ?? '0',
-            item.dailyHours[2] ?? '0',
-            item.dailyHours[3] ?? '0',
-            item.dailyHours[4] ?? '0',
-            item.dailyHours[5] ?? '0',
-            item.dailyHours[6] ?? '0',
-            item.totalHours,
+            dailyHoursArr[0] ?? '0',
+            dailyHoursArr[1] ?? '0',
+            dailyHoursArr[2] ?? '0',
+            dailyHoursArr[3] ?? '0',
+            dailyHoursArr[4] ?? '0',
+            dailyHoursArr[5] ?? '0',
+            dailyHoursArr[6] ?? '0',
+            (Number(totalHours)).toFixed(2),
           ]);
         });
       });
