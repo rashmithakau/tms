@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Alert } from '@mui/material';
+import { Box, Alert, Typography, useTheme } from '@mui/material';
 import PageLoading from '../../molecules/loading/PageLoading';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { UserRole } from '@tms/shared';
@@ -15,6 +15,7 @@ import AdminDashboardWindow from '../admin/AdminDashboardWindow';
 import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
 
 const SuperAdminWindow: React.FC = () => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const selectedBtn = useSelector((state: any) => state.dashboardNav.selectedBtn);
 
@@ -115,6 +116,7 @@ const SuperAdminWindow: React.FC = () => {
   const handleClosePopup = () => setIsPopupOpen(false);
   const handleAccountCreated = () => refreshUsers();
 
+
   // Dashboard View
   if (selectedBtn === 'Dashboard') {
     return (
@@ -188,6 +190,7 @@ const SuperAdminWindow: React.FC = () => {
   }
 
   return null;
+
 };
 
 export default SuperAdminWindow;

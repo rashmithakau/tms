@@ -1,4 +1,5 @@
 export enum EmpMenuItem {
     MyTimesheets = "myTimesheets",
-    ReviewTimesheets = "reviewTimesheets"
+    ReviewTimesheets = "reviewTimesheets",
+    Reports = "reports"
   }
