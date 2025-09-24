@@ -115,7 +115,6 @@ const SuperAdminWindow: React.FC = () => {
   const handleClosePopup = () => setIsPopupOpen(false);
   const handleAccountCreated = () => refreshUsers();
 
-  // Dashboard View
   if (selectedBtn === 'Dashboard') {
     return (
       <Box>
@@ -127,8 +126,8 @@ const SuperAdminWindow: React.FC = () => {
           rejectionReasonsLoading={rejectionLoading}
           rejectionReasonsError={rejectionError}
           timesheetStats={dashboardStats?.timesheetStats}
-          onAddUser={handleOpenPopup}
-          onAddProject={() => {}}
+          onAddUser={undefined}
+          onAddProject={undefined}
           onEditUser={(id) => console.log('Edit user:', id)}
           onDeleteUser={(id) => console.log('Delete user:', id)}
           onEditProject={(id) => console.log('Edit project:', id)}

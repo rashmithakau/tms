@@ -23,17 +23,12 @@ const AdminPage = () => {
     ]
   ];
 
-
     const { authState } = useAuth();
-  const {  user } = authState;
-
+    const {  user } = authState;
 
     if(user?.role==UserRole.SupervisorAdmin){
       items[0].push({ text: 'Review Timesheets', icon: <RateReviewIcon /> });
     }
-
-
-
 
   return (
     <MainLayout items={items}>
