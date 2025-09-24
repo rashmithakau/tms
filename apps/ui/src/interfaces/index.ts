@@ -10,6 +10,9 @@ export * from './component';
 // Context interfaces
 export * from './context';
 
+// Dashboard interfaces
+export * from './dashboard';
+
 // Entity interfaces
 export * from './entity';
 

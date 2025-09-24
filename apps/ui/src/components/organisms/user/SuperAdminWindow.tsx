@@ -11,6 +11,8 @@ import BaseBtn from '../../atoms/button/BaseBtn';
 import EmpTable from '../table/EmpTable';
 import { select_btn } from '../../../store/slices/dashboardNavSlice';
 import { useUsers } from '../../../hooks/api/useUsers';
+import AdminDashboardWindow from '../admin/AdminDashboardWindow';
+import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
 
 const SuperAdminWindow: React.FC = () => {
   const theme = useTheme();
@@ -18,14 +20,77 @@ const SuperAdminWindow: React.FC = () => {
   const selectedBtn = useSelector((state: any) => state.dashboardNav.selectedBtn);
 
   useEffect(() => {
-    if (selectedBtn !== 'Accounts') {
-      dispatch(select_btn('Accounts'));
+    if (!selectedBtn || (selectedBtn !== 'Dashboard' && selectedBtn !== 'Accounts')) {
+      dispatch(select_btn('Dashboard'));
     }
   }, []);
 
-  const { users, isLoading, error, refreshUsers } = useUsers(UserRole.Admin);
+  // Dashboard hooks
+  const { 
+    dashboardStats, 
+    loading: statsLoading, 
+    error: statsError 
+  } = useDashboardStats();
+  
+  const { 
+    rejectionReasons, 
+    loading: rejectionLoading, 
+    error: rejectionError 
+  } = useTimesheetRejectionReasons();
+
+  // Users hooks (for Accounts view)
+  const { users, isLoading: usersLoading, error: usersError, refreshUsers } = useUsers(UserRole.Admin);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  // Transform dashboard stats for the component
+  const dashboardStatsData = useMemo(() => {
+    if (!dashboardStats) {
+      return {
+        userStats: {
+          totalUsers: 0,
+          activeUsers: 0,
+          newUsersThisMonth: 0,
+          totalAdmins: 0
+        },
+        projectStats: {
+          totalProjects: 0,
+          activeProjects: 0,
+          completedProjects: 0
+        },
+        timesheetStats: {
+          pendingApprovals: 0,
+          approvedThisWeek: 0,
+          totalHoursLogged: 0
+        },
+        teamStats: {
+          totalTeams: 0
+        }
+      };
+    }
+    
+    return {
+      userStats: {
+        totalUsers: dashboardStats.userStats?.totalUsers || 0,
+        activeUsers: dashboardStats.userStats?.activeUsers || 0,
+        newUsersThisMonth: 0, // This field might not exist in API
+        totalAdmins: dashboardStats.userStats?.totalAdmins || 0
+      },
+      projectStats: {
+        totalProjects: dashboardStats.projectStats?.totalProjects || 0,
+        activeProjects: dashboardStats.projectStats?.activeProjects || 0,
+        completedProjects: 0 // This field might not exist in API
+      },
+      timesheetStats: {
+        pendingApprovals: dashboardStats.timesheetStats?.pendingCount || 0,
+        approvedThisWeek: dashboardStats.timesheetStats?.approvedCount || 0,
+        totalHoursLogged: 0 // This field might not exist in API
+      },
+      teamStats: {
+        totalTeams: dashboardStats.teamStats?.totalTeams || 0
+      }
+    };
+  }, [dashboardStats]);
 
   const rows: EmployeeRow[] = useMemo(() => {
     return users.map((user) => ({
@@ -51,55 +116,81 @@ const SuperAdminWindow: React.FC = () => {
   const handleClosePopup = () => setIsPopupOpen(false);
   const handleAccountCreated = () => refreshUsers();
 
-  if (selectedBtn !== 'Accounts') return null;
 
-  return (
-    <Box sx={{ padding: 2, height: '93%' }}>
-      <Box
-        height="auto"
-        sx={{
-          height: '100%',
-          backgroundColor: theme.palette.background.default,
-          padding: theme.spacing(2),
-          borderRadius: theme.shape.borderRadius,
-        }}
-      >
+  // Dashboard View
+  if (selectedBtn === 'Dashboard') {
+    return (
+      <Box>
+        <AdminDashboardWindow
+          statsData={dashboardStatsData}
+          statsLoading={statsLoading}
+          statsError={statsError}
+          rejectionReasons={rejectionReasons}
+          rejectionReasonsLoading={rejectionLoading}
+          rejectionReasonsError={rejectionError}
+          timesheetStats={dashboardStats?.timesheetStats}
+          onAddUser={handleOpenPopup}
+          onAddProject={() => {}}
+          onEditUser={(id) => console.log('Edit user:', id)}
+          onDeleteUser={(id) => console.log('Delete user:', id)}
+          onEditProject={(id) => console.log('Edit project:', id)}
+          onDeleteProject={(id) => console.log('Delete project:', id)}
+          onViewReports={() => dispatch(select_btn('Reports'))}
+          onViewTimesheet={(timesheetId) => {
+            dispatch(select_btn('Review Timesheets'));
+          }}
+        />
         
-        <Box>
-          {error && (
-            <Box sx={{ m: 2 }}>
-              <Alert severity="error" onClose={() => {}}>
-                {error}
-              </Alert>
-            </Box>
-          )}
-
-          {isLoading ? (
-            <PageLoading variant="inline" message="Loading admin accounts..." />
-          ) : (
-            <TableWindowLayout
-              title="Admin Accounts"
-              buttons={[
-                <Box sx={{ mt: 2, ml: 2 }}>
-                  <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>
-                    Admin
-                  </BaseBtn>
-                </Box>,
-              ]}
-              table={<EmpTable rows={rows} />}
-            />
-          )}
-
-          <CreateAccountPopup
-            open={isPopupOpen}
-            onClose={handleClosePopup}
-            role={UserRole.Admin}
-            onSuccess={handleAccountCreated}
-          />
-        </Box>
+        <CreateAccountPopup
+          open={isPopupOpen}
+          onClose={handleClosePopup}
+          role={UserRole.Admin}
+          onSuccess={handleAccountCreated}
+        />
       </Box>
-    </Box>
-  );
+    );
+  }
+
+  // Accounts View
+  if (selectedBtn === 'Accounts') {
+    return (
+      <Box>
+        {usersError && (
+          <Box sx={{ m: 2 }}>
+            <Alert severity="error" onClose={() => {}}>
+              {usersError}
+            </Alert>
+          </Box>
+        )}
+
+        {usersLoading ? (
+          <PageLoading variant="inline" message="Loading admin accounts..." />
+        ) : (
+          <TableWindowLayout
+            title="Admin Accounts"
+            buttons={[
+              <Box sx={{ mt: 2, ml: 2 }}>
+                <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>
+                  Admin
+                </BaseBtn>
+              </Box>,
+            ]}
+            table={<EmpTable rows={rows} />}
+          />
+        )}
+
+        <CreateAccountPopup
+          open={isPopupOpen}
+          onClose={handleClosePopup}
+          role={UserRole.Admin}
+          onSuccess={handleAccountCreated}
+        />
+      </Box>
+    );
+  }
+
+  return null;
+
 };
 
 export default SuperAdminWindow;
