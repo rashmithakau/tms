@@ -22,12 +22,10 @@ import { useTheme } from '@mui/material/styles';
 
 const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
   reportMetadata,
-  filter,
   isFilterValid,
   isGenerating,
   onGenerateReport,
   error,
-  onResetFilters,
 }) => {
   const [selectedFormat, setSelectedFormat] = useState<'pdf' | 'excel'>(
     'excel'
@@ -90,6 +88,13 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
               }
               disabled={isGenerating || availableFormats.length === 0}
               size="small"
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: theme.palette.background.default,
+                  },
+                },
+              }}
               sx={{
                 '.MuiSelect-select': { py: 0.5 },
                 bgcolor: theme.palette.background.default,
@@ -104,6 +109,9 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
                     minHeight: 28,
                     py: 0.5,
                     bgcolor: theme.palette.background.default,
+                    '&:hover': {
+                      bgcolor: theme.palette.action.hover,
+                    },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -114,7 +122,6 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
                         fontWeight="medium"
                         sx={{
                           lineHeight: 1.2,
-                          bgcolor: theme.palette.background.default,
                         }}
                       >
                         {format.name}

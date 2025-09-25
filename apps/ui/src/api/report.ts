@@ -1,6 +1,7 @@
 import API from '../config/apiClient';
 
-import { ReportFilter, ReportMetadata, Employee, SubmissionStatusPreviewRow, ApprovalStatusPreviewRow, DetailedTimesheetPreviewRow } from '../interfaces/api';
+import { ReportFilter, Employee, SubmissionStatusPreviewRow, ApprovalStatusPreviewRow, DetailedTimesheetPreviewRow } from '../interfaces/api';
+import { ReportMetadata } from '@tms/shared';
 
 export const generateSubmissionStatusReport = async (
   filter: ReportFilter,

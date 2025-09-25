@@ -154,12 +154,10 @@ const ReportFilterForm: React.FC<IReportFilterForm> = ({
           {reportMetadata ? (
             <ReportGenerationPanel
               reportMetadata={reportMetadata}
-              filter={filter}
               isFilterValid={isFilterValid}
               isGenerating={Boolean(isGenerating)}
               onGenerateReport={(fmt) => onGenerateReport && onGenerateReport(fmt)}
               error={error}
-              onResetFilters={onResetFilters}
             />
           ) : null}
         </Box>

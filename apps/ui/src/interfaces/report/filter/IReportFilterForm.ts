@@ -1,6 +1,7 @@
 
 
-import { Employee, ReportMetadata } from '../../api/report';
+import { Employee } from '../../api/report';
+import { ReportMetadata } from '@tms/shared';
 
 export interface IReportFilterForm {
   supervisedEmployees: Employee[];

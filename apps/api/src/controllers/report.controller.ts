@@ -5,7 +5,7 @@ import UserModel from '../models/user.model';
 import ProjectModel from '../models/project.model';
 import { appAssert } from '../utils/validation';
 import { BAD_REQUEST, FORBIDDEN } from '../constants/http';
-import { UserRole, TimesheetStatus } from '@tms/shared';
+import { UserRole, TimesheetStatus, REPORT_METADATA } from '@tms/shared';
 import { SubmissionStatusExcel, ApprovalStatusExcel, DetailedTimesheetExcel } from '../utils/report/excel';
 import { SubmissionStatusReport, ApprovalStatusReport, DetailedTimesheetReport } from '../utils/report/pdf';
 import { getSupervisedUserIds } from '../utils/data/assignmentUtils';
@@ -28,26 +28,7 @@ const getSupervisedEmployeeIds = async (supervisorId: string): Promise<string[]>
 };
 
 export const getReportMetadataHandler: RequestHandler = async (req, res) => {
-  const metadata = {
-    reportTypes: [
-      { key: 'submission-status', name: 'Submission Status', description: 'Timesheet submission compliance' },
-      { key: 'approval-status', name: 'Approval Status', description: 'Timesheet approval workflow' },
-      { key: 'detailed-timesheet', name: 'Detailed Timesheet', description: 'Comprehensive timesheet data' },
-    ],
-    formats: [
-      { key: 'excel', name: 'Excel (.xlsx)', description: 'Spreadsheet format' },
-      { key: 'pdf', name: 'PDF (.pdf)', description: 'Portable Document Format' },
-    ],
-    statusOptions: [
-      { key: 'Submitted', name: 'Submitted' },
-      { key: 'Missed', name: 'Missed' },
-      { key: 'Late', name: 'Late' },
-      { key: 'Pending', name: 'Pending' },
-      { key: 'Approved', name: 'Approved' },
-      { key: 'Rejected', name: 'Rejected' },
-    ],
-  };
-  res.json(metadata);
+  res.json(REPORT_METADATA);
 };
 
 export const getSupervisedEmployeesHandler: RequestHandler = async (req, res) => {
