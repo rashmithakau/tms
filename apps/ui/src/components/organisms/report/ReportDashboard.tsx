@@ -134,7 +134,7 @@ const ReportDashboard: React.FC = () => {
         setPreviewRows(rows);
       }
     } catch (e) {
-      console.error('Failed to load preview', e);
+      
     }
   };
 

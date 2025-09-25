@@ -1,3 +1,5 @@
+import { ReportMetadata } from '@tms/shared';
+
 export interface ReportFilter {
   startDate?: string;
   endDate?: string;
@@ -14,24 +16,6 @@ export interface Employee {
   lastName: string;
   email: string;
 }
-
-export interface ReportMetadata {
-  reportTypes: Array<{
-    key: string;
-    name: string;
-    description: string;
-  }>;
-  formats: Array<{
-    key: string;
-    name: string;
-    description: string;
-  }>;
-  statusOptions: Array<{
-    key: string;
-    name: string;
-  }>;
-}
-
 
 export interface SubmissionStatusPreviewRow {
   employeeName: string;
