@@ -307,8 +307,6 @@ const AdminWindow: React.FC = () => {
             onDeleteProject={(id) => console.log('Delete project:', id)}
             onViewReports={() => dispatch(select_btn('Reports'))}
             onViewTimesheet={(timesheetId) => {
-              console.log('View timesheet:', timesheetId);
-              // Navigate to timesheet view or open modal
               dispatch(select_btn('Review Timesheets'));
             }}
           />
