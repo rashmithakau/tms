@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
+import WindowLayout from '../../templates/layout/WindowLayout';
 import { Add } from '@mui/icons-material';
 import { AdminStatsOverview, AdminTable, TimesheetRejectionReasons } from './index';
 import { QuickActions, TimesheetStatusChart } from '../../molecules/dashboard';
@@ -35,25 +36,13 @@ const AdminDashboardWindow: React.FC<IAdminDashboardWindowProps> = ({
   };
 
   return (
-    <Box sx={{ padding: 1, height: '90vh' }}>
-
-      <Box
-        sx={{
-          height: 'calc(90vh - 16px)',
-          backgroundColor: 'white',
-          padding: 2,
-          margin: 1,
-          borderRadius: 3,
-          boxShadow: 1,
-          overflow: 'auto'
-        }}
-      >
-
+    <WindowLayout
+      titleBar={
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6" color="primary.main">
-            Dashboard
-          </Typography>
+          <Typography variant="h6" color="primary.main">Dashboard</Typography>
         </Box>
+      }
+    >
 
 
         <Grid container spacing={3} mb={4} sx={{ alignItems: 'stretch' }}>
@@ -164,8 +153,7 @@ const AdminDashboardWindow: React.FC<IAdminDashboardWindowProps> = ({
             </Box>
           </Grid>
         </Grid>
-      </Box>
-    </Box>
+    </WindowLayout>
   );
 };
 

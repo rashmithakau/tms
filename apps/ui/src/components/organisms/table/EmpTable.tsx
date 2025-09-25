@@ -9,7 +9,7 @@ import DataTable from './DataTable';
 import { DataTableColumn, EmployeeRow, EmpTableProps } from '../../../interfaces';
 import { useTheme } from '@mui/material/styles';
 
-const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh }) => {
+const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -56,7 +56,10 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh }) => {
       render: (row) => (
         <span>
           <ActionButtons
-            onEdit={() => setEditingId(row.id ?? null)}
+            onEdit={() => {
+              if (onEditRow) onEditRow(row);
+              else setEditingId(row.id ?? null);
+            }}
             onDelete={() => setConfirm({ open: true, id: row.id })}
           />
         </span>
@@ -90,6 +93,8 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh }) => {
           setConfirm({ open: false });
         }}
       />
+      {/* Edit Popup */}
+      {/* We do not import here to avoid circulars; parent AdminWindow will provide popup */}
     </>
   );
 };

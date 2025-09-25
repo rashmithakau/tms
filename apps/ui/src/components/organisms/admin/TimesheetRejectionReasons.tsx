@@ -131,13 +131,14 @@ const TimesheetRejectionReasons: React.FC<ITimesheetRejectionReasonsProps> = ({
       }}
     >
       {/* Header */}
-      <Box mb={3} display="flex" alignItems="center" gap={1}>
+      <Box mb={3} display="flex" alignItems="center" justifyContent="center" gap={1}>
         <Report color="primary" />
         <Typography 
           variant="h6" 
           component="h3" 
           fontWeight="600"
           color="text.primary"
+          textAlign="center"
         >
           Timesheet Rejection Reasons
         </Typography>
@@ -183,18 +184,19 @@ const TimesheetRejectionReasons: React.FC<ITimesheetRejectionReasonsProps> = ({
                   primary={
                     <Box 
                       sx={{ 
-                        backgroundColor: 'error.light',
+                        backgroundColor: 'background.paper',
                         borderRadius: 2,
                         p: 2,
                         border: '1px solid',
-                        borderColor: 'error.main',
+                        borderColor: 'grey.300',
                         position: 'relative',
                         transition: 'all 0.2s ease',
                         cursor: 'default',
                         '&:hover': {
-                          backgroundColor: 'error.main',
+                          backgroundColor: 'grey.50',
                           transform: 'translateY(-1px)',
-                          boxShadow: 2
+                          boxShadow: 2,
+                          borderColor: 'grey.400'
                         },
                         '&::before': {
                           content: '""',
@@ -203,14 +205,14 @@ const TimesheetRejectionReasons: React.FC<ITimesheetRejectionReasonsProps> = ({
                           top: 0,
                           bottom: 0,
                           width: '4px',
-                          backgroundColor: 'error.dark',
+                          backgroundColor: 'error.main',
                           borderRadius: '2px 0 0 2px'
                         }
                       }}
                     >
                       <Typography 
                         variant="body2" 
-                        color="error.contrastText"
+                        color="text.primary"
                         sx={{ 
                           fontWeight: '500',
                           lineHeight: 1.5,

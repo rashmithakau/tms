@@ -6,6 +6,7 @@ import { TimesheetStatus } from '@tms/shared';
 export interface EmpTableProps {
   rows: EmployeeRow[];
   onRefresh?: () => Promise<void>;
+  onEditRow?: (row: EmployeeRow) => void;
 }
  
 export interface ProjectTableProps {

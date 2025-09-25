@@ -128,16 +128,14 @@ const SuperAdminWindow: React.FC = () => {
           rejectionReasonsLoading={rejectionLoading}
           rejectionReasonsError={rejectionError}
           timesheetStats={dashboardStats?.timesheetStats}
-          onAddUser={undefined}
+          onAddUser={handleOpenPopup}
           onAddProject={undefined}
-          onEditUser={(id) => console.log('Edit user:', id)}
-          onDeleteUser={(id) => console.log('Delete user:', id)}
-          onEditProject={(id) => console.log('Edit project:', id)}
-          onDeleteProject={(id) => console.log('Delete project:', id)}
-          onViewReports={() => dispatch(select_btn('Reports'))}
-          onViewTimesheet={(timesheetId) => {
-            dispatch(select_btn('Review Timesheets'));
-          }}
+          onEditUser={undefined}
+          onDeleteUser={undefined}
+          onEditProject={undefined}
+          onDeleteProject={undefined}
+          onViewReports={undefined}
+          onViewTimesheet={undefined}
         />
         
         <CreateAccountPopup

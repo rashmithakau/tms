@@ -29,12 +29,37 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
   actions,
   onClose,
 }) => {
+
   const theme = useTheme();
+  const restoreElementRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      const active = document.activeElement as HTMLElement | null;
+      restoreElementRef.current = active ?? null;
+    }
+  }, [open]);
 
   return (
     <Dialog
       open={open}
       maxWidth={maxWidth}
+      TransitionProps={{
+        onEntered: () => {
+          const active = document.activeElement as HTMLElement | null;
+          if (active && typeof active.blur === 'function') {
+            active.blur();
+          }
+        },
+        onExited: () => {
+          if (restoreElementRef.current && typeof restoreElementRef.current.focus === 'function') {
+            restoreElementRef.current.focus();
+          }
+          restoreElementRef.current = null;
+        },
+      }}
+      disableRestoreFocus
+      closeAfterTransition
       PaperProps={{
         sx: {
           minHeight: minHeight,
@@ -75,6 +100,7 @@ const PopupLayout: React.FC<IPopupLayoutProps> = ({
           {showCloseButton && (
             <IconButton
               onClick={onClose}
+              autoFocus
               sx={{
                 position: 'absolute',
                 right: 8,

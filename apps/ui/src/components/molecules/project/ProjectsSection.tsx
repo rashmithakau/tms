@@ -27,14 +27,15 @@ const ProjectsSection: React.FC<IProjectsSectionProps> = ({
     <Box sx={{ padding: 2, height: '100% ' }}>
       <TableWindowLayout
         title="Projects"
-        filter={
-          <ProjectTableToolbar
-            billable={billable}
-            onBillableChange={onBillableChange}
-          />
-        }
+        filter={null}
         buttons={[
-          <Box sx={{ mt: 2, ml: 2 }}>
+          <Box sx={{ mt: 2 }}>
+            <ProjectTableToolbar
+              billable={billable}
+              onBillableChange={onBillableChange}
+            />
+          </Box>,
+          <Box sx={{ mt: 2 }}>
             <BaseBtn
               onClick={onAddProject}
               variant="contained"

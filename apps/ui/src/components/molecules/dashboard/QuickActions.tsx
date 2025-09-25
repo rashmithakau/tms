@@ -20,15 +20,21 @@ const QuickActions: React.FC<IQuickActionsProps> = ({
         flexDirection: 'column'
       }}
     >
-      <Typography variant="h6" component="h3" gutterBottom fontWeight="bold">
+      <Typography 
+        variant="h6" 
+        component="h3" 
+        gutterBottom 
+        fontWeight="bold"
+        textAlign="center"
+      >
         Quick Actions
       </Typography>
       
       <Box display="flex" flexDirection="column" gap={2} flex={1}>
         {onAddUser && (
           <AdminActionButton
-            label="Add New User"
-            icon={<Add />}
+            label="Admin"
+            icon={<Add fontSize="small" />}
             onClick={onAddUser}
             variant="outlined"
             color="primary"
@@ -39,7 +45,7 @@ const QuickActions: React.FC<IQuickActionsProps> = ({
         {onAddProject && (
           <AdminActionButton
             label="Create Project"
-            icon={<Add />}
+            icon={<Add fontSize="small" />}
             onClick={onAddProject}
             variant="outlined"
             color="primary"
@@ -50,10 +56,10 @@ const QuickActions: React.FC<IQuickActionsProps> = ({
         {onViewReports && (
           <AdminActionButton
             label="View Reports"
-            icon={<Visibility />}
+            icon={<Visibility fontSize="small" />}
             onClick={onViewReports}
             variant="outlined"
-            color="info"
+            color="primary"
             fullWidth
           />
         )}

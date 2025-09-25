@@ -6,6 +6,7 @@ export interface EmployeeRow {
   team?: string;
   status: 'Active' | 'Inactive' | string;
   contactNumber: string;
+  designation?: string;
   createdAt?: string;
 }
 

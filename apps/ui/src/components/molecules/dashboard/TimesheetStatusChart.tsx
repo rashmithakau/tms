@@ -129,7 +129,7 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
           justifyContent: 'center'
         }}
       >
-        <Typography variant="h6" component="h3" gutterBottom fontWeight="bold">
+        <Typography variant="h6" component="h3" gutterBottom fontWeight="bold" textAlign="center">
           {chartTitle}
         </Typography>
         <Typography variant="body2" color="text.secondary" textAlign="center">

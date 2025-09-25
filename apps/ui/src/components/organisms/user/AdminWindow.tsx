@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Box } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { UserRole } from '@tms/shared';
 import { useAllUsersIncludingInactive } from '../../../hooks/api/useUsers';
@@ -9,6 +10,7 @@ import EmployeeSection from '../../molecules/employee/EmployeeSection';
 import ProjectsSection from '../../molecules/project/ProjectsSection';
 import TeamsSection from '../../molecules/team/TeamsSection';
 import CreateAccountPopup from '../authentication/popup/CreateAccountPopup';
+import EditAccountPopup from '../authentication/popup/EditAccountPopup';
 import CreateProjectPopUp from '../popup/CreateProjectPopUp';
 import CreateTeamPopUp from '../popup/CreateTeamPopUp';
 import { EmployeeRow, ProjectRow, TeamRow } from '../../../interfaces/component/table/ITableRowTypes';
@@ -34,6 +36,8 @@ const AdminWindow: React.FC = () => {
   const [teamsKey, setTeamsKey] = useState(0);
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<EmployeeRow | null>(null);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [teams, setTeams] = useState<TeamListItem[]>([]);
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
@@ -164,6 +168,7 @@ const AdminWindow: React.FC = () => {
         email: user.email || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
+        designation: user.designation || '',
         team: undefined, 
         status:
           typeof user.status === 'boolean'
@@ -291,6 +296,7 @@ const AdminWindow: React.FC = () => {
     <>
       {selectedBtn === 'Dashboard' && (
         <div>
+          <Box sx={{ padding: 2, height: '100%' }}>
           <AdminDashboardWindow
             statsData={dashboardStatsData}
             statsLoading={statsLoading}
@@ -301,7 +307,11 @@ const AdminWindow: React.FC = () => {
             timesheetStats={dashboardStats?.timesheetStats}
             onAddUser={handleOpenPopup}
             onAddProject={() => setIsProjectPopupOpen(true)}
-            onEditUser={(id) => console.log('Edit user:', id)}
+            onEditUser={(id) => {
+              const row = rows.find((r) => r.id === id);
+              setEditingUser(row ?? null);
+              setIsEditOpen(true);
+            }}
             onDeleteUser={(id) => console.log('Delete user:', id)}
             onEditProject={(id) => console.log('Edit project:', id)}
             onDeleteProject={(id) => console.log('Delete project:', id)}
@@ -310,11 +320,18 @@ const AdminWindow: React.FC = () => {
               dispatch(select_btn('Review Timesheets'));
             }}
           />
+          </Box>
           <CreateAccountPopup
             open={isPopupOpen}
             onClose={handleClosePopup}
             role={UserRole.Emp}
             onSuccess={handleAccountCreated}
+          />
+          <EditAccountPopup
+            open={isEditOpen}
+            onClose={() => { setIsEditOpen(false); setEditingUser(null); }}
+            user={editingUser}
+            onSuccess={async () => { await refreshUsers(); }}
           />
           <CreateProjectPopUp
             open={isProjectPopupOpen}
@@ -335,12 +352,20 @@ const AdminWindow: React.FC = () => {
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             onAddEmployee={handleOpenPopup}
+            onEditEmployee={(row) => { setEditingUser(row); setIsEditOpen(true); }}
           />
+          {/* Pass edit handlers down by intercepting EmpTable? We'll open popup from here by capturing selected row via global state */}
           <CreateAccountPopup
             open={isPopupOpen}
             onClose={handleClosePopup}
             role={UserRole.Emp}
             onSuccess={handleAccountCreated}
+          />
+          <EditAccountPopup
+            open={isEditOpen}
+            onClose={() => { setIsEditOpen(false); setEditingUser(null); }}
+            user={editingUser}
+            onSuccess={async () => { await refreshUsers(); }}
           />
         </div>
       )}
