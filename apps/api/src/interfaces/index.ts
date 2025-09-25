@@ -6,3 +6,4 @@ export * from './notification';
 export * from './rejectReason';
 export * from './auth';
 export * from './common';
+export * from './report';

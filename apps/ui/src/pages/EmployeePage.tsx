@@ -3,7 +3,7 @@ import { EmpMenuItem } from '@tms/shared';
 import { useSelector } from 'react-redux';
 import MyTimesheetsWindow from '../components/organisms/timesheet/MyTimesheetsWindow';
 import ReviewTimesheetsWindow from '../components/organisms/timesheet/ReviewTimesheetsWindow';
-
+import { ReportDashboard } from '../components/organisms/report';
 const EmployeePage = () => {
 	const empSelectedMenu = useSelector((state: any) => state.empMenuNav.selectedBtn);
 
@@ -14,6 +14,9 @@ const EmployeePage = () => {
 			)}
 			{empSelectedMenu==EmpMenuItem.ReviewTimesheets && (
 				<ReviewTimesheetsWindow />
+			)}
+			{empSelectedMenu==EmpMenuItem.Reports && (
+				<ReportDashboard />
 			)}
 		</SecondaryLayout>
 	);

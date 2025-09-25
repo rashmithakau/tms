@@ -11,6 +11,7 @@ import projectRoutes from './routes/project.route';
 import timesheetRoutes from './routes/timesheet.route';
 import notificationRoutes from './routes/notification.route';
 import teamRoutes from './routes/team.route';
+import reportRoutes from './routes/report.route';
 import dashboardRoutes from './routes/dashboard.route';
 import { socketService } from './config/socket';
 import { CronJobService } from './services/cronJob.service';
@@ -37,7 +38,9 @@ app.use("/api/project",projectRoutes)
 app.use("/api/timesheets", timesheetRoutes)
 app.use('/api/team', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
 
 app.use(errorHandler);
 

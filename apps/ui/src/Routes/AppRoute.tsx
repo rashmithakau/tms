@@ -10,13 +10,25 @@ import PasswordResetPage from '../pages/PasswordResetPage';
 import { UserRole } from '@tms/shared';
 import EmployeePage from '../pages/EmployeePage';
 import LandingPage from '../pages/LandingPage';
+import SupervisorReportsPage from '../pages/SupervisorReportsPage';
 
 const AppRoute: React.FC = () => {
-
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute 
+            requireAuth={true}
+            allowedRoles={[UserRole.Supervisor, UserRole.SupervisorAdmin, UserRole.Admin, UserRole.SuperAdmin]}
+            redirectPath="/login"
+          >
+            <SupervisorReportsPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/admin"
         element={

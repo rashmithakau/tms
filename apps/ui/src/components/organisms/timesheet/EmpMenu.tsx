@@ -8,7 +8,7 @@ import { select_btn } from '../../../store/slices/empMenuNavSclice';
 import { EmpMenuItem, UserRole } from '@tms/shared';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IEmpMenuProps } from '../../../interfaces/organisms/timesheet';
-
+import AssessmentIcon from '@mui/icons-material/Assessment';
 const EmpMenu: React.FC<IEmpMenuProps> = ({ onClose }) => {
   const dispatch = useDispatch();
   const { authState } = useAuth();
@@ -21,7 +21,10 @@ const EmpMenu: React.FC<IEmpMenuProps> = ({ onClose }) => {
     dispatch(select_btn(EmpMenuItem.ReviewTimesheets));
     onClose();
   }
-
+  function handleReportsClick(): void {
+    dispatch(select_btn(EmpMenuItem.Reports));
+    onClose();
+  }
 
   return (
     <Box sx={{ p: 2, minWidth: 100 }}>
@@ -36,7 +39,7 @@ const EmpMenu: React.FC<IEmpMenuProps> = ({ onClose }) => {
           My Timesheets
         </BaseBtn>
 
-        {role==UserRole.Supervisor && (
+        {(role==UserRole.Supervisor || role==UserRole.SupervisorAdmin) && (
         <BaseBtn
         fullWidth
         variant="text"
@@ -47,7 +50,17 @@ const EmpMenu: React.FC<IEmpMenuProps> = ({ onClose }) => {
         Review Timesheets
       </BaseBtn>
         )}
-
+{(role==UserRole.Supervisor || role==UserRole.SupervisorAdmin) && (
+<BaseBtn
+        fullWidth
+        variant="text"
+        onClick={handleReportsClick}
+        startIcon={<AssessmentIcon />}
+        sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+      >
+        Reports
+      </BaseBtn>
+)}
 
       </Box>
     </Box>

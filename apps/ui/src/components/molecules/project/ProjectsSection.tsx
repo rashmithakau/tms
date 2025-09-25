@@ -24,7 +24,7 @@ const ProjectsSection: React.FC<IProjectsSectionProps> = ({
   if (isLoading) return <PageLoading variant="inline" message="Loading projects..." />;
 
   return (
-    <Box sx={{ padding: 2, height: '100%' }}>
+    <Box sx={{ padding: 2, height: '100% ' }}>
       <TableWindowLayout
         title="Projects"
         filter={

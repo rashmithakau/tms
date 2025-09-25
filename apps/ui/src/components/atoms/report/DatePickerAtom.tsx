@@ -1,0 +1,39 @@
+import React from 'react';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { useTheme } from '@mui/material/styles';
+import dayjs from 'dayjs';
+import { DatePickerAtomProps } from '../../../interfaces/report/filter';
+
+
+const DatePickerAtom: React.FC<DatePickerAtomProps> = ({ label, value, onChange, disabled, minDate }) => {
+  const theme = useTheme();
+  
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DatePicker
+        label={label}
+        value={value ? dayjs(value) : null}
+        onChange={onChange}
+        disabled={disabled}
+        minDate={minDate}
+        enableAccessibleFieldDOMStructure={false}
+        slotProps={{
+          textField: {
+            fullWidth: true,
+            size: 'small'
+          },
+          popper: {
+            sx: {
+              '& .MuiPaper-root': {
+                backgroundColor: theme.palette.background.default
+              }
+            }
+          }
+        }}
+      />
+    </LocalizationProvider>
+  );
+};
+export default DatePickerAtom;

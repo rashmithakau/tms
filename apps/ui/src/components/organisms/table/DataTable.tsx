@@ -21,13 +21,18 @@ function DataTable<T>({ columns, rows, getRowKey }: DataTableProps<T>) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={getRowKey(row)} hover>
-              {columns.map((col) => (
-                <TableCell key={col.key}>{col.render(row)}</TableCell>
-              ))}
-            </TableRow>
-          ))}
+          {rows.map((row, rowIndex) => {
+            const providedKey = getRowKey ? getRowKey(row) : undefined;
+            const computedRowKey = providedKey ?? rowIndex;
+            const rowKeyString = String(computedRowKey);
+            return (
+              <TableRow key={rowKeyString} hover>
+                {columns.map((col) => (
+                  <TableCell key={`${col.key}-${rowKeyString}`}>{col.render(row)}</TableCell>
+                ))}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>
