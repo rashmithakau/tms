@@ -95,3 +95,22 @@ export const getAllUsersIncludingInactive = async (roles: UserRole[]) => {
     users,
   };
 };
+
+export const updateUserById = async (
+  id: string,
+  updates: Partial<{ designation: string; contactNumber: string; status: boolean }>
+) => {
+  const user = await UserModel.findById(id);
+  appAssert(user, NOT_FOUND, 'User not found');
+
+  if (typeof updates.designation !== 'undefined') user.designation = updates.designation as string;
+  if (typeof updates.contactNumber !== 'undefined') user.contactNumber = updates.contactNumber as string;
+  if (typeof updates.status !== 'undefined') user.status = updates.status as boolean;
+
+  await user.save();
+
+  return {
+    user: user.omitPassword(),
+    message: 'User updated successfully',
+  };
+};

@@ -1,7 +1,8 @@
 import { CREATED, OK } from '../constants/http';
 import { registerSchema } from '../schemas/user.schema';
 import { catchErrors } from '../utils/error';
-import { createUser, getUsersByRole, deleteUser, getAllActiveUsers, getAllUsersIncludingInactive } from '../services/user.service';
+import { createUser, getUsersByRole, deleteUser, getAllActiveUsers, getAllUsersIncludingInactive, updateUserById } from '../services/user.service';
+import { updateUserSchema } from '../schemas/user.schema';
 import { UserRole } from '@tms/shared';
 import { Request, Response } from 'express';
 
@@ -52,4 +53,12 @@ export const getAllUsersIncludingInactiveHandler = () =>
     const roleArray = Array.isArray(roles) ? roles : [roles].filter(Boolean);
     const users = await getAllUsersIncludingInactive(roleArray as UserRole[]);
     return res.status(OK).json(users);
+  });
+
+export const updateUserHandler = () =>
+  catchErrors(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const parsed = updateUserSchema.parse(req.body);
+    const result = await updateUserById(id, parsed);
+    return res.status(OK).json(result);
   });

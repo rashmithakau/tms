@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import  { } from 'react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import CustomListItemButton from '../../atoms/button/ListItemBtn';
@@ -17,12 +17,8 @@ export default function DrawerList({ items, selected}: IDrawerListProps) {
     (state: any) => state.dashboardNav.selectedBtn
   );
 
-  const [activeButton, setActiveButton] = useState<string | null>(selectedBtn || null);
-
-  const handleButtonClick = (buttonId: string,text:string) => {
-    setActiveButton(buttonId);
+  const handleButtonClick = (text:string) => {
     dispatch(select_btn(text));
-    
   };
 
   const theme = useTheme();
@@ -34,12 +30,12 @@ export default function DrawerList({ items, selected}: IDrawerListProps) {
           <List>
             {group.map((item, index) => {
               const buttonId = `item-${groupIndex}-${index}`;
-              const isActive = activeButton === buttonId;
+              const isActive = selectedBtn === item.text;
 
               return (
                 <ListItem key={buttonId} disablePadding sx={{ paddingY: 1 }}>
                   <CustomListItemButton
-                    onClick={() => handleButtonClick(buttonId,item.text)}
+                    onClick={() => handleButtonClick(item.text)}
                     sx={{
                       backgroundColor: isActive ? theme.palette.primary.main : 'transparent',
                       '&:hover': { backgroundColor: theme.palette.primary.light,color: theme.palette.secondary.light },

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerHandler, getUserHandler, deleteUserHandler, getAllActiveUsersHandler, getAllUsersIncludingInactiveHandler } from "../controllers/user.controller";
+import { registerHandler, getUserHandler, deleteUserHandler, getAllActiveUsersHandler, getAllUsersIncludingInactiveHandler, updateUserHandler } from "../controllers/user.controller";
 import authenticate from "../middleware/authenticate";
 import { UserRole } from "@tms/shared";
 
@@ -15,5 +15,6 @@ userhRoutes.delete("/supervisor/:id", authenticate([UserRole.Admin, UserRole.Sup
 userhRoutes.delete("/:id", authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), deleteUserHandler());
 userhRoutes.get("/active", authenticate([UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), getAllActiveUsersHandler());
 userhRoutes.get("/all", authenticate([UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), getAllUsersIncludingInactiveHandler());
+userhRoutes.patch("/:id", authenticate([UserRole.Admin, UserRole.SuperAdmin, UserRole.SupervisorAdmin]), updateUserHandler());
 
 export default userhRoutes;

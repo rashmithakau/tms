@@ -70,3 +70,15 @@ export const deleteUser = async (userId: string) => {
     throw error;
   }
 };
+
+export const updateUser = async (
+  userId: string,
+  data: Partial<{ designation: string; contactNumber: string; status: boolean }>
+) => {
+  try {
+    const response = await API.patch(`/api/user/${userId}` , data);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -17,6 +17,7 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
   statusFilter,
   onStatusFilterChange,
   onAddEmployee,
+  onEditEmployee,
 }) => {
   if (error) {
     return (
@@ -34,17 +35,18 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
     <Box sx={{ padding: 2, height: '93%' }}>
       <TableWindowLayout
         title="Employee & Admin Accounts"
-        filter={
-          <EmpTableToolbar
-            projectsOptions={projectOptions}
-            selectedProjectIds={selectedProjectIds}
-            onSelectedProjectIdsChange={onSelectedProjectIdsChange}
-            statusFilter={statusFilter}
-            onStatusFilterChange={onStatusFilterChange}
-          />
-        }
+        filter={null}
         buttons={[
-          <Box sx={{ mt: 2, ml: 2 }}>
+          <Box sx={{ mt: 2 }}>
+            <EmpTableToolbar
+              projectsOptions={projectOptions}
+              selectedProjectIds={selectedProjectIds}
+              onSelectedProjectIdsChange={onSelectedProjectIdsChange}
+              statusFilter={statusFilter}
+              onStatusFilterChange={onStatusFilterChange}
+            />
+          </Box>,
+          <Box sx={{ mt: 2 }}>
             <BaseBtn
               onClick={onAddEmployee}
               variant="contained"
@@ -54,7 +56,7 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
             </BaseBtn>
           </Box>,
         ]}
-        table={<EmpTable rows={rows} />}
+        table={<EmpTable rows={rows} onEditRow={onEditEmployee} />}
       />
     </Box>
   );

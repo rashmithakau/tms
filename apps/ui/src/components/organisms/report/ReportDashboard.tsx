@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Alert,
-  Skeleton,
-  Divider,
-} from '@mui/material';
+import { Box, Typography, Paper, Alert, Skeleton, Divider } from '@mui/material';
 import { Assessment as ReportIcon } from '@mui/icons-material';
 import { useReportGenerator } from '../../../hooks/report/useReportGenerator';
 import ReportFilterForm from './ReportFilterForm';
@@ -152,17 +145,8 @@ const ReportDashboard: React.FC = () => {
   const isLoadingPreview = false;
   const theme = useTheme();
   return (
-    <Box sx={{ padding: 2, height: 'auto' }}>
-      <Box
-        height="auto"
-        sx={{
-          height: '100%',
-          backgroundColor: theme.palette.background.paper,
-          padding: 2,
-          borderRadius: 2,
-        }}
-      >
-        <TableWindowLayout
+    <Box sx={{ padding: 2, height: '100%' }}>
+      <TableWindowLayout
           title="Timesheet Reports"
           buttons={[]}
           table={
@@ -253,7 +237,6 @@ const ReportDashboard: React.FC = () => {
             </>
           }
         />
-      </Box>
     </Box>
   );
 };

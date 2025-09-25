@@ -88,21 +88,20 @@ const Calendar: React.FC<ICalendarProps> = ({
           onClick={() => handleDateClick(day)}
           sx={{
             height: 32,
+            width: 32,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: onDateSelect ? 'pointer' : 'default',
             borderRadius: '50%',
-            backgroundColor: isSelectedDay 
-              ? theme.palette.primary.main 
-              : isCurrentDay && highlightToday 
-                ? theme.palette.primary.light 
+            backgroundColor: isSelectedDay
+              ? theme.palette.primary.main
+              : isCurrentDay && highlightToday
+                ? theme.palette.primary.main
                 : 'transparent',
-            color: isSelectedDay 
-              ? theme.palette.primary.contrastText 
-              : isCurrentDay && highlightToday 
-                ? theme.palette.primary.contrastText 
-                : theme.palette.text.primary,
+            color: isSelectedDay || (isCurrentDay && highlightToday)
+              ? theme.palette.primary.contrastText
+              : theme.palette.text.primary,
             fontWeight: isCurrentDay || isSelectedDay ? 'bold' : 'normal',
             '&:hover': onDateSelect ? {
               backgroundColor: theme.palette.action.hover,
