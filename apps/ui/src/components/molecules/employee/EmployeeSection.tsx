@@ -32,33 +32,31 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
   if (isLoading) return <PageLoading variant="inline" message="Loading accounts..." />;
 
   return (
-    <Box sx={{ padding: 2, height: '93%' }}>
-      <TableWindowLayout
-        title="Employee & Admin Accounts"
-        filter={null}
-        buttons={[
-          <Box sx={{ mt: 2 }}>
-            <EmpTableToolbar
-              projectsOptions={projectOptions}
-              selectedProjectIds={selectedProjectIds}
-              onSelectedProjectIdsChange={onSelectedProjectIdsChange}
-              statusFilter={statusFilter}
-              onStatusFilterChange={onStatusFilterChange}
-            />
-          </Box>,
-          <Box sx={{ mt: 2 }}>
-            <BaseBtn
-              onClick={onAddEmployee}
-              variant="contained"
-              startIcon={<AddOutlinedIcon />}
-            >
-              Add Account
-            </BaseBtn>
-          </Box>,
-        ]}
-        table={<EmpTable rows={rows} onEditRow={onEditEmployee} />}
-      />
-    </Box>
+    <TableWindowLayout
+      title="Employee & Admin Accounts"
+      filter={null}
+      buttons={[
+        <Box sx={{ mt: 2 }}>
+          <EmpTableToolbar
+            projectsOptions={projectOptions}
+            selectedProjectIds={selectedProjectIds}
+            onSelectedProjectIdsChange={onSelectedProjectIdsChange}
+            statusFilter={statusFilter}
+            onStatusFilterChange={onStatusFilterChange}
+          />
+        </Box>,
+        <Box sx={{ mt: 2 }}>
+          <BaseBtn
+            onClick={onAddEmployee}
+            variant="contained"
+            startIcon={<AddOutlinedIcon />}
+          >
+            Add Account
+          </BaseBtn>
+        </Box>,
+      ]}
+      table={<EmpTable rows={rows} onEditRow={onEditEmployee} />}
+    />
   );
 };
 

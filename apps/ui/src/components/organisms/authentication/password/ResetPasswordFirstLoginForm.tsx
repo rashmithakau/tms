@@ -10,9 +10,11 @@ import { changePwdFirstLogin } from '../../../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@tms/shared';
 import { SetPasswordData } from '../../../../interfaces';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const ResetPasswordFirstLoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const { authState } = useAuth();
 
   const {
     register,
@@ -22,19 +24,19 @@ const ResetPasswordFirstLoginForm: React.FC = () => {
     resolver: yupResolver(ResetPasswordFirstLoginSchema),
     mode: 'onChange',
   });
+  
   const onSubmit = async (data: SetPasswordData) => {
-    const role = localStorage.getItem('role');
-    const userId = localStorage.getItem('_id');
-    if (!userId) {
-      console.error('User ID not found in local storage');
+    if (!authState.user) {
+      console.error('User not found in auth context');
       return;
     }
+    
     const response = await changePwdFirstLogin({
-      userId,
+      userId: authState.user._id,
       newPassword: data.newPassword,
     });
 
-    switch (role) {
+    switch (authState.user.role) {
       case UserRole.Admin:
       case UserRole.SupervisorAdmin:
         navigate('/admin');

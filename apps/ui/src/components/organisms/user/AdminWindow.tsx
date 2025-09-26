@@ -295,8 +295,7 @@ const AdminWindow: React.FC = () => {
   return (
     <>
       {selectedBtn === 'Dashboard' && (
-        <div>
-          <Box sx={{ padding: 2, height: '100%' }}>
+        <Box>
           <AdminDashboardWindow
             statsData={dashboardStatsData}
             statsLoading={statsLoading}
@@ -320,7 +319,7 @@ const AdminWindow: React.FC = () => {
               dispatch(select_btn('Review Timesheets'));
             }}
           />
-          </Box>
+          
           <CreateAccountPopup
             open={isPopupOpen}
             onClose={handleClosePopup}
@@ -337,11 +336,11 @@ const AdminWindow: React.FC = () => {
             open={isProjectPopupOpen}
             onClose={handleProjectClose}
           />
-        </div>
+        </Box>
       )}
 
       {selectedBtn === 'Employee' && (
-        <div>
+        <Box>
           <EmployeeSection
             error={error || undefined}
             isLoading={isLoading}
@@ -367,11 +366,11 @@ const AdminWindow: React.FC = () => {
             user={editingUser}
             onSuccess={async () => { await refreshUsers(); }}
           />
-        </div>
+        </Box>
       )}
 
       {selectedBtn === 'Projects' && (
-        <div>
+        <Box>
           <ProjectsSection
             error={error || undefined}
             isLoading={isLoading}
@@ -385,11 +384,11 @@ const AdminWindow: React.FC = () => {
             open={isProjectPopupOpen}
             onClose={handleProjectClose}
           />
-        </div>
+        </Box>
       )}
 
       {selectedBtn === 'Teams' && (
-        <div>
+        <Box>
           <TeamsSection
             error={error || undefined}
             isLoading={isLoading}
@@ -401,19 +400,25 @@ const AdminWindow: React.FC = () => {
             open={isTeamPopupOpen}
             onClose={handleCloseTeamPopup}
           />
-        </div>
+        </Box>
       )}
 
-            {selectedBtn === 'My Timesheets' && (
-        <MyTimesheetsWindow/>
+      {selectedBtn === 'My Timesheets' && (
+        <Box>
+          <MyTimesheetsWindow />
+        </Box>
       )}
 
-                  {selectedBtn === 'Review Timesheets' && (
-        <ReviewTimesheetsWindow/>
+      {selectedBtn === 'Review Timesheets' && (
+        <Box>
+          <ReviewTimesheetsWindow />
+        </Box>
       )}
 
       {selectedBtn === 'Reports' && (
-        <ReportDashboard />
+        <Box>
+          <ReportDashboard />
+        </Box>
       )}
     </>
   );

@@ -20,24 +20,22 @@ const TeamsSection: React.FC<TeamsSectionProps> = ({
   if (isLoading) return <PageLoading variant="inline" message="Loading teams..." />;
 
   return (
-    <Box sx={{ padding: 2, height: '93%' }}>
-      <TableWindowLayout
-        title="Teams"
-        filter={null}
-        buttons={[
-          <Box sx={{ mt: 2, ml: 2 }}>
-            <BaseBtn
-              onClick={onAddTeam}
-              variant="contained"
-              startIcon={<AddOutlinedIcon />}
-            >
-              Teams
-            </BaseBtn>
-          </Box>,
-        ]}
-        table={<TeamTable rows={rows} />}
-      />
-    </Box>
+    <TableWindowLayout
+      title="Teams"
+      filter={null}
+      buttons={[
+        <Box sx={{ mt: 2, ml: 2 }}>
+          <BaseBtn
+            onClick={onAddTeam}
+            variant="contained"
+            startIcon={<AddOutlinedIcon />}
+          >
+            Teams
+          </BaseBtn>
+        </Box>,
+      ]}
+      table={<TeamTable rows={rows} />}
+    />
   );
 };
 

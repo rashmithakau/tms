@@ -11,8 +11,14 @@ import { UserRole } from '@tms/shared';
 import EmployeePage from '../pages/EmployeePage';
 import LandingPage from '../pages/LandingPage';
 import SupervisorReportsPage from '../pages/SupervisorReportsPage';
+import { useAuth } from '../contexts/AuthContext';
 
 const AppRoute: React.FC = () => {
+  const { authState } = useAuth();
+  
+  // Determine if password reset is allowed based on AuthContext
+  const isPasswordResetAllowed = authState.user ? !authState.user.isChangedPwd : false;
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -70,7 +76,7 @@ const AppRoute: React.FC = () => {
         path="/resetpasswordfirstlogin"
         element={
           <ProtectedRoute
-            isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
+            isAllowed={isPasswordResetAllowed}
             redirectPath="/"
           >
             <ResetPasswordFirstLogin />
@@ -93,7 +99,7 @@ const AppRoute: React.FC = () => {
         path="/resetpasswordchange"
         element={
           <ProtectedRoute
-            isAllowed={localStorage.getItem('allowPasswordReset') === 'true'}
+            isAllowed={isPasswordResetAllowed}
             redirectPath="/"
           >
             <ResetChangePasswordPage />
