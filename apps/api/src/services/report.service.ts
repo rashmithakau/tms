@@ -186,9 +186,7 @@ export class ReportService {
     }
   }
 
-  /**
-   * Generate timesheet approval status report
-   */
+  
   static async generateApprovalStatusReport(
     supervisorId: string,
     filter: IReportFilter,
@@ -266,9 +264,8 @@ export class ReportService {
     }
   }
 
-  /**
-   * Generate detailed timesheet report
-   */
+  
+    //Generate detailed timesheet report
   static async generateDetailedTimesheetReport(
     supervisorId: string,
     filter: IReportFilter,
@@ -381,9 +378,9 @@ export class ReportService {
     }
   }
 
-  /**
-   * Get available employees for a supervisor
-   */
+  
+   // Get available employees for a supervisor
+   
   static async getSupervisedEmployees(supervisorId: string) {
     const supervisedUserIds = await getSupervisedUserIds(supervisorId);
     
@@ -393,9 +390,9 @@ export class ReportService {
     }).select('firstName lastName email').sort({ firstName: 1, lastName: 1 });
   }
 
-  /**
-   * Calculate total hours for a timesheet
-   */
+  
+    //Calculate total hours for a timesheet
+   
   private static calculateTotalHours(timesheet: any): number {
     let total = 0;
     timesheet.data?.forEach((category: any) => {
@@ -408,9 +405,9 @@ export class ReportService {
     return total;
   }
 
-  /**
-   * Calculate total hours for a timesheet item
-   */
+  
+   //Calculate total hours for a timesheet item
+   
   private static calculateItemTotalHours(hours: string[]): number {
     return hours.reduce((total, hour) => {
       const parsed = parseFloat(hour) || 0;
