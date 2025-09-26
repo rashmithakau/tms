@@ -150,7 +150,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
   );
 
   return (
-    <Box sx={{ padding: 2, height: '93%' }}>
+    <>
       <TableWindowLayout
         title="Review Timesheets"
         buttons={[
@@ -209,7 +209,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
         title="Reject Selected Days"
         message={`You are about to reject ${selectedDays.length} selected day(s). Please provide a reason:`}
       />
-    </Box>
+    </>
   );
 };
 

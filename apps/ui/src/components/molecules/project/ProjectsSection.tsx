@@ -24,36 +24,34 @@ const ProjectsSection: React.FC<IProjectsSectionProps> = ({
   if (isLoading) return <PageLoading variant="inline" message="Loading projects..." />;
 
   return (
-    <Box sx={{ padding: 2, height: '100% ' }}>
-      <TableWindowLayout
-        title="Projects"
-        filter={null}
-        buttons={[
-          <Box sx={{ mt: 2 }}>
-            <ProjectTableToolbar
-              billable={billable}
-              onBillableChange={onBillableChange}
-            />
-          </Box>,
-          <Box sx={{ mt: 2 }}>
-            <BaseBtn
-              onClick={onAddProject}
-              variant="contained"
-              startIcon={<AddOutlinedIcon />}
-            >
-              Project
-            </BaseBtn>
-          </Box>,
-        ]}
-        table={
-          <ProjectTable
-            rows={rows}
-            billableFilter={billable}
-            onRefresh={onRefresh}
+    <TableWindowLayout
+      title="Projects"
+      filter={null}
+      buttons={[
+        <Box sx={{ mt: 2 }}>
+          <ProjectTableToolbar
+            billable={billable}
+            onBillableChange={onBillableChange}
           />
-        }
-      />
-    </Box>
+        </Box>,
+        <Box sx={{ mt: 2 }}>
+          <BaseBtn
+            onClick={onAddProject}
+            variant="contained"
+            startIcon={<AddOutlinedIcon />}
+          >
+            Project
+          </BaseBtn>
+        </Box>,
+      ]}
+      table={
+        <ProjectTable
+          rows={rows}
+          billableFilter={billable}
+          onRefresh={onRefresh}
+        />
+      }
+    />
   );
 };
 

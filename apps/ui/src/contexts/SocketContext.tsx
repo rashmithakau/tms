@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 import { io, Socket } from 'socket.io-client';
 import { getApiBaseURL } from '../config/apiClient';
 import { useToast } from './ToastContext';
+import { useAuth } from './AuthContext';
 import { AppNotification, SocketContextValue } from '../interfaces';
 
 const SocketContext = createContext<SocketContextValue>({ socket: null, notifications: [], unreadCount: 0, markAllRead: () => {}, clearNotifications: () => {}, setNotificationsFromServer: () => {}, addNotificationSilent: () => {} });
@@ -10,6 +11,7 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { info } = useToast();
+  const { authState } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
@@ -47,7 +49,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   useEffect(() => {
-    const userId = localStorage.getItem('_id') || '';
+    if (!authState.user?._id) {
+      return; // Don't create socket connection if user is not authenticated
+    }
+
+    const userId = authState.user._id;
     const baseURL = getApiBaseURL();
 
     const socket = io(baseURL, {
@@ -70,7 +76,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       socket.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [authState.user?._id, addNotification]);
 
   const unreadCount = notifications.reduce((acc, n) => acc + (n.read ? 0 : 1), 0);
 

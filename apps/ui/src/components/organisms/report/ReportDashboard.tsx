@@ -145,99 +145,97 @@ const ReportDashboard: React.FC = () => {
   const isLoadingPreview = false;
   const theme = useTheme();
   return (
-    <Box sx={{ padding: 2, height: '100%' }}>
-      <TableWindowLayout
-          title="Timesheet Reports"
-          buttons={[]}
-          table={
-            <>
-              {/* Error Alert */}
-              {error && (
-                <Alert severity="error" sx={{ mb: 3 }} onClose={clearError}>
-                  {error}
-                </Alert>
-              )}
+    <TableWindowLayout
+        title="Timesheet Reports"
+        buttons={[]}
+        table={
+          <>
+            {/* Error Alert */}
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }} onClose={clearError}>
+                {error}
+              </Alert>
+            )}
 
-              {/* Loading State */}
-              {isLoading && (
-                <Box>
-                  <Paper sx={{ p: 3, mb: 3 }}>
-                    <Skeleton variant="text" width="30%" height={32} />
-                    <Skeleton
-                      variant="rectangular"
-                      height={200}
-                      sx={{ mt: 2 }}
-                    />
-                  </Paper>
-                  <Paper sx={{ p: 3 }}>
-                    <Skeleton variant="text" width="30%" height={32} />
-                    <Skeleton
-                      variant="rectangular"
-                      height={200}
-                      sx={{ mt: 2 }}
-                    />
-                  </Paper>
-                </Box>
-              )}
-
-              {/* Main Content */}
-              {!isLoading && (
-                <Box>
-                  <TwoColumnReportLayout
-                    left={
-                      <ReportFilterForm
-                        supervisedEmployees={supervisedEmployees}
-                        reportMetadata={reportMetadata}
-                        onFilterChange={handleFilterChange}
-                        reportType={reportType}
-                        onReportTypeChange={(t) => setReportType(t)}
-                        disabled={isGenerating}
-                        resetSignal={resetCounter}
-                        isGenerating={isGenerating}
-                        onGenerateReport={(f) => handleGenerateReport(reportType, f)}
-                        error={error}
-                        onResetFilters={() => setResetCounter((c) => c + 1)}
-                      />
-                    }
-                    right={
-                      <ReportInformationPanel />
-                    }
+            {/* Loading State */}
+            {isLoading && (
+              <Box>
+                <Paper sx={{ p: 3, mb: 3 }}>
+                  <Skeleton variant="text" width="30%" height={32} />
+                  <Skeleton
+                    variant="rectangular"
+                    height={200}
+                    sx={{ mt: 2 }}
                   />
-
-                  <Divider sx={{ my: 2 }} />
-
-                  {/* Preview Table */}
-                  <Box mb={3}>
-                    <ReportPreviewTable
-                      columns={previewColumns}
-                      rows={previewRows}
-                      title="Preview"
-                    />
-                  </Box>
-                 
-                </Box>
-              )}
-
-              {/* No Data State */}
-              {!isLoading && supervisedEmployees.length === 0 && (
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                  <ReportIcon
-                    sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
-                  />
-                  <Typography variant="h6" gutterBottom>
-                    No Supervised Employees
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    You don't have any supervised employees to generate reports
-                    for. Contact your administrator if you believe this is
-                    incorrect.
-                  </Typography>
                 </Paper>
-              )}
-            </>
-          }
-        />
-    </Box>
+                <Paper sx={{ p: 3 }}>
+                  <Skeleton variant="text" width="30%" height={32} />
+                  <Skeleton
+                    variant="rectangular"
+                    height={200}
+                    sx={{ mt: 2 }}
+                  />
+                </Paper>
+              </Box>
+            )}
+
+            {/* Main Content */}
+            {!isLoading && (
+              <Box>
+                <TwoColumnReportLayout
+                  left={
+                    <ReportFilterForm
+                      supervisedEmployees={supervisedEmployees}
+                      reportMetadata={reportMetadata}
+                      onFilterChange={handleFilterChange}
+                      reportType={reportType}
+                      onReportTypeChange={(t) => setReportType(t)}
+                      disabled={isGenerating}
+                      resetSignal={resetCounter}
+                      isGenerating={isGenerating}
+                      onGenerateReport={(f) => handleGenerateReport(reportType, f)}
+                      error={error}
+                      onResetFilters={() => setResetCounter((c) => c + 1)}
+                    />
+                  }
+                  right={
+                    <ReportInformationPanel />
+                  }
+                />
+
+                <Divider sx={{ my: 2 }} />
+
+                {/* Preview Table */}
+                <Box mb={3}>
+                  <ReportPreviewTable
+                    columns={previewColumns}
+                    rows={previewRows}
+                    title="Preview"
+                  />
+                </Box>
+               
+              </Box>
+            )}
+
+            {/* No Data State */}
+            {!isLoading && supervisedEmployees.length === 0 && (
+              <Paper sx={{ p: 4, textAlign: 'center' }}>
+                <ReportIcon
+                  sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
+                />
+                <Typography variant="h6" gutterBottom>
+                  No Supervised Employees
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  You don't have any supervised employees to generate reports
+                  for. Contact your administrator if you believe this is
+                  incorrect.
+                </Typography>
+              </Paper>
+            )}
+          </>
+        }
+      />
   );
 };
 

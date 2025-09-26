@@ -34,7 +34,7 @@ const MyTimesheetsWindow: React.FC = () => {
   const { startDate, endDate } = getFormattedWeekRange();
 
   return (
-    <Box sx={{ padding: 2, height: '93%' }}>
+    <>
       {isLoading ? (
         <PageLoading variant="inline" message="Loading my timesheets..." />
       ) : (
@@ -98,7 +98,7 @@ const MyTimesheetsWindow: React.FC = () => {
           setConfirm({ open: false });
         }}
       />
-    </Box>
+    </>
   );
 };
 
