@@ -1,5 +1,5 @@
 export * from './admin'
 export * from './form'
-export * from './Landing'
+export * from './landing'
 export * from './layout'
 export * from './popup'
