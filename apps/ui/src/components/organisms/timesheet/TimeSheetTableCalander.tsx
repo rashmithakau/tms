@@ -15,8 +15,8 @@ import { useTimesheetCalculations } from '../../../hooks/util/useTimesheetCalcul
 import { useWeekDays } from '../../../hooks/navigation/useWeekDays';
 import TimesheetTableHeader from '../../molecules/timesheet/TimesheetTableHeader';
 import TimesheetTableRow from '../../molecules/timesheet/TimesheetTableRow';
-import DescriptionEditor from '../../molecules/dialog/DescriptionEditor';
-import PageLoading from '../../molecules/loading/PageLoading';
+import DescriptionEditor from '../../molecules/common/dialog/DescriptionEditor';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 
 
 const TimeSheetTableCalendar: React.FC = () => {

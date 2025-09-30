@@ -1,6 +1,6 @@
 import { Box, Divider, Drawer, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import DrawerList from '../../molecules/other/DrawerList';
+import DrawerList from '../../molecules/common/other/DrawerList';
 import logo from '../../../assets/images/WebSiteLogo2.png';
 import theme from '../../../styles/theme';
 import INavItemProps from '../../../interfaces/navigation/INavItemProps';

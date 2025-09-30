@@ -1,11 +1,10 @@
 import React from 'react';
 import { Box, Typography, Divider, Button, Paper } from '@mui/material';
 import PopupLayout from '../../templates/popup/PopUpLayout';
-import { ProjectRow } from '../../../interfaces/component/table/ITableRowTypes';
 import { useTheme } from '@mui/material/styles';
-import SupervisorMemberCard from '../../molecules/supervisor/SupervisorMemberCard';
+import SupervisorMemberCard from '../../molecules/employee/supervisor/SupervisorMemberCard';
 import TeamMemberCard from '../../molecules/team/TeamMemberCard';
-import BaseButton from '../../atoms/button/BaseBtn';
+import BaseButton from '../../atoms/common/button/BaseBtn';
 import { ViewProjectTeamProps } from '../../../interfaces/organisms/popup';
 
 const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({

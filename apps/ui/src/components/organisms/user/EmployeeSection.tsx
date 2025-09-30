@@ -8,7 +8,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { IEmployeeSectionProps } from '../../../interfaces/list';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 
 const EmployeeSection: React.FC<IEmployeeSectionProps> = ({
   selectedEmployees,

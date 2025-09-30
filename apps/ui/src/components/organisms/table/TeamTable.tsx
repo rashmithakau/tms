@@ -1,14 +1,14 @@
 import React, { useEffect,  useState } from 'react';
 import { listTeams, deleteTeam } from '../../../api/team';
 import { TeamListItem, DataTableColumn } from '../../../interfaces';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import ViewTeamMembers from '../../organisms/popup/ViewTeamMembers';
 import TeamStaffManager from '../../organisms/popup/TeamStaffManager';
 import { TeamRow } from '../../../interfaces/component/table/ITableRowTypes';
 import DataTable from './DataTable';
 import { useTheme } from '@mui/material/styles';
-import ActionButtons from '../../molecules/other/ActionButtons';
-import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
+import ActionButtons from '../../molecules/common/other/ActionButtons';
+import ConfirmDialog from '../../molecules/common/dialog/ConfirmDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useToast } from '../../../contexts/ToastContext';
 

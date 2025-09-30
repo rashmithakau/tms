@@ -1,4 +1,4 @@
-import BaseTextField from '../../atoms/inputField/BaseTextField';
+import BaseTextField from '../../atoms/common/inputField/BaseTextField';
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import {
   Box,
@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
 import { useTheme } from '@mui/material/styles';
 import { useForm, Controller } from 'react-hook-form';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
 import { UserRole } from '@tms/shared';
 import { createTeam } from '../../../api/team';

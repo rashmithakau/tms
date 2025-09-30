@@ -4,7 +4,7 @@ import PopupLayout from '../../templates/popup/PopUpLayout';
 import { useAuth } from '../../../contexts/AuthContext';
 import { listTeams } from '../../../api/team';
 import { listProjects } from '../../../api/project';
-import BaseButton from '../../atoms/button/BaseBtn';
+import BaseButton from '../../atoms/common/button/BaseBtn';
 import { ProfilePopupProps } from '../../../interfaces/organisms/popup';
 
 const FieldRow = ({ label, value }: { label: string; value?: string }) => (

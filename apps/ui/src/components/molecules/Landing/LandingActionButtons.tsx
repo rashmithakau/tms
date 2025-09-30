@@ -1,6 +1,6 @@
 import React from 'react';
 import Stack from '@mui/material/Stack';
-import BaseButton from '../../atoms/button/BaseBtn';
+import BaseButton from '../../atoms/common/button/BaseBtn';
 import { useTheme } from '@mui/material/styles';
 import { ArrowForward } from '@mui/icons-material';
 import { LandingActionButtonsProps } from '../../../interfaces/landing';

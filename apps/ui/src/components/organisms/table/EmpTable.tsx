@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import StatusChip from '../../atoms/button/StatusChip';
-import ActionButtons from '../../molecules/other/ActionButtons';
-import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
+import StatusChip from '../../atoms/common/button/StatusChip';
+import ActionButtons from '../../molecules/common/other/ActionButtons';
+import ConfirmDialog from '../../molecules/common/dialog/ConfirmDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { deleteUser } from '../../../api/user';
 import { useToast } from '../../../contexts/ToastContext';

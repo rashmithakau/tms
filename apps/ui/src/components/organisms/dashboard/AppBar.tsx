@@ -16,7 +16,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import logo from '../../../assets/images/WebSiteLogo.png';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import { useToast } from '../../../contexts/ToastContext';
-import SearchBar from '../../atoms/inputField/SearchBar';
+import SearchBar from '../../atoms/common/inputField/SearchBar';
 import NotificationDropdown from '../user/NotificationDropdown';
 import ProfilePopup from '../popup/ProfilePopup';
 import { useSelector, useDispatch } from 'react-redux';

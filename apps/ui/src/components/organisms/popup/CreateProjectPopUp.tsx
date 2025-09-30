@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
-import BaseTextField from '../../atoms/inputField/BaseTextField';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseTextField from '../../atoms/common/inputField/BaseTextField';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
 import EmployeeSection from '../user/EmployeeSection';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
@@ -14,8 +14,8 @@ import { createProject } from '../../../api/project';
 import { useToast } from '../../../contexts/ToastContext';
 import Divider from '@mui/material/Divider';
 import { UserRole } from '@tms/shared';
-import SupervisorSelect from '../../molecules/supervisor/SupervisorSelect';
-import BillableSelect from '../../molecules/other/BillableSelect';
+import SupervisorSelect from '../../molecules/employee/supervisor/SupervisorSelect';
+import BillableSelect from '../../molecules/common/other/BillableSelect';
 import { CreateProjectFormData, CreateProjectPopupProps } from '../../../interfaces/organisms/popup';
 
 const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({

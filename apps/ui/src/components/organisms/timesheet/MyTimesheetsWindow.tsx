@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
-import PageLoading from '../../molecules/loading/PageLoading';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import { useTimesheets } from '../../../hooks/timesheet/useTimesheets';
 import { deleteMyTimesheet } from '../../../api/timesheet';
-import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
+import ConfirmDialog from '../../molecules/common/dialog/ConfirmDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useToast } from '../../../contexts/ToastContext';
 import TimeSheetTableCalander from './TimeSheetTableCalander';
-import WeekNavigator from '../../atoms/navigation/WeekNavigator';
+import WeekNavigator from '../../atoms/common/navigation/WeekNavigator';
 import TimesheetActionButtons from '../../molecules/timesheet/TimesheetActionButtons';
 import { useTimesheetWeekNavigation } from '../../../hooks/navigation/useTimesheetWeekNavigation';
 import { useTimesheetSubmission } from '../../../hooks/timesheet/useTimesheetSubmission';

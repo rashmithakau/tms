@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Alert, Typography, useTheme } from '@mui/material';
-import PageLoading from '../../molecules/loading/PageLoading';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { UserRole } from '@tms/shared';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import { EmployeeRow } from '../../../interfaces/component/table/ITableRowTypes';
-import CreateAccountPopup from '../authentication/popup/CreateAccountPopup';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import CreateAccountPopup from '../auth/popup/CreateAccountPopup';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import EmpTable from '../table/EmpTable';
 import { select_btn } from '../../../store/slices/dashboardNavSlice';
 import { useUsers } from '../../../hooks/api/useUsers';

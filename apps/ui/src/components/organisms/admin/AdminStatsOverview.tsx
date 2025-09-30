@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Grid } from '@mui/material';
-import { People, Assignment, Schedule, CheckCircle, Group, AdminPanelSettings } from '@mui/icons-material';
+import { People, Assignment, Group, AdminPanelSettings } from '@mui/icons-material';
 import { StatsGrid } from '../../molecules/dashboard';
 import { IAdminStatsOverviewProps } from '../../../interfaces/dashboard';
 

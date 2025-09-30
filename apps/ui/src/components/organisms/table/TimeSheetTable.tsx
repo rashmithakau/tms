@@ -6,8 +6,8 @@ import {
 import Checkbox from '@mui/material/Checkbox';
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import StatusChip from "../../atoms/button/StatusChip";
-import ActionButtons from "../../molecules/other/ActionButtons";
+import StatusChip from "../../atoms/common/button/StatusChip";
+import ActionButtons from "../../molecules/common/other/ActionButtons";
 import { TimesheetStatus } from "@tms/shared";
 import { TimeSheetTableProps } from "../../../interfaces";
 

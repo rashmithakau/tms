@@ -9,7 +9,7 @@ import {
   Chip,
   Stack,
 } from '@mui/material';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTheme } from '@mui/material';
 import { IProjectTableToolbarProps } from '../../../interfaces/component/project';

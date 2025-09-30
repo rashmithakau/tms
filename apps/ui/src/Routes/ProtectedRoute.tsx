@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { IProtectedRouteProps } from '../interfaces/navigation/IProtectedRouteProps';
 import { useAuth } from '../contexts/AuthContext';
-import PageLoading from '../components/molecules/loading/PageLoading';
+import PageLoading from '../components/molecules/common/loading/PageLoading';
 
 const ProtectedRoute: React.FC<IProtectedRouteProps> = ({ 
   isAllowed, 

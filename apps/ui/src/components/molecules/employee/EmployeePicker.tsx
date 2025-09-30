@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import SearchField from '../other/SearchField';
+import SearchField from '../../molecules/common/other/SearchField';
 import SelectedEmployeeChips from '../../molecules/employee/SelectedEmployeeChips';
 import EmployeeList from './EmployeeList';
 import type { EmployeePickerProps } from '../../../interfaces/component/employee/IEmployeePickerProps';

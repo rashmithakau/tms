@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import PageLoading from '../../molecules/loading/PageLoading';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import { useSupervisedTimesheets } from '../../../hooks/timesheet/useSupervisedTimesheets';
 import { deleteMyTimesheet } from '../../../api/timesheet';
-import ConfirmDialog from '../../molecules/dialog/ConfirmDialog';
-import RejectionReasonDialog from '../../molecules/approval/RejectionReasonDialog';
+import ConfirmDialog from '../../molecules/common/dialog/ConfirmDialog';
+import RejectionReasonDialog from '../../molecules/timesheet/approval/RejectionReasonDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { TimesheetStatus } from '@tms/shared';
 import EmployeeTimesheetCalendar from './EmployeeTimesheetCalendar';
@@ -17,7 +17,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import theme from '../../../styles/theme';
 import { useToast } from '../../../contexts/ToastContext';
 import { useTimesheetApproval } from '../../../hooks/timesheet/useTimesheetApproval';
-import ApprovalActionButtons from '../../molecules/approval/ApprovalActionButtons';
+import ApprovalActionButtons from '../../molecules/timesheet/approval/ApprovalActionButtons';
 import { useSelector } from 'react-redux';
 
 const ReviewTimesheetsWindow: React.FC = () => {

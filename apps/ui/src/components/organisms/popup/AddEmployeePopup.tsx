@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import EmployeePicker from '../../molecules/employee/EmployeePicker';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import { Box } from '@mui/material';
 import { useUsersByRoles } from '../../../hooks/api/useUsers';
 import { UserRole } from '@tms/shared';

@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Divider } from '@mui/material';
 import PopupLayout from '../../templates/popup/PopUpLayout';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import { useUsersByRoles } from '../../../hooks/api/useUsers';
 import { UserRole } from '@tms/shared';
 import { updateProjectStaff } from '../../../api/project';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
 import { useToast } from '../../../contexts/ToastContext';
 import StaffSelector from '../../molecules/employee/StaffSelector';
-import SupervisorSelector from '../../molecules/supervisor/SupervisorSelector';
+import SupervisorSelector from '../../molecules/employee/supervisor/SupervisorSelector';
 import SelectedEmployeeChips from '../../molecules/employee/SelectedEmployeeChips';
 import { ProjectStaffManagerProps } from '../../../interfaces/organisms/popup';
 

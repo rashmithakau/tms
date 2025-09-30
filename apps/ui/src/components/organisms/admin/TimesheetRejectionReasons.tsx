@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { Report, Warning, InfoOutlined } from '@mui/icons-material';
 import { ITimesheetRejectionReasonsProps } from '../../../interfaces/dashboard';
-import PageLoading from '../../molecules/loading/PageLoading';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 
 const TimesheetRejectionReasons: React.FC<ITimesheetRejectionReasonsProps> = ({ 
   rejectionReasons,
