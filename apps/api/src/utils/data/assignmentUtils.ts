@@ -1,5 +1,6 @@
 import ProjectModel from '../../models/project.model';
 import TeamModel from '../../models/team.model';
+import UserModel from '../../models/user.model';
 import mongoose from 'mongoose';
 
 export const isEmployeeAssignedToProjectOrTeam = async (userId: string): Promise<boolean> => {
@@ -32,7 +33,7 @@ export const isEmployeeAssignedToProjectOrTeam = async (userId: string): Promise
 
     return !!supervisorOfProject;
   } catch (error) {
-    console.error(`Error checking project/team assignment for user ${userId}:`, error);
+   
     return false;
   }
 };
@@ -63,23 +64,33 @@ export const updateUserTeamMemberships = async (
   newMembers: string[], 
   oldMembers: string[] = []
 ): Promise<void> => {
-  const UserModel = (await import('../../models/user.model')).default;
-  
-  const teamObjectId = new mongoose.Types.ObjectId(teamId);
-  
-  const membersToAdd = newMembers.filter(id => !oldMembers.includes(id));
-  if (membersToAdd.length > 0) {
-    await UserModel.updateMany(
-      { _id: { $in: membersToAdd.map(id => new mongoose.Types.ObjectId(id)) } },
-      { $addToSet: { teams: teamObjectId } }
-    );
-  }
+  try {
+ 
+    
+    const teamObjectId = new mongoose.Types.ObjectId(teamId);
+    
+    const membersToAdd = newMembers.filter(id => !oldMembers.includes(id));
+    if (membersToAdd.length > 0) {
+     
+      const result = await UserModel.updateMany(
+        { _id: { $in: membersToAdd.map(id => new mongoose.Types.ObjectId(id)) } },
+        { $addToSet: { teams: teamObjectId } }
+      );
+     
+    }
 
-  const membersToRemove = oldMembers.filter(id => !newMembers.includes(id));
-  if (membersToRemove.length > 0) {
-    await UserModel.updateMany(
-      { _id: { $in: membersToRemove.map(id => new mongoose.Types.ObjectId(id)) } },
-      { $pull: { teams: teamObjectId } }
-    );
+    const membersToRemove = oldMembers.filter(id => !newMembers.includes(id));
+    if (membersToRemove.length > 0) {
+      console.log('Removing members from team:', membersToRemove);
+      const result = await UserModel.updateMany(
+        { _id: { $in: membersToRemove.map(id => new mongoose.Types.ObjectId(id)) } },
+        { $pull: { teams: teamObjectId } }
+      );
+     
+    }
+
+  } catch (error) {
+    
+    throw error; 
   }
 };

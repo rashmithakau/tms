@@ -6,13 +6,20 @@ import { createTeam, listTeams, listTeamsForUser,softDeleteTeam, listMyMemberTea
 export const createTeamHandler = catchErrors(async (req, res) => {
   const { teamName, employees, supervisor } = req.body as any;
 
+  
+
   const normalized = {
     teamName,
     members: Array.isArray(employees) ? employees : [],
     supervisor: supervisor ?? null,
   };
 
+
+
   const team = await createTeam(normalized);
+  
+  
+  
   return res.status(CREATED).json(team);
 });
 

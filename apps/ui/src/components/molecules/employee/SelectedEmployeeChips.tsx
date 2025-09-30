@@ -40,8 +40,8 @@ const SelectedEmployeeChips: React.FC<ISelectedEmployeeChipsProps> = ({
         }}
       >
         {employees.map((employee) => (
-          
             <Chip
+              key={employee.id}
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Typography
