@@ -5,13 +5,11 @@ import {
   generateApprovalStatusReport,
   generateDetailedTimesheetReport,
   getSupervisedEmployees,
-  getReportMetadata,
-  downloadBlobAsFile,
-  generateReportFilename,
-  ReportFilter,
-  Employee,
-  ReportMetadata
+  getReportMetadata
 } from '../../api/report';
+import { ReportFilter, Employee } from '../../interfaces/api';
+import { ReportMetadata } from '@tms/shared';
+import { downloadBlobAsFile, generateReportFilename } from '../../utils';
 import { UseReportGeneratorOptions, UseReportGeneratorReturn } from '../../interfaces/report/hook/IUseReportGenerator';
 
 
