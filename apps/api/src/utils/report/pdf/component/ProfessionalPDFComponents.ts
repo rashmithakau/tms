@@ -1,0 +1,386 @@
+import PDFDocument from 'pdfkit';
+
+export class ProfessionalPDFComponents {
+  private readonly colors = {
+    primary: '#2563EB',      
+    secondary: '#64748B',    
+    accent: '#059669',       
+    danger: '#DC2626',    
+    warning: '#D97706',      
+    background: '#F8FAFC',   
+    border: '#E2E8F0',       
+    text: {
+      primary: '#1E293B',    
+      secondary: '#64748B',  
+      muted: '#94A3B8'      
+    }
+  };
+
+  constructor(
+    private doc: PDFDocument,
+    private margin: number,
+    private getCurrentY: () => number,
+    private setCurrentY: (y: number) => void,
+    private checkPageBreak: (space: number) => void,
+    private pageWidth: number
+  ) {}
+
+  // Professional report header with company branding
+  addProfessionalHeader(
+    title: string,
+    filters: { startDate?: string; endDate?: string },
+    subtitle?: string,
+    companyInfo?: { name?: string; logo?: string; address?: string }
+  ): void {
+    const startY = this.getCurrentY();
+    
+    // Header background
+    this.doc.rect(0, 0, this.pageWidth, 120)
+      .fill(this.colors.primary);
+
+    // Company info section (left side)
+    if (companyInfo?.name) {
+      this.doc.fontSize(16)
+        .fillColor('white')
+        .font('Helvetica-Bold')
+        .text(companyInfo.name, this.margin, 25);
+      
+      if (companyInfo.address) {
+        this.doc.fontSize(10)
+          .fillColor('#E2E8F0')
+          .font('Helvetica')
+          .text(companyInfo.address, this.margin, 50);
+      }
+    }
+
+    // Report title (center)
+    this.doc.fontSize(22)
+      .fillColor('white')
+      .font('Helvetica-Bold')
+      .text(title, 0, 35, { 
+        align: 'center',
+        width: this.pageWidth
+      });
+
+    if (subtitle) {
+      this.doc.fontSize(12)
+        .fillColor('#E2E8F0')
+        .font('Helvetica')
+        .text(subtitle, 0, 65, { 
+          align: 'center',
+          width: this.pageWidth
+        });
+    }
+
+    // Date and filter info (right side)
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    this.doc.fontSize(10)
+      .fillColor('white')
+      .text(`Generated: ${currentDate}`, this.pageWidth - 200, 25, {
+        width: 150,
+        align: 'right'
+      });
+
+    // Filter information
+    let filterText = '';
+    if (filters.startDate && filters.endDate) {
+      filterText = `Period: ${this.formatDateProfessional(filters.startDate)} - ${this.formatDateProfessional(filters.endDate)}`;
+    } else if (filters.startDate) {
+      filterText = `From: ${this.formatDateProfessional(filters.startDate)}`;
+    } else if (filters.endDate) {
+      filterText = `Until: ${this.formatDateProfessional(filters.endDate)}`;
+    } else {
+      filterText = 'All Records';
+    }
+
+    this.doc.fontSize(9)
+      .fillColor('#E2E8F0')
+      .text(filterText, this.pageWidth - 200, 45, {
+        width: 150,
+        align: 'right'
+      });
+
+    this.setCurrentY(140);
+  }
+
+  // Professional table with enhanced styling
+  addProfessionalTable(
+    headers: string[],
+    data: string[][],
+    columnWidths: number[],
+    options: {
+      alternateRows?: boolean;
+      headerColor?: string;
+      textAlign?: 'left' | 'center' | 'right';
+      fontSize?: number;
+      rowHeight?: number;
+    } = {}
+  ): void {
+    const {
+      alternateRows = true,
+      headerColor = this.colors.primary,
+      textAlign = 'left',
+      fontSize = 9,
+      rowHeight = 22
+    } = options;
+
+    this.checkPageBreak(50);
+
+    // Table header
+    const headerHeight = 35;
+    let x = this.margin;
+    const tableY = this.getCurrentY();
+
+    // Header background with gradient effect
+    this.doc.rect(this.margin, tableY, 
+      columnWidths.reduce((sum, width) => sum + width, 0), headerHeight)
+      .fill(headerColor);
+
+    // Header shadow effect
+    this.doc.rect(this.margin, tableY + headerHeight, 
+      columnWidths.reduce((sum, width) => sum + width, 0), 2)
+      .fill(this.colors.border);
+
+    // Header text
+    this.doc.fontSize(11)
+      .fillColor('white')
+      .font('Helvetica-Bold');
+
+    headers.forEach((header, index) => {
+      this.doc.text(header, x + 10, tableY + 12, {
+        width: columnWidths[index] - 20,
+        align: textAlign,
+        ellipsis: true
+      });
+      
+      // Column separators
+      if (index < headers.length - 1) {
+        this.doc.rect(x + columnWidths[index], tableY, 1, headerHeight)
+          .fill('rgba(255,255,255,0.2)');
+      }
+      
+      x += columnWidths[index];
+    });
+
+    this.setCurrentY(tableY + headerHeight + 5);
+
+    // Table rows
+    data.forEach((rowData, rowIndex) => {
+      this.checkPageBreak(rowHeight + 5);
+      
+      const currentRowY = this.getCurrentY();
+      x = this.margin;
+
+      // Row background
+      if (alternateRows && rowIndex % 2 === 1) {
+        this.doc.rect(this.margin, currentRowY, 
+          columnWidths.reduce((sum, width) => sum + width, 0), rowHeight)
+          .fill(this.colors.background);
+      }
+
+      // Row border
+      this.doc.rect(this.margin, currentRowY, 
+        columnWidths.reduce((sum, width) => sum + width, 0), rowHeight)
+        .stroke(this.colors.border);
+
+      // Row text
+      this.doc.fontSize(fontSize)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica');
+
+      rowData.forEach((cellData, cellIndex) => {
+        // Apply color coding for status columns
+        let textColor = this.colors.text.primary;
+        if (headers[cellIndex].toLowerCase().includes('status')) {
+          textColor = this.getStatusColor(cellData);
+        }
+
+        // Handle long text by using smaller font or truncating
+        let displayText = cellData;
+        let cellFontSize = fontSize;
+        
+        if (cellData.length > 20 && columnWidths[cellIndex] < 100) {
+          cellFontSize = Math.max(fontSize - 1, 7);
+          if (cellData.length > 30) {
+            displayText = cellData.substring(0, 27) + '...';
+          }
+        }
+
+        this.doc.fontSize(cellFontSize)
+          .fillColor(textColor)
+          .text(displayText, x + 5, currentRowY + Math.floor((rowHeight - cellFontSize) / 2), {
+            width: columnWidths[cellIndex] - 10,
+            align: textAlign,
+            ellipsis: true,
+            height: rowHeight - 4
+          });
+
+        // Column separators
+        if (cellIndex < columnWidths.length - 1) {
+          this.doc.rect(x + columnWidths[cellIndex], currentRowY, 1, rowHeight)
+            .stroke(this.colors.border);
+        }
+
+        x += columnWidths[cellIndex];
+      });
+
+      this.setCurrentY(currentRowY + rowHeight);
+    });
+
+    this.setCurrentY(this.getCurrentY() + 10);
+  }
+
+  // Enhanced summary section with visual elements
+  addProfessionalSummary(
+    summaryData: { label: string; value: number | string; type?: 'success' | 'warning' | 'danger' | 'info' }[],
+    title: string = 'Summary'
+  ): void {
+    this.checkPageBreak(summaryData.length * 30 + 60);
+    
+    const startY = this.getCurrentY();
+    
+    // Summary section background
+    this.doc.rect(this.margin, startY, 
+      this.pageWidth - (this.margin * 2), summaryData.length * 30 + 50)
+      .fill('#FAFBFC')
+      .stroke(this.colors.border);
+
+    // Section title
+    this.doc.fontSize(16)
+      .fillColor(this.colors.text.primary)
+      .font('Helvetica-Bold')
+      .text(title, this.margin + 20, startY + 20);
+
+    this.setCurrentY(startY + 50);
+
+    // Summary items in grid layout
+    const itemsPerRow = 2;
+    const itemWidth = (this.pageWidth - (this.margin * 2) - 40) / itemsPerRow;
+    
+    summaryData.forEach((item, index) => {
+      const col = index % itemsPerRow;
+      const row = Math.floor(index / itemsPerRow);
+      const itemX = this.margin + 20 + (col * itemWidth);
+      const itemY = this.getCurrentY() + (row * 35);
+
+      // Summary item card
+      this.doc.rect(itemX, itemY, itemWidth - 10, 30)
+        .fill('white')
+        .stroke(this.colors.border);
+
+      // Status indicator
+      const indicatorColor = this.getSummaryColor(item.type);
+      this.doc.rect(itemX, itemY, 4, 30)
+        .fill(indicatorColor);
+
+      // Label
+      this.doc.fontSize(10)
+        .fillColor(this.colors.text.secondary)
+        .font('Helvetica')
+        .text(item.label, itemX + 15, itemY + 6);
+
+      // Value
+      this.doc.fontSize(14)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica-Bold')
+        .text(String(item.value), itemX + 15, itemY + 16);
+    });
+
+    this.setCurrentY(this.getCurrentY() + Math.ceil(summaryData.length / itemsPerRow) * 35 + 20);
+  }
+
+  // Professional footer with page numbers
+  addProfessionalFooter(pageNumber: number, totalPages?: number): void {
+    const footerY = this.doc.page.height - 50;
+    
+    // Footer line
+    this.doc.rect(this.margin, footerY - 10, 
+      this.pageWidth - (this.margin * 2), 1)
+      .fill(this.colors.border);
+
+    // Page number
+    let pageText = `Page ${pageNumber}`;
+    if (totalPages) {
+      pageText += ` of ${totalPages}`;
+    }
+
+    this.doc.fontSize(9)
+      .fillColor(this.colors.text.muted)
+      .font('Helvetica')
+      .text(pageText, 0, footerY, {
+        align: 'center',
+        width: this.pageWidth
+      });
+
+    // Company info in footer
+    this.doc.text('Confidential - For Internal Use Only', this.margin, footerY, {
+      align: 'left'
+    });
+
+    this.doc.text(`Generated at ${new Date().toLocaleTimeString()}`, 
+      this.pageWidth - 150, footerY, {
+        align: 'right',
+        width: 100
+      });
+  }
+
+  // Add professional section divider
+  addSectionDivider(title?: string): void {
+    this.checkPageBreak(30);
+    
+    if (title) {
+      this.doc.fontSize(14)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica-Bold')
+        .text(title, this.margin, this.getCurrentY());
+      
+      this.setCurrentY(this.getCurrentY() + 25);
+    }
+
+    // Divider line
+    this.doc.rect(this.margin, this.getCurrentY(), 
+      this.pageWidth - (this.margin * 2), 2)
+      .fill(this.colors.primary);
+
+    this.setCurrentY(this.getCurrentY() + 20);
+  }
+
+  // Helper methods
+  private formatDateProfessional(date: Date | string): string {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  private getStatusColor(status: string): string {
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('submitted') || statusLower.includes('approved') || statusLower.includes('complete')) {
+      return this.colors.accent;
+    }
+    if (statusLower.includes('pending') || statusLower.includes('review')) {
+      return this.colors.warning;
+    }
+    if (statusLower.includes('rejected') || statusLower.includes('missing') || statusLower.includes('late')) {
+      return this.colors.danger;
+    }
+    return this.colors.text.primary;
+  }
+
+  private getSummaryColor(type?: string): string {
+    switch (type) {
+      case 'success': return this.colors.accent;
+      case 'warning': return this.colors.warning;
+      case 'danger': return this.colors.danger;
+      case 'info': return this.colors.primary;
+      default: return this.colors.secondary;
+    }
+  }
+}

@@ -1,1 +1,2 @@
-export * from './PDFComponents'
+
+export * from './ProfessionalPDFComponents';

@@ -78,3 +78,98 @@ export enum ReportFormat {
 
 
 
+export interface IDetailedTimesheetReport {
+  employeeId: string;
+  employeeName: string;
+  employeeEmail: string;
+  weekStartDate: string;
+  status: string;
+  categories: Array<{
+    category: string;
+    items: Array<{
+      work: string;
+      projectName?: string;
+      teamName?: string;
+      dailyHours: number[];
+      totalHours: number;
+    }>;
+  }>;
+  totalHours: number;
+}
+
+export interface ProfessionalPDFConfig {
+  // Company branding
+  company: {
+    name: string;
+    address?: string;
+    logo?: string;
+    website?: string;
+    phone?: string;
+  };
+
+  // Color scheme
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    danger: string;
+    warning: string;
+    background: string;
+    border: string;
+    text: {
+      primary: string;
+      secondary: string;
+      muted: string;
+    };
+  };
+
+  // Typography
+  fonts: {
+    primary: string;
+    bold: string;
+    sizes: {
+      title: number;
+      subtitle: number;
+      header: number;
+      body: number;
+      small: number;
+    };
+  };
+
+  // Layout
+  layout: {
+    pageMargin: number;
+    headerHeight: number;
+    footerHeight: number;
+    sectionSpacing: number;
+  };
+
+  // Features
+  features: {
+    watermark: boolean;
+    pageNumbers: boolean;
+    tableOfContents: boolean;
+    executiveSummary: boolean;
+    recommendations: boolean;
+    charts: boolean;
+  };
+
+  // Report-specific settings
+  reports: {
+    submissionStatus: {
+      includeAnalytics: boolean;
+      showTrends: boolean;
+      highlightIssues: boolean;
+    };
+    approvalStatus: {
+      includeWorkflow: boolean;
+      showProcessingTime: boolean;
+      includeRecommendations: boolean;
+    };
+    detailedTimesheet: {
+      includeProjectBreakdown: boolean;
+      showProductivityMetrics: boolean;
+      includeUtilizationAnalysis: boolean;
+    };
+  };
+}

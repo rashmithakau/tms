@@ -16,6 +16,8 @@ import dashboardRoutes from './routes/dashboard.route';
 import { socketService } from './config/socket';
 import { CronJobService } from './services/cronJob.service';
 
+
+
 const port = Number(PORT);
 
 const app = express();
@@ -44,13 +46,18 @@ app.use('/api/dashboard', dashboardRoutes);
 
 app.use(errorHandler);
 
-server.listen(port,async () => {
-  await connectDB();
-  socketService.init(server);
-  
-  // Initialize and start cron jobs
-  const cronJobService = new CronJobService();
-  cronJobService.startScheduledJobs();
-  
-   console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
+server.listen(port, async () => {
+  try {
+    await connectDB();
+    socketService.init(server);
+    
+    // Initialize and start cron jobs
+    const cronJobService = new CronJobService();
+    cronJobService.startScheduledJobs();
+    
+    console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
+  } catch (error) {
+    console.error('Error during server startup:', error);
+    // Don't exit the process, just log the error
+  }
 });

@@ -1,1 +1,2 @@
-export * from './BasePDFGenerator'
+
+export * from './ProfessionalBasePDFGenerator';
