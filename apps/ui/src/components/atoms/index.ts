@@ -1,9 +1,8 @@
-export * from './button'
+// Common atoms
+export * from './common'
+
+// Domain-specific atoms
 export * from './dashboard'
-export * from './feedback'
-export * from './Icon'
-export * from './inputField'
 export * from './landing'
-export * from './navigation'
-export * from './text'
+export * from './report'
 export * from './timesheet'

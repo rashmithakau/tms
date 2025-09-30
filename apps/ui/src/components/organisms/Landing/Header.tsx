@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate, useLocation } from 'react-router-dom';
 import WebSiteLogo from '../../../assets/images/WebSiteLogo.png';
 import BrandLogo from '../../atoms/landing/BrandLogo';
-import BaseButton from '../../atoms/button/BaseBtn';
+import BaseButton from '../../atoms/common/button/BaseBtn';
 import HeaderDrawer from '../../molecules/landing/HeaderDrawer';
 import NavItemSection from '../../molecules/landing/NavItemSection';
 import HeaderLayout from '../../templates/landing/HeaderLayout';

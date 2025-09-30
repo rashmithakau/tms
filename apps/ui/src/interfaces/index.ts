@@ -22,25 +22,20 @@ export * from './form';
 // Hook interfaces
 export * from './hooks';
 
-
+// Landing interfaces
 export * from './landing';
 
-
+// Layout interfaces
 export * from './layout';
 
-
+// List interfaces
 export * from './list';
 
-
+// Molecule interfaces
 export * from './molecules';
 
-
+// Navigation interfaces
 export * from './navigation';
 
-
-export {
- 
-} from './organisms';
-
-
+// State interfaces
 export * from './state';

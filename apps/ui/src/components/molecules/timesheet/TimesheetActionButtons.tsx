@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import SaveIcon from '@mui/icons-material/Save';

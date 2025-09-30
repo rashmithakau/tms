@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
 import WindowLayout from '../../templates/layout/WindowLayout';
-import { Add } from '@mui/icons-material';
 import { AdminStatsOverview, AdminTable, TimesheetRejectionReasons } from './index';
 import { QuickActions, TimesheetStatusChart } from '../../molecules/dashboard';
 import { Calendar } from '../../atoms/dashboard';

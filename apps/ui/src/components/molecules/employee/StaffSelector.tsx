@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
 import EmployeeList from './EmployeeList';
-import SearchField from '../other/SearchField';
+import SearchField from '../../molecules/common/other/SearchField';
 import type { IStaffSelectorProps } from '../../../interfaces/component/employee/IStaffSelectorProps';
 
 const StaffSelector: React.FC<IStaffSelectorProps> = ({

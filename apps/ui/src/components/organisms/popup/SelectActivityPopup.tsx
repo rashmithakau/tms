@@ -1,5 +1,5 @@
 import PopupLayout from '../../templates/popup/PopUpLayout';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import { Box, Checkbox, FormControlLabel } from '@mui/material';
 import { absenceActivity } from '@tms/shared';
 import { useState, useEffect } from 'react';

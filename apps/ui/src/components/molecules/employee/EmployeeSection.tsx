@@ -1,10 +1,10 @@
 import { Box, Alert } from '@mui/material';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import EmpTable from '../../organisms/table/EmpTable';
-import EmpTableToolbar from '../other/EmpTableToolbar';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import EmpTableToolbar from '../common/other/EmpTableToolbar';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import PageLoading from '../loading/PageLoading';
+import PageLoading from '../common/loading/PageLoading';
 import { IEmployeeManagementProps } from '../../../interfaces/list/IEmployeeManagementProps';
 
 const EmployeeSection: React.FC<IEmployeeManagementProps> = ({

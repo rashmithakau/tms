@@ -1,6 +1,6 @@
 import React from 'react';
 import CenterContainerLayout from '../components/templates/layout/CenterContainerLayout';
-import ResetChangePassword from '../components/organisms/authentication/password/ResetChangePassword';
+import ResetChangePassword from '../components/organisms/auth/password/ResetChangePassword';
 
 const ResetChangePasswordPage: React.FC = () => {
   return (

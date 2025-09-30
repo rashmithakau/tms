@@ -2,10 +2,10 @@ import { Box } from '@mui/material';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import ProjectTable from '../../organisms/table/ProjectTable';
 import ProjectTableToolbar from './ProjectTableToolbar';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import ErrorAlert from '../../atoms/feedback/ErrorAlert';
-import PageLoading from '../loading/PageLoading';
+import ErrorAlert from '../../atoms/common/feedback/ErrorAlert';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 import { IProjectsSectionProps } from '../../../interfaces/component/project';
 
 const ProjectsSection: React.FC<IProjectsSectionProps> = ({

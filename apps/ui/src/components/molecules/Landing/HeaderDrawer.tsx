@@ -2,7 +2,7 @@ import React from 'react';
 import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import BaseButton from '../../atoms/button/BaseBtn';
+import BaseButton from '../../atoms/common/button/BaseBtn';
 import NavItemSection from './NavItemSection';
 import { useTheme } from '@mui/material/styles';
 import { HeaderDrawerProps } from '../../../interfaces/landing';

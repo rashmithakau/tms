@@ -2,7 +2,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import BaseBtn from '../../atoms/button/BaseBtn';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
 import { useDispatch } from 'react-redux';
 import { select_btn } from '../../../store/slices/empMenuNavSclice';
 import { EmpMenuItem, UserRole } from '@tms/shared';

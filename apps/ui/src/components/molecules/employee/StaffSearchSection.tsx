@@ -1,5 +1,5 @@
 import React from 'react';
-import SearchField from '../other/SearchField';
+import SearchField from '../../molecules/common/other/SearchField';
 import EmployeeList from './EmployeeList';
 import type { IStaffSearchSectionProps } from '../../../interfaces/component/employee';
 

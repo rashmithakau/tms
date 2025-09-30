@@ -1,11 +1,11 @@
-export * from './approval';
+// Common molecules
+export * from './common';
+
+// Domain-specific molecules
 export * from './dashboard';
-export * from './dialog';
 export * from './employee';
 export * from './landing';
-export * from './loading';
-export * from './other';
 export * from './project';
-export * from './supervisor';
+export * from './report';
 export * from './team';
 export * from './timesheet';

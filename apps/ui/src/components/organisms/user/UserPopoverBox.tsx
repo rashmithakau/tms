@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
-import BaseBtn from '../../atoms/button/BaseBtn'; 
+import BaseBtn from '../../atoms/common/button/BaseBtn'; 
 import { useAuth } from '../../../contexts/AuthContext';
 import { IUserPopoverBoxProps } from '../../../interfaces/organisms';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import BaseButton from '../../atoms/button/BaseBtn';
+import BaseButton from '../../atoms/common/button/BaseBtn';
 import { NavItemSectionProps } from '../../../interfaces/landing';
 
 const NavItemSection: React.FC<NavItemSectionProps> = ({

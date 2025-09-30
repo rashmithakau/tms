@@ -3,7 +3,7 @@ import { Paper, Box, Typography, Alert } from '@mui/material';
 import { PieChart } from '../../atoms/dashboard';
 import { ITimesheetStatusChartProps, IPieChartData } from '../../../interfaces/dashboard';
 import { Warning, BarChart } from '@mui/icons-material';
-import PageLoading from '../loading/PageLoading';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 
 const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
   submittedCount,

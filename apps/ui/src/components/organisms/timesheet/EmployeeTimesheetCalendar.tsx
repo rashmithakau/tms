@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, TableBody, TableContainer, Box, IconButton, Typography, TableCell } from '@mui/material';
-import PageLoading from '../../molecules/loading/PageLoading';
+import PageLoading from '../../molecules/common/loading/PageLoading';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import theme from '../../../styles/theme';
