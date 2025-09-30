@@ -5,7 +5,6 @@ export const login = async (data: ILoginDetails) => {
     try {
       return await API.post("/auth/login", data);
     } catch (error) {
-      console.error("Login failed:", error);
       throw error; 
     }
   };
@@ -15,7 +14,6 @@ export const getCurrentUser = async () => {
     return await API.get("/auth/me");
   } catch (error: any) {
     if (error?.response?.status !== 401) {
-      console.error("Get current user failed:", error);
     }
     throw error;
   }
@@ -26,7 +24,6 @@ export const changePwdFirstLogin = async (data:IChangePwdFirstLogin) => {
   try {
     return await API.post("/auth/change-password",data);
   } catch (error) {
-    console.error("Change password failed:", error);
     throw error; 
   }
 }
