@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { createTeamHandler, listTeamsHandler, listTeamsForUserHandler, listMyMemberTeamsHandler, listSupervisedTeamsHandler, updateStaffHandler ,deleteTeamHandler} from '../controllers/team.controller';
 import authenticate from '../middleware/authenticate';
+import { validate } from '../middleware/validate';
+import { createTeamSchema } from '../schemas/team.schema';
 import { UserRole } from '@tms/shared';
 
 const teamRoutes = Router();
 
-teamRoutes.post('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), createTeamHandler);
+teamRoutes.post('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), validate(createTeamSchema), createTeamHandler);
 teamRoutes.get('/', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), listTeamsHandler);
 teamRoutes.put('/:id/staff', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), updateStaffHandler);
 teamRoutes.delete('/:id', authenticate([UserRole.Admin, UserRole.SupervisorAdmin]), deleteTeamHandler);

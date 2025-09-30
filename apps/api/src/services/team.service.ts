@@ -11,24 +11,53 @@ import { updateUserTeamMemberships } from '../utils/data';
 import { CreateTeamParams } from '../interfaces/team';
 
 export const createTeam = async (data: CreateTeamParams) => {
+  
+  
   const exists = await TeamModel.exists({ teamName: data.teamName });
   appAssert(!exists, CONFLICT, 'Team already exists');
 
+  // Validate that all member IDs are valid MongoDB ObjectIds
+  const memberIds = filterValidIds(data.members ?? []);
+  const validMemberIds = memberIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+  
+  if (memberIds.length !== validMemberIds.length) {
+    console.warn('Some member IDs are invalid MongoDB ObjectIds:', {
+      original: memberIds,
+      valid: validMemberIds
+    });
+  }
+
+  // Validate supervisor ID if provided
+  if (data.supervisor && !mongoose.Types.ObjectId.isValid(data.supervisor)) {
+   
+    throw new Error('Invalid supervisor ID');
+  }
+
   const team = await TeamModel.create({
     teamName: data.teamName,
-    members: stringArrayToObjectIds(filterValidIds(data.members ?? [])),
+    members: stringArrayToObjectIds(validMemberIds),
     supervisor: stringToObjectId(data.supervisor),
     status: data.status ?? true,
   });
 
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team creation failed');
 
-  if (team.supervisor) {
-    await updateUserRoleOnSupervisorAssignment(team.supervisor.toString());
-  }
+ 
 
-  if ((data.members ?? []).length > 0) {
-    await updateUserTeamMemberships(team._id.toString(), filterValidIds(data.members ?? []));
+  try {
+    // Update supervisor role if supervisor is assigned
+    if (team.supervisor) {
+      
+      await updateUserRoleOnSupervisorAssignment(team.supervisor.toString());
+    }
+
+    // Update user team memberships if members are assigned
+    if (validMemberIds.length > 0) {
+      
+      await updateUserTeamMemberships(team._id.toString(), validMemberIds);
+    }
+  } catch (error) {
+    
   }
 
   return { team };

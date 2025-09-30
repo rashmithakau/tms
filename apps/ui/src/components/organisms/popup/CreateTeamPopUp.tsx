@@ -57,17 +57,34 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
   };
   const onSubmit = async (data: CreateTeamFormData) => {
     try {
-      await createTeam({
+      const response = await createTeam({
         teamName: data.teamName,
         employees: selectedEmployees.map((e) => e.id),
         supervisor: data.supervisor || null,
       });
-      toast.success('Team created');
-      reset();
-      setSelectedEmployees([]);
-      onClose();
-    } catch (e) {
-      toast.error('Failed to create team');
+      
+      // Check if team was created successfully
+      if (response && response.team) {
+        toast.success('Team created successfully');
+        reset();
+        setSelectedEmployees([]);
+        onClose();
+      } else {
+        toast.error('Failed to create team - Invalid response');
+      }
+    } catch (error: any) {
+      
+      
+      // Handle specific error cases
+      if (error.response?.status === 409) {
+        toast.error('Team already exists');
+      } else if (error.response?.status === 500) {
+        toast.error('Server error while creating team');
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to create team');
+      }
     }
   };
 
