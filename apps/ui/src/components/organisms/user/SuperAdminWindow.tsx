@@ -172,7 +172,7 @@ const SuperAdminWindow: React.FC = () => {
                 </BaseBtn>
               </Box>,
             ]}
-            table={<EmpTable rows={rows} />}
+            table={<EmpTable rows={rows} onRefresh={refreshUsers} />}
           />
         )}
 

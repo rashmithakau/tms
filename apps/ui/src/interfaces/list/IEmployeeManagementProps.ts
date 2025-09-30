@@ -11,4 +11,5 @@ export interface IEmployeeManagementProps {
   onStatusFilterChange: (filter: 'all' | 'Active' | 'Inactive') => void;
   onAddEmployee: () => void;
   onEditEmployee?: (row: EmployeeRow) => void;
+  onRefresh?: () => Promise<void>;
 }
