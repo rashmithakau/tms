@@ -18,6 +18,7 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
   onStatusFilterChange,
   onAddEmployee,
   onEditEmployee,
+  onRefresh,
 }) => {
   if (error) {
     return (
@@ -55,7 +56,7 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
           </BaseBtn>
         </Box>,
       ]}
-      table={<EmpTable rows={rows} onEditRow={onEditEmployee} />}
+      table={<EmpTable rows={rows} onEditRow={onEditEmployee} onRefresh={onRefresh} />}
     />
   );
 };

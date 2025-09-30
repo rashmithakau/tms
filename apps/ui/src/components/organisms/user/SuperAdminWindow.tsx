@@ -38,7 +38,7 @@ const SuperAdminWindow: React.FC = () => {
     error: rejectionError 
   } = useTimesheetRejectionReasons();
 
-  // Users hooks (for Accounts view)
+  // Users hooks 
   const { users, isLoading: usersLoading, error: usersError, refreshUsers } = useUsers(UserRole.Admin);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -172,7 +172,7 @@ const SuperAdminWindow: React.FC = () => {
                 </BaseBtn>
               </Box>,
             ]}
-            table={<EmpTable rows={rows} />}
+            table={<EmpTable rows={rows} onRefresh={refreshUsers} />}
           />
         )}
 

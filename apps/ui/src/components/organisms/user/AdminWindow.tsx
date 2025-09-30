@@ -352,8 +352,9 @@ const AdminWindow: React.FC = () => {
             onStatusFilterChange={setStatusFilter}
             onAddEmployee={handleOpenPopup}
             onEditEmployee={(row) => { setEditingUser(row); setIsEditOpen(true); }}
+            onRefresh={refreshUsers}
           />
-          {/* Pass edit handlers down by intercepting EmpTable? We'll open popup from here by capturing selected row via global state */}
+          
           <CreateAccountPopup
             open={isPopupOpen}
             onClose={handleClosePopup}
