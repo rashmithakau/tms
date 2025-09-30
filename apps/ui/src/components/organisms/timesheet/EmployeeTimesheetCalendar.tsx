@@ -12,7 +12,6 @@ import { IEmployeeTimesheetCalendarProps } from '../../../interfaces/organisms/t
 import { DaySelection } from 'apps/ui/src/interfaces';
 
 const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
-  employeeId,
   employeeName,
   timesheets,
   originalTimesheets = [],
