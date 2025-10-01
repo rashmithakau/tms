@@ -22,7 +22,7 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
     data: ISubmissionStatusReport[],
     filters: { startDate?: string; endDate?: string }
   ): PDFDocument {
-    // Add professional header without date and period info
+    //header 
     this.addCustomHeader();
 
     // Add main data table
@@ -39,7 +39,7 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
     this.doc.rect(0, 0, this.pageWidth, 120)
       .fill(this.colors.primary);
 
-    // Report title (center)
+    // Report title 
     this.doc.fontSize(22)
       .fillColor('white')
       .font('Helvetica-Bold')
@@ -130,11 +130,7 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
         value: stats.missingCount,
         type: 'danger' as const
       },
-      { 
-        label: 'Compliance Rate', 
-        value: `${stats.complianceRate}%`,
-        type: 'info' as const
-      }
+     
     ];
 
     // Add summary cards with proper spacing
@@ -218,8 +214,7 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
   }
 
   private addComplianceBreakdown(stats: any): void {
-    // This method is now simplified - compliance breakdown and status distribution removed
-    // Only keeping the method for potential future use
+    
     this.currentY += 20;
   }
 
