@@ -82,7 +82,7 @@ const ResetChangePassword: React.FC = () => {
       });
       setMessage('Password reset successfully! Redirecting to login...');
 
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err: any) {
       const msg =
         err.response?.data?.message ||
