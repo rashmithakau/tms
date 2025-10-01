@@ -7,7 +7,11 @@ import { appAssert } from '../utils/validation';
 import { BAD_REQUEST, FORBIDDEN } from '../constants/http';
 import { UserRole, TimesheetStatus, REPORT_METADATA } from '@tms/shared';
 import { SubmissionStatusExcel, ApprovalStatusExcel, DetailedTimesheetExcel } from '../utils/report/excel';
-import { SubmissionStatusReport, ApprovalStatusReport, DetailedTimesheetReport } from '../utils/report/pdf';
+import { 
+  ProfessionalSubmissionStatusReport,
+  ProfessionalApprovalStatusReport,
+  ProfessionalDetailedTimesheetReport
+} from '../utils/report/pdf';
 import { getSupervisedUserIds } from '../utils/data/assignmentUtils';
 
 type ReportFormat = 'pdf' | 'excel';
@@ -158,19 +162,53 @@ export const generateSubmissionStatusReportHandler: RequestHandler = async (req,
     const status: 'Submitted' | 'Missing' = t.status === TimesheetStatus.Draft ? 'Missing' : 'Submitted';
     const projectIdSet = new Set<string>();
     const teamIdSet = new Set<string>();
-    (t.data || []).forEach((cat: any) => (cat.items || []).forEach((it: any) => {
-      if (it.projectId) projectIdSet.add(String(it.projectId));
-      if (it.teamId) teamIdSet.add(String(it.teamId));
-    }));
+    
+    // Calculate total hours from timesheet data
+    let totalHours = 0;
+    (t.data || []).forEach((cat: any) => {
+      (cat.items || []).forEach((it: any) => {
+        if (it.projectId) projectIdSet.add(String(it.projectId));
+        if (it.teamId) teamIdSet.add(String(it.teamId));
+        // Sum up daily hours
+        if (Array.isArray(it.hours)) {
+          totalHours += it.hours.reduce((sum: number, hours: number) => sum + (hours || 0), 0);
+        }
+      });
+    });
+    
+    // Calculate days late if applicable
+    const submissionDate = t.submittedAt || t.updatedAt;
+    const weekStart = new Date(t.weekStartDate);
+    const expectedSubmissionDate = new Date(weekStart);
+    expectedSubmissionDate.setDate(weekStart.getDate() + 7); // Due 1 week after week start
+    
+    let daysLate = 0;
+    if (submissionDate && status === 'Submitted') {
+      const actualSubmission = new Date(submissionDate);
+      if (actualSubmission > expectedSubmissionDate) {
+        daysLate = Math.ceil((actualSubmission.getTime() - expectedSubmissionDate.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    }
+
+    // Ensure submissionStatus is typed correctly
+    let submissionStatus: 'Submitted' | 'Late' | 'Missing';
+    if (status === 'Missing') {
+      submissionStatus = 'Missing';
+    } else if (daysLate > 0) {
+      submissionStatus = 'Late';
+    } else {
+      submissionStatus = 'Submitted';
+    }
+    
     return {
       employeeId: String(t.userId),
       employeeName: u?.name || 'Unknown',
       employeeEmail: u?.email || '',
       weekStartDate: formatDateForDisplay(t.weekStartDate),
-      submissionStatus: status,
-      submissionDate: undefined,
-      daysLate: 0,
-      totalHours: 0,
+      submissionStatus,
+      submissionDate: submissionDate ? formatDateForDisplay(submissionDate) : null,
+      daysLate: daysLate,
+      totalHours: Math.round(totalHours * 100) / 100, // Round to 2 decimal places
       projectIds: Array.from(projectIdSet),
       teamIds: Array.from(teamIdSet),
     };
@@ -201,7 +239,7 @@ export const generateSubmissionStatusReportHandler: RequestHandler = async (req,
     return res.json({ data: filtered });
   }
   if (format === 'pdf') {
-    const pdf = new SubmissionStatusReport();
+    const pdf = new ProfessionalSubmissionStatusReport();
     const doc = pdf.generate(filtered, { startDate, endDate });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=submission-status-report.pdf');
@@ -228,20 +266,32 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
   const userMap = new Map<string, { name: string; email: string }>();
   users.forEach((u: any) => userMap.set(String(u._id), { name: `${u.firstName} ${u.lastName}`, email: u.email }));
 
-  const data = timesheets.map((t: any) => ({
-    employeeId: String(t.userId),
-    employeeName: userMap.get(String(t.userId))?.name || 'Unknown',
-    employeeEmail: userMap.get(String(t.userId))?.email || '',
-    weekStartDate: formatDateForDisplay(t.weekStartDate),
-    timesheetId: String(t._id),
-    submissionDate: undefined,
-    approvalStatus: t.status,
-    approvalDate: undefined,
-    totalHours: 0,
-    rejectionReason: t.rejectionReason,
-    projectIds: Array.from(new Set((t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => String(it.projectId || ''))).filter(Boolean))),
-    teamIds: Array.from(new Set((t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => String(it.teamId || ''))).filter(Boolean))),
-  }));
+  const data = timesheets.map((t: any) => {
+    // Calculate total hours from timesheet data
+    let totalHours = 0;
+    (t.data || []).forEach((cat: any) => {
+      (cat.items || []).forEach((it: any) => {
+        if (Array.isArray(it.hours)) {
+          totalHours += it.hours.reduce((sum: number, hours: number) => sum + (hours || 0), 0);
+        }
+      });
+    });
+
+    return {
+      employeeId: String(t.userId),
+      employeeName: userMap.get(String(t.userId))?.name || 'Unknown',
+      employeeEmail: userMap.get(String(t.userId))?.email || '',
+      weekStartDate: formatDateForDisplay(t.weekStartDate),
+      timesheetId: String(t._id),
+      submissionDate: t.submittedAt ? formatDateForDisplay(t.submittedAt) : null,
+      approvalStatus: t.status,
+      approvalDate: t.approvedAt ? formatDateForDisplay(t.approvedAt) : null,
+      totalHours: Math.round(totalHours * 100) / 100,
+      rejectionReason: t.rejectionReason,
+      projectIds: Array.from(new Set((t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => String(it.projectId || ''))).filter(Boolean))),
+      teamIds: Array.from(new Set((t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => String(it.teamId || ''))).filter(Boolean))),
+    };
+  });
 
   if (format === 'json') {
     const allProjectIds = Array.from(new Set(data.flatMap((r: any) => r.projectIds)));
@@ -260,7 +310,7 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
     return res.json({ data: withNames });
   }
   if (format === 'pdf') {
-    const pdf = new ApprovalStatusReport();
+    const pdf = new ProfessionalApprovalStatusReport();
     const doc = pdf.generate(data, { startDate, endDate });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=approval-status-report.pdf');
@@ -310,6 +360,30 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
 
   const data = timesheets.map((t: any) => {
     const user = userMap.get(String(t.userId));
+    let totalTimesheetHours = 0;
+    
+    const categories = (t.data || []).map((cat: any) => ({
+      category: cat.category,
+      items: (cat.items || []).map((item: any) => {
+        // Calculate total hours for this item
+        const dailyHours = Array.isArray(item.hours) ? item.hours : [];
+        const itemTotalHours = dailyHours.reduce((sum: number, hours: number) => sum + (hours || 0), 0);
+        totalTimesheetHours += itemTotalHours;
+        
+        return {
+          work: item.work,
+          projectId: item.projectId,
+          projectName: item.projectId ? projectMap.get(String(item.projectId)) || item.projectId : '',
+          teamId: item.teamId,
+          teamName: item.teamId ? teamMap.get(String(item.teamId)) || item.teamId : '',
+          dailyHours: dailyHours,
+          dailyDescriptions: Array.isArray(item.descriptions) ? item.descriptions : [],
+          dailyStatus: Array.isArray(item.dailyStatus) ? item.dailyStatus : [],
+          totalHours: Math.round(itemTotalHours * 100) / 100,
+        };
+      }),
+    }));
+    
     return {
       employeeId: String(t.userId),
       employeeName: user?.name || 'Unknown',
@@ -317,24 +391,11 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
       weekStartDate: formatDateForDisplay(t.weekStartDate),
       timesheetId: String(t._id),
       status: t.status,
-      submissionDate: undefined,
-      approvalDate: undefined,
+      submissionDate: t.submittedAt ? formatDateForDisplay(t.submittedAt) : null,
+      approvalDate: t.approvedAt ? formatDateForDisplay(t.approvedAt) : null,
       rejectionReason: t.rejectionReason,
-      totalHours: 0,
-      categories: (t.data || []).map((cat: any) => ({
-        category: cat.category,
-        items: (cat.items || []).map((item: any) => ({
-          work: item.work,
-          projectId: item.projectId,
-          projectName: item.projectId ? projectMap.get(String(item.projectId)) || item.projectId : '',
-          teamId: item.teamId,
-          teamName: item.teamId ? teamMap.get(String(item.teamId)) || item.teamId : '',
-          dailyHours: Array.isArray(item.hours) ? item.hours : [],
-          dailyDescriptions: Array.isArray(item.descriptions) ? item.descriptions : [],
-          dailyStatus: Array.isArray(item.dailyStatus) ? item.dailyStatus : [],
-          totalHours: 0,
-        })),
-      })),
+      totalHours: Math.round(totalTimesheetHours * 100) / 100,
+      categories: categories,
     };
   });
 
@@ -342,7 +403,7 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
     return res.json({ data });
   }
   if (format === 'pdf') {
-    const pdf = new DetailedTimesheetReport();
+    const pdf = new ProfessionalDetailedTimesheetReport();
     const doc = pdf.generate(data, { startDate, endDate });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=detailed-timesheet-report.pdf');

@@ -1,22 +1,23 @@
 import { 
-  SubmissionStatusReport, 
-  ApprovalStatusReport, 
-  DetailedTimesheetReport 
+  ProfessionalApprovalStatusReport, 
+  ProfessionalDetailedTimesheetReport, 
+  ProfessionalSubmissionStatusReport 
+  
 } from './generator';
 import { 
   ISubmissionStatusReport, 
   IApprovalStatusReport, 
-  ITimesheetReportData 
+  IDetailedTimesheetReport 
 } from '../../../interfaces';
 
 export class PDFReportGenerator {
-  private generator: SubmissionStatusReport | ApprovalStatusReport | DetailedTimesheetReport | null = null;
+  private generator: ProfessionalSubmissionStatusReport | ProfessionalApprovalStatusReport | ProfessionalDetailedTimesheetReport | null = null;
 
   generateSubmissionStatusReport(
     data: ISubmissionStatusReport[], 
     filters?: { startDate?: string; endDate?: string }
   ): void {
-    this.generator = new SubmissionStatusReport();
+    this.generator = new ProfessionalSubmissionStatusReport();
     this.generator.generate(data, filters);
   }
 
@@ -24,15 +25,15 @@ export class PDFReportGenerator {
     data: IApprovalStatusReport[], 
     filters?: { startDate?: string; endDate?: string }
   ): void {
-    this.generator = new ApprovalStatusReport();
+    this.generator = new ProfessionalApprovalStatusReport();
     this.generator.generate(data, filters);
   }
 
   generateDetailedTimesheetReport(
-    data: ITimesheetReportData[], 
+    data: IDetailedTimesheetReport[], 
     filters?: { startDate?: string; endDate?: string }
   ): void {
-    this.generator = new DetailedTimesheetReport();
+    this.generator = new ProfessionalDetailedTimesheetReport();
     this.generator.generate(data, filters);
   }
 

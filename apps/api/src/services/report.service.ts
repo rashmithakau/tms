@@ -10,6 +10,7 @@ import {
   ITimesheetReportData, 
   ISubmissionStatusReport, 
   IApprovalStatusReport,
+  IDetailedTimesheetReport,
   ReportType,
   ReportFormat
 } from '../interfaces/report';
@@ -369,8 +370,28 @@ export class ReportService {
       });
       return await generator.generateBuffer();
     } else {
+      // Transform data for PDF generator to match IDetailedTimesheetReport interface
+      const pdfReportData = reportData.map(data => ({
+        employeeId: data.employeeId,
+        employeeName: data.employeeName,
+        employeeEmail: data.employeeEmail,
+        weekStartDate: typeof data.weekStartDate === 'string' ? data.weekStartDate : new Date(data.weekStartDate).toISOString().slice(0, 10),
+        status: data.status,
+        categories: data.categories.map(category => ({
+          category: category.category,
+          items: category.items.map(item => ({
+            work: item.work,
+            projectName: item.projectName,
+            teamName: item.teamName,
+            dailyHours: Array.isArray(item.dailyHours) ? item.dailyHours.map(h => typeof h === 'number' ? h : Number(h) || 0) : Array(7).fill(0),
+            totalHours: item.totalHours
+          }))
+        })),
+        totalHours: data.totalHours
+      }));
+
       const generator = new PDFReportGenerator();
-      generator.generateDetailedTimesheetReport(reportData, {
+      generator.generateDetailedTimesheetReport(pdfReportData, {
         startDate: filter.startDate?.toString(),
         endDate: filter.endDate?.toString()
       });
