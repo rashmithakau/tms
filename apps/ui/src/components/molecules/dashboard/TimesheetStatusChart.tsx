@@ -1,7 +1,10 @@
 import React, { useMemo } from 'react';
 import { Paper, Box, Typography, Alert } from '@mui/material';
 import { PieChart } from '../../atoms/dashboard';
-import { ITimesheetStatusChartProps, IPieChartData } from '../../../interfaces/dashboard';
+import {
+  ITimesheetStatusChartProps,
+  IPieChartData,
+} from '../../../interfaces/dashboard';
 import { Warning, BarChart } from '@mui/icons-material';
 import PageLoading from '../../molecules/common/loading/PageLoading';
 
@@ -15,24 +18,24 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
   year = 2025,
   title,
   loading = false,
-  error = null
+  error = null,
 }) => {
   const chartTitle = title || `Timesheet Status - ${month} ${year}`;
 
   if (loading) {
     return (
-      <Paper 
-        sx={{ 
-          p: 3, 
+      <Paper
+        sx={{
+          p: 3,
           height: '100%',
           border: '1px solid',
           borderColor: 'divider',
-          position: 'relative'
+          position: 'relative',
         }}
       >
-        <PageLoading 
-          variant="overlay" 
-          message="Loading chart data..." 
+        <PageLoading
+          variant="overlay"
+          message="Loading chart data..."
           size="medium"
         />
       </Paper>
@@ -42,14 +45,14 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
   // Error state
   if (error) {
     return (
-      <Paper 
-        sx={{ 
-          p: 3, 
+      <Paper
+        sx={{
+          p: 3,
           height: '100%',
           border: '1px solid',
           borderColor: 'divider',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
       >
         <Box display="flex" alignItems="center" gap={1} mb={3}>
@@ -58,16 +61,16 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
             {chartTitle}
           </Typography>
         </Box>
-        
+
         <Box flex={1} display="flex" alignItems="center">
-          <Alert 
-            severity="error" 
+          <Alert
+            severity="error"
             icon={<Warning />}
-            sx={{ 
+            sx={{
               width: '100%',
-              '& .MuiAlert-message': { 
-                width: '100%' 
-              }
+              '& .MuiAlert-message': {
+                width: '100%',
+              },
             }}
           >
             <Typography variant="body2">
@@ -94,7 +97,7 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
       {
         label: 'Late Submission',
         value: lateCount,
-        color: '#F44336', // Red
+        color: '#9C27B0', // Purple
       },
       {
         label: 'Approved',
@@ -104,32 +107,40 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
       {
         label: 'Rejected',
         value: rejectedCount,
-        color: '#9C27B0', // Purple
+        color: '#F44336', // Red
       },
     ];
 
-    return data.filter(item => item.value > 0);
+    return data.filter((item) => item.value > 0);
   }, [submittedCount, pendingCount, lateCount, approvedCount, rejectedCount]);
 
   const totalTimesheets = useMemo(() => {
-    return submittedCount + pendingCount + lateCount + approvedCount + rejectedCount;
+    return (
+      submittedCount + pendingCount + lateCount + approvedCount + rejectedCount
+    );
   }, [submittedCount, pendingCount, lateCount, approvedCount, rejectedCount]);
 
   if (totalTimesheets === 0) {
     return (
-      <Paper 
-        sx={{ 
-          p: 3, 
+      <Paper
+        sx={{
+          p: 3,
           height: '100%',
           border: '1px solid',
           borderColor: 'divider',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
         }}
       >
-        <Typography variant="h6" component="h3" gutterBottom fontWeight="bold" textAlign="center">
+        <Typography
+          variant="h6"
+          component="h3"
+          gutterBottom
+          fontWeight="bold"
+          textAlign="center"
+        >
           {chartTitle}
         </Typography>
         <Typography variant="body2" color="text.secondary" textAlign="center">
@@ -140,12 +151,12 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
   }
 
   return (
-    <Paper 
-      sx={{ 
-        p: 3, 
+    <Paper
+      sx={{
+        p: 3,
         height: '100%',
         border: '1px solid',
-        borderColor: 'divider'
+        borderColor: 'divider',
       }}
     >
       <Box display="flex" flexDirection="column" height="100%">
@@ -157,14 +168,27 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
           showLegend={false}
           showTooltip={true}
         />
-        
+
         {/* Summary Statistics */}
         <Box mt={2} textAlign="center">
-          <Box display="flex" justifyContent="center" gap={2} mt={1} flexWrap="wrap">
+          <Box
+            display="flex"
+            justifyContent="center"
+            gap={2}
+            mt={1}
+            flexWrap="wrap"
+          >
             {chartData.map((item) => {
-              const percentage = ((item.value / totalTimesheets) * 100).toFixed(1);
+              const percentage = ((item.value / totalTimesheets) * 100).toFixed(
+                1
+              );
               return (
-                <Box key={item.label} display="flex" alignItems="center" gap={0.5}>
+                <Box
+                  key={item.label}
+                  display="flex"
+                  alignItems="center"
+                  gap={0.5}
+                >
                   <Box
                     sx={{
                       width: 12,
