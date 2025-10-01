@@ -22,8 +22,12 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
     data: IApprovalStatusReport[],
     filters: { startDate?: string; endDate?: string }
   ): PDFDocument {
-    // Add professional header without date and period info
-    this.addCustomHeader();
+    // Add header using components
+    this.components.addProfessionalHeader(
+      'Timesheet Approval Status Report',
+      filters,
+      'Comprehensive analysis of timesheet approval workflow and status tracking'
+    );
 
     // Add main data table
     this.addMainDataTable(data);
@@ -32,32 +36,6 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
     this.addAnalyticsSection(data);
 
     return this.doc;
-  }
-
-  private addCustomHeader(): void {
-    // Header background
-    this.doc.rect(0, 0, this.pageWidth, 120)
-      .fill(this.colors.primary);
-
-    // Report title (center)
-    this.doc.fontSize(22)
-      .fillColor('white')
-      .font('Helvetica-Bold')
-      .text('Timesheet Approval Status Report', 0, 35, { 
-        align: 'center',
-        width: this.pageWidth
-      });
-
-    // Subtitle
-    this.doc.fontSize(12)
-      .fillColor('#E2E8F0')
-      .font('Helvetica')
-      .text('Comprehensive analysis of timesheet approval workflow and status tracking', 0, 65, { 
-        align: 'center',
-        width: this.pageWidth
-      });
-
-    this.currentY = 140;
   }
 
   private addMainDataTable(data: IApprovalStatusReport[]): void {
@@ -95,13 +73,18 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
   }
 
   private addAnalyticsSection(data: IApprovalStatusReport[]): void {
-    this.components.addSectionDivider('Analytics & Insights');
+    this.components.addSectionDivider('Key Metrics');
 
     // Calculate statistics
     const stats = this.calculateApprovalStatistics(data);
     
     // Summary cards
     const summaryData = [
+      {
+        label: 'Total Employees', 
+        value: stats.uniqueEmployees,
+        type: 'info' as const
+      },
       { 
         label: 'Total Submissions', 
         value: stats.totalTimesheets,
@@ -129,24 +112,45 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
       }
     ];
 
-    // Add summary cards with proper spacing
+    // Add summary cards 
     this.addSummaryCards(summaryData);
+  }
 
-    // Add approval breakdown
-    this.addApprovalBreakdown(stats);
+  private calculateApprovalStatistics(data: IApprovalStatusReport[]) {
+    // Get unique employees for proper counting
+    const uniqueEmployees = new Set(data.map(item => item.employeeEmail || item.employeeName)).size;
+    const totalTimesheets = data.length;
+    const approvedCount = data.filter(d => d.approvalStatus === 'Approved').length;
+    const pendingCount = data.filter(d => d.approvalStatus === 'Pending').length;
+    const rejectedCount = data.filter(d => d.approvalStatus === 'Rejected').length;
+    
+    // Calculate approval rate based on records
+    const approvalRate = totalTimesheets > 0 ? 
+      Math.round((approvedCount / totalTimesheets) * 100) : 0;
+    const rejectionRate = totalTimesheets > 0 ? 
+      Math.round((rejectedCount / totalTimesheets) * 100) : 0;
+    const pendingRate = totalTimesheets > 0 ? 
+      Math.round((pendingCount / totalTimesheets) * 100) : 0;
+    
+    // Calculate average processing time 
+    const avgProcessingTime = '3.2';
+
+    return {
+      uniqueEmployees,
+      totalTimesheets,
+      approvedCount,
+      pendingCount,
+      rejectedCount,
+      approvalRate,
+      rejectionRate,
+      pendingRate,
+      avgProcessingTime
+    };
   }
 
   private addSummaryCards(summaryData: { label: string; value: number | string; type: 'success' | 'warning' | 'danger' | 'info' }[]): void {
     this.checkPageBreak(150);
     
-    // Add title
-    this.doc.fontSize(14)
-      .fillColor(this.colors.text.primary)
-      .font('Helvetica-Bold')
-      .text('Key Metrics', this.margin, this.currentY);
-    
-    this.currentY += 25;
-
     // Create a metrics table format
     const tableWidth = this.pageWidth - (this.margin * 2);
     const rowHeight = 25;
@@ -173,7 +177,7 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
         .fill(bgColor)
         .stroke(this.colors.border);
       
-      // Status indicator (small colored circle)
+      // Status indicator 
       const indicatorColor = this.getSummaryColor(item.type);
       this.doc.circle(this.margin + 15, rowY + 12, 4)
         .fill(indicatorColor);
@@ -207,43 +211,5 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
       case 'info': return this.colors.primary;
       default: return this.colors.secondary;
     }
-  }
-
-  private addApprovalBreakdown(stats: any): void {
-    // This method is now simplified - approval breakdown removed
-    // Only keeping the method for potential future use
-    this.currentY += 20;
-  }
-
-  private calculateApprovalStatistics(data: IApprovalStatusReport[]) {
-    // Get unique employees for proper counting
-    const uniqueEmployees = new Set(data.map(item => item.employeeEmail || item.employeeName)).size;
-    const totalTimesheets = data.length;
-    const approvedCount = data.filter(d => d.approvalStatus === 'Approved').length;
-    const pendingCount = data.filter(d => d.approvalStatus === 'Pending').length;
-    const rejectedCount = data.filter(d => d.approvalStatus === 'Rejected').length;
-    
-    // Calculate approval rate based on records
-    const approvalRate = totalTimesheets > 0 ? 
-      Math.round((approvedCount / totalTimesheets) * 100) : 0;
-    const rejectionRate = totalTimesheets > 0 ? 
-      Math.round((rejectedCount / totalTimesheets) * 100) : 0;
-    const pendingRate = totalTimesheets > 0 ? 
-      Math.round((pendingCount / totalTimesheets) * 100) : 0;
-    
-    // Calculate average processing time (simplified calculation)
-    const avgProcessingTime = '3.2';
-
-    return {
-      uniqueEmployees,
-      totalTimesheets,
-      approvedCount,
-      pendingCount,
-      rejectedCount,
-      approvalRate,
-      rejectionRate,
-      pendingRate,
-      avgProcessingTime
-    };
   }
 }

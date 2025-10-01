@@ -25,12 +25,12 @@ export class ProfessionalPDFComponents {
     private pageWidth: number
   ) {}
 
-  // Professional report header with company branding
+  //report header with company branding
   addProfessionalHeader(
     title: string,
     filters: { startDate?: string; endDate?: string },
     subtitle?: string,
-    companyInfo?: { name?: string; logo?: string; address?: string }
+    
   ): void {
     const startY = this.getCurrentY();
     
@@ -38,22 +38,7 @@ export class ProfessionalPDFComponents {
     this.doc.rect(0, 0, this.pageWidth, 120)
       .fill(this.colors.primary);
 
-    // Company info section (left side)
-    if (companyInfo?.name) {
-      this.doc.fontSize(16)
-        .fillColor('white')
-        .font('Helvetica-Bold')
-        .text(companyInfo.name, this.margin, 25);
-      
-      if (companyInfo.address) {
-        this.doc.fontSize(10)
-          .fillColor('#E2E8F0')
-          .font('Helvetica')
-          .text(companyInfo.address, this.margin, 50);
-      }
-    }
-
-    // Report title (center)
+    // Report title 
     this.doc.fontSize(22)
       .fillColor('white')
       .font('Helvetica-Bold')
@@ -72,21 +57,7 @@ export class ProfessionalPDFComponents {
         });
     }
 
-    // Date and filter info (right side)
-    const currentDate = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-    
-    this.doc.fontSize(10)
-      .fillColor('white')
-      .text(`Generated: ${currentDate}`, this.pageWidth - 200, 25, {
-        width: 150,
-        align: 'right'
-      });
-
-    // Filter information
+    // Filter information 
     let filterText = '';
     if (filters.startDate && filters.endDate) {
       filterText = `Period: ${this.formatDateProfessional(filters.startDate)} - ${this.formatDateProfessional(filters.endDate)}`;
@@ -98,17 +69,17 @@ export class ProfessionalPDFComponents {
       filterText = 'All Records';
     }
 
-    this.doc.fontSize(9)
+    this.doc.fontSize(10)
       .fillColor('#E2E8F0')
-      .text(filterText, this.pageWidth - 200, 45, {
-        width: 150,
-        align: 'right'
+      .text(filterText, 0, 85, {
+        align: 'center',
+        width: this.pageWidth
       });
 
     this.setCurrentY(140);
   }
 
-  // Professional table with enhanced styling
+  //table styling
   addProfessionalTable(
     headers: string[],
     data: string[][],
@@ -147,7 +118,7 @@ export class ProfessionalPDFComponents {
       .fill(this.colors.border);
 
     // Header text
-    this.doc.fontSize(11)
+    this.doc.fontSize(8)
       .fillColor('white')
       .font('Helvetica-Bold');
 
@@ -200,7 +171,7 @@ export class ProfessionalPDFComponents {
           textColor = this.getStatusColor(cellData);
         }
 
-        // Handle long text by using smaller font or truncating
+       
         let displayText = cellData;
         let cellFontSize = fontSize;
         
@@ -235,7 +206,7 @@ export class ProfessionalPDFComponents {
     this.setCurrentY(this.getCurrentY() + 10);
   }
 
-  // Enhanced summary section with visual elements
+  //summary section 
   addProfessionalSummary(
     summaryData: { label: string; value: number | string; type?: 'success' | 'warning' | 'danger' | 'info' }[],
     title: string = 'Summary'
@@ -294,42 +265,9 @@ export class ProfessionalPDFComponents {
     this.setCurrentY(this.getCurrentY() + Math.ceil(summaryData.length / itemsPerRow) * 35 + 20);
   }
 
-  // Professional footer with page numbers
-  addProfessionalFooter(pageNumber: number, totalPages?: number): void {
-    const footerY = this.doc.page.height - 50;
-    
-    // Footer line
-    this.doc.rect(this.margin, footerY - 10, 
-      this.pageWidth - (this.margin * 2), 1)
-      .fill(this.colors.border);
 
-    // Page number
-    let pageText = `Page ${pageNumber}`;
-    if (totalPages) {
-      pageText += ` of ${totalPages}`;
-    }
 
-    this.doc.fontSize(9)
-      .fillColor(this.colors.text.muted)
-      .font('Helvetica')
-      .text(pageText, 0, footerY, {
-        align: 'center',
-        width: this.pageWidth
-      });
-
-    // Company info in footer
-    this.doc.text('Confidential - For Internal Use Only', this.margin, footerY, {
-      align: 'left'
-    });
-
-    this.doc.text(`Generated at ${new Date().toLocaleTimeString()}`, 
-      this.pageWidth - 150, footerY, {
-        align: 'right',
-        width: 100
-      });
-  }
-
-  // Add professional section divider
+  //section divider
   addSectionDivider(title?: string): void {
     this.checkPageBreak(30);
     
