@@ -12,6 +12,7 @@ import WeekNavigator from '../../atoms/common/navigation/WeekNavigator';
 import TimesheetActionButtons from '../../molecules/timesheet/TimesheetActionButtons';
 import { useTimesheetWeekNavigation } from '../../../hooks/navigation/useTimesheetWeekNavigation';
 import { useTimesheetSubmission } from '../../../hooks/timesheet/useTimesheetSubmission';
+import { green } from '@mui/material/colors';
 
 const MyTimesheetsWindow: React.FC = () => {
   const { rows, isLoading, refresh } = useTimesheets();

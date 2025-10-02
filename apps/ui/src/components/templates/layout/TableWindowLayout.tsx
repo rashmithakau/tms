@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material';
 import WindowLayout from './WindowLayout';
 import { useTheme } from '@mui/material/styles';
 import { ITableWindowLayoutProps } from '../../../interfaces/layout';
+import { green, red } from '@mui/material/colors';
 
 const TableWindowLayout: React.FC<ITableWindowLayoutProps> = ({
   title,
@@ -27,8 +28,7 @@ const TableWindowLayout: React.FC<ITableWindowLayoutProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          gap: 2,
-          mb: 2,
+          gap: 2
         }}
       >
         <Box sx={{ mt: 2 }}>{filter}</Box>
@@ -37,9 +37,10 @@ const TableWindowLayout: React.FC<ITableWindowLayoutProps> = ({
             <React.Fragment key={index}>{button}</React.Fragment>
           ))}
         </Box>
-      </Box>
+      </Box> 
+  
 
-      {table}
+       {table} 
     </WindowLayout>
   );
 };

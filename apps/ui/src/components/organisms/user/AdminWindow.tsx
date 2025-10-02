@@ -295,7 +295,7 @@ const AdminWindow: React.FC = () => {
   return (
     <>
       {selectedBtn === 'Dashboard' && (
-        <Box>
+        <Box sx={{height:"100%"}}>
           <AdminDashboardWindow
             statsData={dashboardStatsData}
             statsLoading={statsLoading}
@@ -340,7 +340,7 @@ const AdminWindow: React.FC = () => {
       )}
 
       {selectedBtn === 'Employee' && (
-        <Box>
+        <Box sx={{height:"100%"}}>
           <EmployeeSection
             error={error || undefined}
             isLoading={isLoading}
@@ -371,7 +371,7 @@ const AdminWindow: React.FC = () => {
       )}
 
       {selectedBtn === 'Projects' && (
-        <Box>
+        <Box sx={{height:"100%"}}>
           <ProjectsSection
             error={error || undefined}
             isLoading={isLoading}
@@ -389,7 +389,7 @@ const AdminWindow: React.FC = () => {
       )}
 
       {selectedBtn === 'Teams' && (
-        <Box>
+        <Box sx={{height:"100%"}}>
           <TeamsSection
             error={error || undefined}
             isLoading={isLoading}
@@ -405,21 +405,15 @@ const AdminWindow: React.FC = () => {
       )}
 
       {selectedBtn === 'My Timesheets' && (
-        <Box>
           <MyTimesheetsWindow />
-        </Box>
       )}
 
       {selectedBtn === 'Review Timesheets' && (
-        <Box>
           <ReviewTimesheetsWindow />
-        </Box>
       )}
 
       {selectedBtn === 'Reports' && (
-        <Box>
           <ReportDashboard />
-        </Box>
       )}
     </>
   );
