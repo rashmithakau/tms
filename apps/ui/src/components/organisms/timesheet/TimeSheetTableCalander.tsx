@@ -8,6 +8,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import { TimesheetStatus } from '@tms/shared';
 import theme from '../../../styles/theme';
 import { useTimesheetDataManagement } from '../../../hooks/timesheet/useTimesheetDataManagement';
 import { useTimesheetCellEditing } from '../../../hooks/timesheet/useTimesheetCellEditing';
@@ -17,7 +18,6 @@ import TimesheetTableHeader from '../../molecules/timesheet/TimesheetTableHeader
 import TimesheetTableRow from '../../molecules/timesheet/TimesheetTableRow';
 import DescriptionEditor from '../../molecules/common/dialog/DescriptionEditor';
 import PageLoading from '../../molecules/common/loading/PageLoading';
-
 
 const TimeSheetTableCalendar: React.FC = () => {
 
@@ -38,7 +38,7 @@ const TimeSheetTableCalendar: React.FC = () => {
   const { calcRowTotal, columnTotals, grandTotal } = useTimesheetCalculations(data);
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       {error && (
         <Box sx={{ m: 2 }}>
           <Typography color="error">{error}</Typography>
@@ -47,13 +47,53 @@ const TimeSheetTableCalendar: React.FC = () => {
       {isLoading ? (
         <PageLoading variant="inline" message="Loading timesheet..." />
       ) : (
-      <TableContainer>
-        <Table>
+        <>
+          <Box sx={{ mb: 2, display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+              Status :
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#4caf50', 
+                }}
+              />
+              <Typography variant="body2">Approved</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ff9800', 
+                }}
+              />
+              <Typography variant="body2">Pending</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#f44336', 
+                }}
+              />
+              <Typography variant="body2">Rejected</Typography>
+            </Box>
+          </Box>
+
+          <TableContainer sx={{ width: '100%' }}>
+        <Table sx={{ width: '100%' }}>
           <TimesheetTableHeader days={days} />
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={9} align="left" sx={{ py: 4, textAlign: 'left' }}>
                   <Typography color="textSecondary">
                     No timesheet data available. Please select work activities to get started.
                   </Typography>
@@ -84,17 +124,16 @@ const TimeSheetTableCalendar: React.FC = () => {
               ))
             )}
 
-            {/* Total Row */}
             {data.length > 0 && (
               <TableRow sx={{ backgroundColor: theme.palette.grey[200] }}>
-                <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                <TableCell />
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>Total</TableCell>
+                <TableCell sx={{ paddingLeft: '16px', paddingRight: '16px' }} />
                 {columnTotals.map((total, colIndex) => (
-                  <TableCell key={colIndex} align="center" sx={{ fontWeight: 'bold' }}>
+                  <TableCell key={colIndex} align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>
                     {total}
                   </TableCell>
                 ))}
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>
                   {grandTotal}
                 </TableCell>
               </TableRow>
@@ -102,9 +141,9 @@ const TimeSheetTableCalendar: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+        </>
       )}
 
-      {/* Description Editor */}
       <DescriptionEditor
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}

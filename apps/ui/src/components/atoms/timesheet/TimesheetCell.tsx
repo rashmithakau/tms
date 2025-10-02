@@ -32,10 +32,15 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
     <div
       style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
         flexDirection: 'column',
         gap: '4px',
+        width: '100%',
+        position: 'relative',
+        minHeight: '40px',
+        marginLeft: '0px',
+        paddingLeft: '0px',
       }}
     >
       {/* Hour input/display with description icon */}
@@ -43,16 +48,16 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: '80px',
+          justifyContent: 'flex-start',
+          width: '100%',
         }}
       >
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: '4px',
+            justifyContent: 'flex-start',
+            gap: '6px',
           }}
         >
           {/* Hour input/display */}
@@ -63,11 +68,26 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
               onKeyDown={onCellKeyDown}
               autoFocus
               sx={{
-                width: 34,
+                width: '50px',
+                minWidth: '50px',
+                maxWidth: '50px',
+                height: '20px',
                 borderRadius: 1,
-                textAlign: 'center',
+                textAlign: 'left',
                 fontSize: '14px',
                 backgroundColor: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                '& input': {
+                  textAlign: 'left',
+                  paddingLeft: '0px',
+                  paddingRight: '0px',
+                  paddingTop: '0px',
+                  paddingBottom: '0px',
+                  width: '100%',
+                  height: '20px',
+                  lineHeight: '20px',
+                },
               }}
               placeholder="00.00"
             />
@@ -77,53 +97,66 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
               style={{
                 cursor: isEditable ? 'pointer' : 'default',
                 opacity: isEditable ? 1 : 0.7,
+                textAlign: 'left',
+                width: '50px',
+                height: '20px',
+                paddingLeft: '0px',
+                paddingRight: '0px',
+                paddingTop: '0px',
+                paddingBottom: '0px',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '14px',
+                lineHeight: '20px',
               }}
             >
               {hour}
             </div>
           )}
 
-          {/* Description icon */}
-          {isEditable ? (
-            <Tooltip title={description || 'Add description'}>
+          {/* Description icon - always visible */}
+          <Tooltip 
+            title={description ? `Description: ${description}` : ''}
+            arrow
+            placement="top"
+            disableHoverListener={!description}
+          >
+            <span>
               <IconButton
                 size="small"
                 onClick={onDescriptionClick}
                 disabled={!isEditable}
+                sx={{
+                  padding: '0px',
+                  minWidth: 'auto',
+                  width: '20px',
+                  height: '20px',
+                }}
               >
                 <EditNoteIcon
                   fontSize="small"
                   sx={{
-                    color: 'lightgray',
+                    color: description ? 'text.secondary' : 'lightgray',
                     opacity: 1,
                   }}
                 />
               </IconButton>
-            </Tooltip>
-          ) : (
-            description && (
-              <Tooltip title={description}>
-                <EditNoteIcon
-                  fontSize="small"
-                  sx={{ color: 'text.secondary' }}
-                />
-              </Tooltip>
-            )
+            </span>
+          </Tooltip>
+
+          {/* Status indicator dot - positioned after the description button */}
+          {parseFloat(hour) > 0 && dayStatus !== TimesheetStatus.Draft && (
+            <div
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: getStatusColor(dayStatus),
+              }}
+            />
           )}
         </div>
       </div>
-
-      {/* Status indicator dot */}
-      {parseFloat(hour) > 0 && dayStatus !== TimesheetStatus.Draft && (
-        <div
-          style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: getStatusColor(dayStatus),
-          }}
-        />
-      )}
     </div>
   );
 };

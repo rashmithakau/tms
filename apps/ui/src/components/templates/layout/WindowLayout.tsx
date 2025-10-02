@@ -8,22 +8,21 @@ interface WindowLayoutProps {
 
 const WindowLayout: React.FC<WindowLayoutProps> = ({ titleBar, children }) => {
   return (
-    <Box sx={{ padding: 1, height: '90vh' }}>
       <Box
         sx={{
-          height: 'calc(90vh - 16px)',
+          height: '100%',
           backgroundColor: 'white',
-          padding: 2,
-          margin: 1,
           borderRadius: 3,
           boxShadow: 1,
-          overflow: 'auto'
+          overflow: 'auto',
         }}
       >
+        <Box sx={{ padding: 2}}>
         {titleBar}
         {children}
+        </Box>
+
       </Box>
-    </Box>
   );
 };
 

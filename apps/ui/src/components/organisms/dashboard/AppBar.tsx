@@ -150,6 +150,7 @@ export default function CustomAppBar({
             endIcon={<KeyboardArrowDownIcon />}
             sx={{
               textTransform: 'none',
+              marginLeft: '16px',
             }}
             onClick={handleClick}
           >

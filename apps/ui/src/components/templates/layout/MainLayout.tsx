@@ -4,6 +4,8 @@ import CustomAppBar from '../../organisms/dashboard/AppBar';
 import NavDrawer from '../../organisms/dashboard/NavDrawer';
 import { useTheme } from '@mui/material/styles'; 
 import { IMainLayoutProps } from '../../../interfaces/layout';
+import { green, red } from '@mui/material/colors';
+import { MyTimesheetsWindow } from '../../organisms';
 
 export default function MainLayout({ children,items}: IMainLayoutProps) {
   const [open, setOpen] = useState(false);
@@ -12,9 +14,7 @@ export default function MainLayout({ children,items}: IMainLayoutProps) {
     setOpen(isOpen);
   };
 
-
   const theme = useTheme(); 
- 
 
   return (
     <Box sx={{ display: 'flex', height: '100vh'}}>
@@ -29,7 +29,12 @@ export default function MainLayout({ children,items}: IMainLayoutProps) {
           overflow: 'auto'
         }}
       >
-        {children}
+        <Box sx={{height:"calc(100vh - 108px)", padding: 3 }}>
+        <Box sx={{height:"100%" }}>
+{children}
+        </Box>
+        </Box>
+
       </Box>
     </Box>
   );

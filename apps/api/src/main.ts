@@ -16,8 +16,6 @@ import dashboardRoutes from './routes/dashboard.route';
 import { socketService } from './config/socket';
 import { CronJobService } from './services/cronJob.service';
 
-
-
 const port = Number(PORT);
 
 const app = express();
