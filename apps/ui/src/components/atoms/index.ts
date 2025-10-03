@@ -1,8 +1,7 @@
-// Common atoms
-export * from './common'
 
-// Domain-specific atoms
+export * from './common'
 export * from './dashboard'
 export * from './landing'
+export * from './profile'
 export * from './report'
 export * from './timesheet'
