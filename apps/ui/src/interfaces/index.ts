@@ -39,3 +39,5 @@ export * from './navigation';
 
 // State interfaces
 export * from './state';
+
+export * from './profile';
