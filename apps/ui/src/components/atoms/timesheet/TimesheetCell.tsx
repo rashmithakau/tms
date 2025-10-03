@@ -3,6 +3,7 @@ import { InputBase, IconButton, Tooltip } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import { TimesheetCellProps } from '../../../interfaces';
 import { TimesheetStatus } from '@tms/shared';
+import StatusDot from '../common/StatusDot';
 
 const TimesheetCell: React.FC<TimesheetCellProps> = ({
   hour,
@@ -32,34 +33,13 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
     <div
       style={{
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'flex-start',
-        flexDirection: 'column',
-        gap: '4px',
+        gap: '6px',
         width: '100%',
         position: 'relative',
-        minHeight: '40px',
-        marginLeft: '0px',
-        paddingLeft: '0px',
       }}
     >
-      {/* Hour input/display with description icon */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          width: '100%',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: '6px',
-          }}
-        >
           {/* Hour input/display */}
           {isEditing ? (
             <InputBase
@@ -146,17 +126,8 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
 
           {/* Status indicator dot - positioned after the description button */}
           {parseFloat(hour) > 0 && dayStatus !== TimesheetStatus.Draft && (
-            <div
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: getStatusColor(dayStatus),
-              }}
-            />
+            <StatusDot color={getStatusColor(dayStatus)} />
           )}
-        </div>
-      </div>
     </div>
   );
 };

@@ -16,6 +16,7 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
   isSelectWorkDisabled,
   isActivityPopupOpen,
   onCloseActivityPopup,
+  onActivitySuccess,
 }) => {
   return (
     <Box
@@ -56,6 +57,7 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
       <SelectActivityPopup
         open={isActivityPopupOpen}
         onClose={onCloseActivityPopup}
+        onSuccess={onActivitySuccess}
       />
     </Box>
   );

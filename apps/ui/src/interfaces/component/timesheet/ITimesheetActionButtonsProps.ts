@@ -7,4 +7,5 @@ export interface ITimesheetActionButtonsProps {
   isSelectWorkDisabled: boolean;
   isActivityPopupOpen: boolean;
   onCloseActivityPopup: () => void;
+  onActivitySuccess: (customActivity?: string | null) => void;
 }

@@ -23,6 +23,7 @@ const MyTimesheetsWindow: React.FC = () => {
     isActivityPopupOpen,
     handleActivityOpenPopup,
     handleActivityClosePopup,
+    handleActivitySuccess,
     handleSubmit,
     handleSaveAsDraft,
     isSubmitDisabled,
@@ -70,6 +71,7 @@ const MyTimesheetsWindow: React.FC = () => {
                 isSelectWorkDisabled={isSelectWorkDisabled}
                 isActivityPopupOpen={isActivityPopupOpen}
                 onCloseActivityPopup={handleActivityClosePopup}
+                onActivitySuccess={handleActivitySuccess}
               />
             </Box>,
           ]}

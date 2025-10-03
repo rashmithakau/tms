@@ -119,7 +119,7 @@ const SuperAdminWindow: React.FC = () => {
 
   if (selectedBtn === 'Dashboard') {
     return (
-      <Box>
+      <>
         <AdminDashboardWindow
           statsData={dashboardStatsData}
           statsLoading={statsLoading}
@@ -144,14 +144,14 @@ const SuperAdminWindow: React.FC = () => {
           role={UserRole.Admin}
           onSuccess={handleAccountCreated}
         />
-      </Box>
+        </>
     );
   }
 
   // Accounts View
   if (selectedBtn === 'Accounts') {
     return (
-      <Box>
+      <>
         {usersError && (
           <Box sx={{ m: 2 }}>
             <Alert severity="error" onClose={() => {}}>
@@ -182,7 +182,7 @@ const SuperAdminWindow: React.FC = () => {
           role={UserRole.Admin}
           onSuccess={handleAccountCreated}
         />
-      </Box>
+</>
     );
   }
 

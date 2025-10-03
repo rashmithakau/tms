@@ -53,6 +53,8 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose }) => {
           .map((p: any) => p.supervisor)
           .filter(Boolean);
 
+          console.log('myTeamSupervisors', myTeamSupervisors);
+          console.log('myProjectSupervisors', myProjectSupervisors);
         const allSupervisors = [...myTeamSupervisors, ...myProjectSupervisors];
 
         const uniqueNames = Array.from(

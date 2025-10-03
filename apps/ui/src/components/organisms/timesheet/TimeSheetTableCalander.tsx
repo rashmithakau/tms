@@ -18,6 +18,7 @@ import TimesheetTableHeader from '../../molecules/timesheet/TimesheetTableHeader
 import TimesheetTableRow from '../../molecules/timesheet/TimesheetTableRow';
 import DescriptionEditor from '../../molecules/common/dialog/DescriptionEditor';
 import PageLoading from '../../molecules/common/loading/PageLoading';
+import StatusDot from '../../atoms/common/StatusDot';
 
 const TimeSheetTableCalendar: React.FC = () => {
 
@@ -53,36 +54,15 @@ const TimeSheetTableCalendar: React.FC = () => {
               Status :
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box
-                sx={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#4caf50', 
-                }}
-              />
+              <StatusDot color="#4caf50" />
               <Typography variant="body2">Approved</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box
-                sx={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ff9800', 
-                }}
-              />
+              <StatusDot color="#ff9800" />
               <Typography variant="body2">Pending</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box
-                sx={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#f44336', 
-                }}
-              />
+              <StatusDot color="#f44336" />
               <Typography variant="body2">Rejected</Typography>
             </Box>
           </Box>
