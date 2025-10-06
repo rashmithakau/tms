@@ -87,6 +87,19 @@ export const createTimesheetReminderNotification = async (
   });
 };
 
+export const createTimesheetSubmittedNotification = async (
+  supervisorId: string,
+  employeeName: string,
+  weekStartDate: Date,
+  weekEndDate: Date
+) => {
+  return createAndEmitNotification({
+    userId: supervisorId,
+    type: NotificationType.TimesheetSubmitted,
+    title: 'Timesheet Submitted',
+    message: `${employeeName} has submitted their timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
+  });
+};
 
 export const createBulkNotifications = async (notifications: NotificationData[]): Promise<void> => {
   const promises = notifications.map(notification => createAndEmitNotification(notification));

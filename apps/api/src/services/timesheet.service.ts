@@ -6,6 +6,7 @@ import RejectReason from '../models/rejectReason.model';
 import ProjectModel from '../models/project.model';
 import TeamModel from '../models/team.model';
 import NotificationModel from '../models/notification.model';
+import UserModel from '../models/user.model';
 import { socketService } from '../config/socket';
 import {
   getMondayUTC,
@@ -18,6 +19,7 @@ import {
   ITimesheetCategoryInput,
   UpdateTimesheetParams,
 } from '../interfaces';
+import { createTimesheetSubmittedNotification } from '../utils/notification/notificationUtils';
 
 export const createTimesheet = async (params: ICreateTimesheetParams) => {
   const dataWithDailyStatus = params.data.map((category) => ({
@@ -63,6 +65,44 @@ export const createTimesheetWithBusinessLogic = async (
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
   const results = [];
 
+  // Get employee information for notifications
+  const employee = await UserModel.findById(userId).select('firstName lastName');
+  const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'An employee';
+
+  // Get all supervisors for this employee
+  const employeeProjects = await ProjectModel.find({ employees: userId }).populate('supervisor', '_id firstName lastName');
+  const employeeTeams = await TeamModel.find({ members: userId }).populate('supervisor', '_id firstName lastName');
+
+  const supervisorIds = new Set<string>();
+  
+  // Add supervisors from projects
+  employeeProjects.forEach(project => {
+    if (project.supervisor?._id) {
+      const supervisor = project.supervisor as any;
+      const supervisorIdStr = supervisor._id.toString();
+      // Don't send notification to the employee themselves
+      if (supervisorIdStr !== userId) {
+        supervisorIds.add(supervisorIdStr);
+        console.log('Added project supervisor:', supervisor.firstName, supervisor.lastName, supervisorIdStr);
+      }
+    }
+  });
+  
+  // Add supervisors from teams
+  employeeTeams.forEach(team => {
+    if (team.supervisor?._id) {
+      const supervisor = team.supervisor as any;
+      const supervisorIdStr = supervisor._id.toString();
+      // Don't send notification to the employee themselves
+      if (supervisorIdStr !== userId) {
+        supervisorIds.add(supervisorIdStr);
+        console.log('Added team supervisor:', supervisor.firstName, supervisor.lastName, supervisorIdStr);
+      }
+    }
+  });
+
+  console.log(`Employee ${employeeName} (${userId}) submitting timesheets. Found ${supervisorIds.size} supervisors to notify.`);
+
   for (const id of ids) {
     try {
       const timesheet = await Timesheet.findOne({
@@ -105,6 +145,27 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
       const savedTimesheet = await timesheet.save();
 
       results.push(savedTimesheet);
+
+      // Send notifications to all supervisors
+      if (supervisorIds.size > 0) {
+        const weekStartDate = new Date(timesheet.weekStartDate);
+        const weekEndDate = new Date(weekStartDate);
+        weekEndDate.setUTCDate(weekEndDate.getUTCDate() + 6);
+
+        // Send notification to each supervisor
+        for (const supervisorId of supervisorIds) {
+          try {
+            await createTimesheetSubmittedNotification(
+              supervisorId,
+              employeeName,
+              weekStartDate,
+              weekEndDate
+            );
+          } catch (notifError) {
+            console.error('Error sending notification to supervisor:', supervisorId, notifError);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error updating timesheet', id, ':', error);
     }
