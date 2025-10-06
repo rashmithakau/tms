@@ -33,7 +33,7 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
         onClick={onSubmit}
         startIcon={<SendOutlinedIcon />}
       >
-        Sign And Submit
+        Submit
       </BaseBtn>
       
       <BaseBtn
@@ -51,7 +51,7 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
         startIcon={<AddOutlinedIcon />}
         disabled={isSelectWorkDisabled}
       >
-        Select Work
+        Select Activity
       </BaseBtn>
       
       <SelectActivityPopup

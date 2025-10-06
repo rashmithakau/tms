@@ -107,6 +107,7 @@ function SelectActivityPopup({
             label={OTHER_ACTIVITY_KEY}
           />
           {isOtherSelected && (
+            <Box sx={{width: '90%'}}>
             <TextField
               fullWidth
               size="small"
@@ -115,6 +116,8 @@ function SelectActivityPopup({
               onChange={(e) => setOtherActivityText(e.target.value)}
               sx={{ mt: 1, ml: 4 }}
             />
+              </Box>
+
           )}
         </div>
 
