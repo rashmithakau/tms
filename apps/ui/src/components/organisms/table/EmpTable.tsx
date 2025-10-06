@@ -93,8 +93,6 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
           setConfirm({ open: false });
         }}
       />
-      {/* Edit Popup */}
-      {/* We do not import here to avoid circulars; parent AdminWindow will provide popup */}
     </>
   );
 };

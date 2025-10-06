@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, TableBody, TableContainer, Box, IconButton, Typography, TableCell } from '@mui/material';
+import { Table, TableBody, TableContainer, Box, IconButton, Typography, TableCell, TableRow } from '@mui/material';
 import PageLoading from '../../molecules/common/loading/PageLoading';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -7,6 +7,7 @@ import theme from '../../../styles/theme';
 import TimesheetTableHeader from '../../molecules/timesheet/TimesheetTableHeader';
 import TimesheetRow from '../../molecules/timesheet/TimesheetRow';
 import TimesheetTotalRow from '../../molecules/timesheet/TimesheetTotalRow';
+import StatusDot from '../../atoms/common/StatusDot';
 import { useEmployeeTimesheetCalendar } from '../../../hooks/timesheet/useEmployeeTimesheetCalendar';
 import { IEmployeeTimesheetCalendarProps } from '../../../interfaces/organisms/timesheet';
 import { DaySelection } from 'apps/ui/src/interfaces';
@@ -158,16 +159,35 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
       {isLoading ? (
         <PageLoading variant="inline" message="Loading timesheet..." />
       ) : (
-        <TableContainer>
-          <Table size="small">
-            <TimesheetTableHeader days={days} />
+        <>
+          <Box sx={{ mb: 2, display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+              Status :
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <StatusDot color="#4caf50" />
+              <Typography variant="body2">Approved</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <StatusDot color="#ff9800" />
+              <Typography variant="body2">Pending</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <StatusDot color="#f44336" />
+              <Typography variant="body2">Rejected</Typography>
+            </Box>
+          </Box>
+
+          <TableContainer>
+            <Table size="small">
+              <TimesheetTableHeader days={days} />
             <TableBody>
               {data.length === 0 ? (
-                <tr>
-                  <TableCell colSpan={9} align="center" style={{ padding: '32px 0' }}>
+                <TableRow>
+                  <TableCell colSpan={9} align="left" sx={{ py: 4, textAlign: 'left' }}>
                     <Typography color="textSecondary">No timesheet data for this week</Typography>
                   </TableCell>
-                </tr>
+                </TableRow>
               ) : (
                 data.map((cat, catIndex) => (
                   <React.Fragment key={catIndex}>
@@ -194,6 +214,7 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
             </TableBody>
           </Table>
         </TableContainer>
+        </>
       )}
     </Box>
   );

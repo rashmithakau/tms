@@ -90,17 +90,17 @@ const ReviewTimesheetsWindow: React.FC = () => {
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell />
-          <TableCell>Name</TableCell>
-          <TableCell>Email</TableCell>
-          <TableCell>Contact</TableCell>
-          <TableCell>Designation</TableCell>
+          <TableCell sx={{ textAlign: 'left' }} />
+          <TableCell sx={{ textAlign: 'left' }}>Name</TableCell>
+          <TableCell sx={{ textAlign: 'left' }}>Email</TableCell>
+          <TableCell sx={{ textAlign: 'left' }}>Contact</TableCell>
+          <TableCell sx={{ textAlign: 'left' }}>Designation</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {filteredEmployeeGroups.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+            <TableCell colSpan={5} align="left" sx={{ py: 4, textAlign: 'left' }}>
               <Typography color="textSecondary">
                 {searchText.trim() 
                   ? `No employees found matching "${searchText}"`
@@ -113,15 +113,15 @@ const ReviewTimesheetsWindow: React.FC = () => {
           filteredEmployeeGroups.map((group, index) => (
             <React.Fragment key={group.employee._id}>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
-                <TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>
                   <IconButton onClick={() => setOpenRow(openRow === index ? null : index)}>
                     {openRow === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                   </IconButton>
                 </TableCell>
-                <TableCell>{group.employee.firstName} {group.employee.lastName}</TableCell>
-                <TableCell>{group.employee.email}</TableCell>
-                <TableCell>{group.employee.contactNumber || '-'}</TableCell>
-                <TableCell>{group.employee.designation || '-'}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.firstName} {group.employee.lastName}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.email}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.contactNumber || '-'}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.designation || '-'}</TableCell>
               </TableRow>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
