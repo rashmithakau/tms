@@ -1,9 +1,12 @@
 import React from 'react';
-import { Table, TableBody, TableContainer, Box, IconButton, Typography, TableCell, TableRow } from '@mui/material';
+import { Table, TableBody, TableContainer, Box, IconButton, Typography, TableCell, TableRow, Button } from '@mui/material';
 import PageLoading from '../../molecules/common/loading/PageLoading';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
+import ThumbDownAltOutlinedIcon from '@mui/icons-material/ThumbDownAltOutlined';
 import theme from '../../../styles/theme';
+import { TimesheetStatus } from '@tms/shared';
 import TimesheetTableHeader from '../../molecules/timesheet/TimesheetTableHeader';
 import TimesheetRow from '../../molecules/timesheet/TimesheetRow';
 import TimesheetTotalRow from '../../molecules/timesheet/TimesheetTotalRow';
@@ -21,6 +24,10 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
   onDaySelectionChange,
   selectedDays = [],
   isSelectionMode = false,
+  onApproveEditRequest,
+  onRejectEditRequest,
+  isApprovingEditRequest = false,
+  isRejectingEditRequest = false,
 }) => {
   const {
     data,
@@ -155,6 +162,45 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
           </IconButton>
         </Box>
       </Box>
+
+      {/* Show Approve/Reject Edit Request buttons if timesheet is EditRequested */}
+      {weekOriginalTimesheet?.status === TimesheetStatus.EditRequested && (onApproveEditRequest || onRejectEditRequest) && (
+        <Box sx={{ mb: 2, p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
+              Employee has requested permission to edit this timesheet
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {onApproveEditRequest && (
+                <Button
+                  variant="text"
+                  startIcon={<ThumbUpAltOutlinedIcon />}
+                  onClick={() => onApproveEditRequest(weekOriginalTimesheet._id)}
+                  disabled={isApprovingEditRequest || isRejectingEditRequest}
+                  sx={{ 
+                    textTransform: 'none',
+                  }}
+                >
+                  {isApprovingEditRequest ? 'Approving...' : 'Approve'}
+                </Button>
+              )}
+              {onRejectEditRequest && (
+                <Button
+                  variant="text"
+                  startIcon={<ThumbDownAltOutlinedIcon />}
+                  onClick={() => onRejectEditRequest(weekOriginalTimesheet._id)}
+                  disabled={isApprovingEditRequest || isRejectingEditRequest}
+                  sx={{ 
+                    textTransform: 'none',
+                  }}
+                >
+                  {isRejectingEditRequest ? 'Rejecting...' : 'Reject'}
+                </Button>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {isLoading ? (
         <PageLoading variant="inline" message="Loading timesheet..." />

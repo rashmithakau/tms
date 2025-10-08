@@ -19,7 +19,8 @@ import {
   ITimesheetCategoryInput,
   UpdateTimesheetParams,
 } from '../interfaces';
-import { createTimesheetSubmittedNotification } from '../utils/notification/notificationUtils';
+import { createTimesheetSubmittedNotification, createTimesheetEditRequestNotification, createTimesheetEditApprovedNotification, createTimesheetEditRejectedNotification } from '../utils/notification/notificationUtils';
+import TimesheetEditRequestModel from '../models/timesheetEditRequest.model';
 
 export const createTimesheet = async (params: ICreateTimesheetParams) => {
   const dataWithDailyStatus = params.data.map((category) => ({
@@ -953,4 +954,222 @@ export const getOrCreateTimesheetForWeek = async (
     },
     { new: true, upsert: true }
   );
+};
+
+// Request to edit a timesheet
+export const requestTimesheetEdit = async (userId: string, timesheetId: string) => {
+  // Find the timesheet
+  const timesheet = await Timesheet.findOne({ _id: timesheetId, userId });
+  appAssert(timesheet, NOT_FOUND, 'Timesheet not found');
+  
+  // Only allow edit requests for Pending or Approved timesheets
+  appAssert(
+    timesheet.status === TimesheetStatus.Pending || timesheet.status === TimesheetStatus.Approved,
+    BAD_REQUEST,
+    'Can only request edit for Pending or Approved timesheets'
+  );
+
+  // Get employee information
+  const employee = await UserModel.findById(userId).select('firstName lastName');
+  const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'An employee';
+
+  // Get all supervisors
+  const employeeProjects = await ProjectModel.find({ employees: userId }).populate('supervisor', '_id');
+  const employeeTeams = await TeamModel.find({ members: userId }).populate('supervisor', '_id');
+
+  const supervisorIds = new Set<string>();
+  employeeProjects.forEach(project => {
+    if (project.supervisor?._id) {
+      const supervisorIdStr = (project.supervisor as any)._id.toString();
+      if (supervisorIdStr !== userId) {
+        supervisorIds.add(supervisorIdStr);
+      }
+    }
+  });
+  employeeTeams.forEach(team => {
+    if (team.supervisor?._id) {
+      const supervisorIdStr = (team.supervisor as any)._id.toString();
+      if (supervisorIdStr !== userId) {
+        supervisorIds.add(supervisorIdStr);
+      }
+    }
+  });
+
+  const supervisorIdsArray = Array.from(supervisorIds);
+  appAssert(supervisorIdsArray.length > 0, BAD_REQUEST, 'No supervisors found');
+
+  // Check if there's already a pending edit request
+  const existingRequest = await TimesheetEditRequestModel.findOne({
+    timesheetId,
+    status: 'Pending',
+  });
+
+  if (existingRequest) {
+    return { message: 'Edit request already exists', editRequest: existingRequest };
+  }
+
+  // Create edit request
+  const editRequest = await TimesheetEditRequestModel.create({
+    timesheetId,
+    employeeId: userId,
+    weekStartDate: timesheet.weekStartDate,
+    requiredApprovals: supervisorIdsArray,
+    approvedBy: [],
+    status: 'Pending',
+  });
+
+  // Update timesheet status
+  timesheet.status = TimesheetStatus.EditRequested;
+  await timesheet.save();
+
+  // Send notifications to all supervisors
+  const weekStartDate = new Date(timesheet.weekStartDate);
+  const weekEndDate = new Date(weekStartDate);
+  weekEndDate.setUTCDate(weekEndDate.getUTCDate() + 6);
+
+  for (const supervisorId of supervisorIdsArray) {
+    try {
+      await createTimesheetEditRequestNotification(
+        supervisorId,
+        employeeName,
+        weekStartDate,
+        weekEndDate,
+        timesheetId
+      );
+    } catch (error) {
+      console.error('Error sending edit request notification to supervisor:', supervisorId, error);
+    }
+  }
+
+  return { message: 'Edit request sent successfully', editRequest };
+};
+
+// Approve edit request
+export const approveTimesheetEditRequest = async (supervisorId: string, timesheetId: string) => {
+  // Find the edit request
+  const editRequest = await TimesheetEditRequestModel.findOne({
+    timesheetId,
+    status: 'Pending',
+  });
+  
+  appAssert(editRequest, NOT_FOUND, 'Edit request not found');
+
+  // Check if supervisor is in required approvals
+  const supervisorIdStr = supervisorId.toString();
+  const isRequired = editRequest.requiredApprovals.some(
+    (id) => id.toString() === supervisorIdStr
+  );
+  appAssert(isRequired, UNAUTHORIZED, 'You are not authorized to approve this request');
+
+  // Check if already approved
+  const alreadyApproved = editRequest.approvedBy.some(
+    (id) => id.toString() === supervisorIdStr
+  );
+  if (alreadyApproved) {
+    return { message: 'Already approved', editRequest };
+  }
+
+  // Add to approved list
+  editRequest.approvedBy.push(supervisorId as any);
+
+  // Check if all approvals received
+  if (editRequest.approvedBy.length >= editRequest.requiredApprovals.length) {
+    editRequest.status = 'Approved';
+    
+    // Change timesheet status back to Draft
+    const timesheet = await Timesheet.findById(timesheetId).populate('userId');
+    if (timesheet) {
+      timesheet.status = TimesheetStatus.Draft;
+      
+      // Change all daily statuses to Draft
+      timesheet.data.forEach((category) => {
+        category.items.forEach((item) => {
+          item.dailyStatus = Array(7).fill(TimesheetStatus.Draft);
+        });
+      });
+      
+      timesheet.markModified('data');
+      await timesheet.save();
+
+      // Send notification to employee
+      const weekStartDate = new Date(timesheet.weekStartDate);
+      const weekEndDate = new Date(weekStartDate);
+      weekEndDate.setDate(weekEndDate.getDate() + 6);
+      
+      await createTimesheetEditApprovedNotification(
+        editRequest.employeeId.toString(),
+        weekStartDate,
+        weekEndDate
+      );
+    }
+  }
+
+  await editRequest.save();
+
+  return { 
+    message: editRequest.status === 'Approved' ? 'Edit request fully approved. Timesheet is now editable.' : 'Approval recorded',
+    editRequest,
+    allApproved: editRequest.status === 'Approved'
+  };
+};
+
+// Reject timesheet edit request
+export const rejectTimesheetEditRequest = async (supervisorId: string, timesheetId: string) => {
+  // Find the edit request
+  const editRequest = await TimesheetEditRequestModel.findOne({
+    timesheetId,
+    status: 'Pending',
+  });
+  
+  appAssert(editRequest, NOT_FOUND, 'Edit request not found');
+
+  // Check if supervisor is in required approvals
+  const supervisorIdStr = supervisorId.toString();
+  const isRequired = editRequest.requiredApprovals.some(
+    (id) => id.toString() === supervisorIdStr
+  );
+  appAssert(isRequired, UNAUTHORIZED, 'You are not authorized to reject this request');
+
+  // Mark as rejected
+  editRequest.status = 'Rejected';
+  await editRequest.save();
+
+  // Change timesheet status back to previous status (Pending or Approved)
+  const timesheet = await Timesheet.findById(timesheetId);
+  if (timesheet) {
+    // Keep it as EditRequested but we can change it to the previous status
+    // For simplicity, we'll just mark the edit request as rejected
+    // The timesheet will remain in EditRequested status until employee submits again
+    timesheet.status = TimesheetStatus.Pending; // or we can keep a previous status field
+    await timesheet.save();
+
+    // Send notification to employee
+    const weekStartDate = new Date(timesheet.weekStartDate);
+    const weekEndDate = new Date(weekStartDate);
+    weekEndDate.setDate(weekEndDate.getDate() + 6);
+    
+    await createTimesheetEditRejectedNotification(
+      editRequest.employeeId.toString(),
+      weekStartDate,
+      weekEndDate
+    );
+  }
+
+  return { 
+    message: 'Edit request rejected',
+    editRequest
+  };
+};
+
+// Get pending edit requests for a supervisor
+export const getPendingEditRequestsForSupervisor = async (supervisorId: string) => {
+  const editRequests = await TimesheetEditRequestModel.find({
+    requiredApprovals: supervisorId,
+    status: 'Pending',
+  })
+    .populate('employeeId', 'firstName lastName email')
+    .populate('timesheetId')
+    .sort({ createdAt: -1 });
+
+  return editRequests;
 };

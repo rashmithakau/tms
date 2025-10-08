@@ -26,9 +26,11 @@ const MyTimesheetsWindow: React.FC = () => {
     handleActivitySuccess,
     handleSubmit,
     handleSaveAsDraft,
+    handleRequestEdit,
     isSubmitDisabled,
     isSaveDisabled,
     isSelectWorkDisabled,
+    isRequestEditDisabled,
   } = useTimesheetSubmission(refresh);
 
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
@@ -66,9 +68,11 @@ const MyTimesheetsWindow: React.FC = () => {
                 onSubmit={handleSubmit}
                 onSaveAsDraft={handleSaveAsDraft}
                 onSelectWork={handleActivityOpenPopup}
+                onRequestEdit={handleRequestEdit}
                 isSubmitDisabled={isSubmitDisabled}
                 isSaveDisabled={isSaveDisabled}
                 isSelectWorkDisabled={isSelectWorkDisabled}
+                isRequestEditDisabled={isRequestEditDisabled}
                 isActivityPopupOpen={isActivityPopupOpen}
                 onCloseActivityPopup={handleActivityClosePopup}
                 onActivitySuccess={handleActivitySuccess}

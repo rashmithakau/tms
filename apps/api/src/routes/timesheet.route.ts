@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import authenticate from '../middleware/authenticate';
 import { UserRole } from '@tms/shared';
-import { createMyTimesheetHandler, deleteMyTimesheetHandler, getOrCreateMyTimesheetForWeekHandler, listMyTimesheetsHandler, listSupervisedTimesheetsHandler, submitDraftTimesheetsHandler, updateMyTimesheetHandler, updateSupervisedTimesheetsStatusHandler, updateDailyTimesheetStatusHandler, batchUpdateDailyTimesheetStatusHandler } from '../controllers/timesheet.controller';
+import { createMyTimesheetHandler, deleteMyTimesheetHandler, getOrCreateMyTimesheetForWeekHandler, listMyTimesheetsHandler, listSupervisedTimesheetsHandler, submitDraftTimesheetsHandler, updateMyTimesheetHandler, updateSupervisedTimesheetsStatusHandler, updateDailyTimesheetStatusHandler, batchUpdateDailyTimesheetStatusHandler, requestTimesheetEditHandler, approveTimesheetEditRequestHandler, rejectTimesheetEditRequestHandler, getPendingEditRequestsHandler } from '../controllers/timesheet.controller';
 const timesheetRoutes = Router();
 
 timesheetRoutes.post('/', authenticate([UserRole.Emp,UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), createMyTimesheetHandler);//done
@@ -14,6 +14,10 @@ timesheetRoutes.post('/supervised/daily-status-batch', authenticate([UserRole.Su
 timesheetRoutes.patch('/:id', authenticate([UserRole.Emp,UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), updateMyTimesheetHandler);
 timesheetRoutes.delete('/:id', authenticate([UserRole.Emp,UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), deleteMyTimesheetHandler);
 timesheetRoutes.post('/submit', authenticate([UserRole.Emp,UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), submitDraftTimesheetsHandler);//done
+timesheetRoutes.post('/request-edit', authenticate([UserRole.Emp,UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), requestTimesheetEditHandler);
+timesheetRoutes.post('/approve-edit-request', authenticate([UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), approveTimesheetEditRequestHandler);
+timesheetRoutes.post('/reject-edit-request', authenticate([UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), rejectTimesheetEditRequestHandler);
+timesheetRoutes.get('/pending-edit-requests', authenticate([UserRole.Supervisor,UserRole.SupervisorAdmin,UserRole.Admin,UserRole.SuperAdmin]), getPendingEditRequestsHandler);
 
 export default timesheetRoutes;
 

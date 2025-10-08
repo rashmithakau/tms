@@ -101,6 +101,48 @@ export const createTimesheetSubmittedNotification = async (
   });
 };
 
+export const createTimesheetEditRequestNotification = async (
+  supervisorId: string,
+  employeeName: string,
+  weekStartDate: Date,
+  weekEndDate: Date,
+  timesheetId: string
+) => {
+  return createAndEmitNotification({
+    userId: supervisorId,
+    type: NotificationType.TimesheetEditRequest,
+    title: 'Timesheet Edit Request',
+    message: `${employeeName} has requested permission to edit their timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
+    projectId: timesheetId, // Using projectId field to store timesheetId for easy access
+  });
+};
+
+export const createTimesheetEditApprovedNotification = async (
+  employeeId: string,
+  weekStartDate: Date,
+  weekEndDate: Date
+) => {
+  return createAndEmitNotification({
+    userId: employeeId,
+    type: NotificationType.TimesheetEditApproved,
+    title: 'Edit Request Approved',
+    message: `Your edit request for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()} has been approved. You can now edit your timesheet.`,
+  });
+};
+
+export const createTimesheetEditRejectedNotification = async (
+  employeeId: string,
+  weekStartDate: Date,
+  weekEndDate: Date
+) => {
+  return createAndEmitNotification({
+    userId: employeeId,
+    type: NotificationType.TimesheetEditRejected,
+    title: 'Edit Request Rejected',
+    message: `Your edit request for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()} has been rejected.`,
+  });
+};
+
 export const createBulkNotifications = async (notifications: NotificationData[]): Promise<void> => {
   const promises = notifications.map(notification => createAndEmitNotification(notification));
   await Promise.allSettled(promises);

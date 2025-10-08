@@ -13,7 +13,11 @@ import {
   updateSupervisedTimesheetsStatus,
   updateUserTimesheet,
   deleteUserTimesheet,
-  getOrCreateTimesheetForWeek
+  getOrCreateTimesheetForWeek,
+  requestTimesheetEdit,
+  approveTimesheetEditRequest,
+  rejectTimesheetEditRequest,
+  getPendingEditRequestsForSupervisor
 } from "../services/timesheet.service";
 import { getMondayUTC } from '../utils/data';
 
@@ -150,4 +154,35 @@ export const batchUpdateDailyTimesheetStatusHandler = catchErrors(async (req: Re
 
   const results = await batchUpdateDailyTimesheetStatus(supervisorId, updates);
   return res.status(OK).json({ timesheets: results });
+});
+
+export const requestTimesheetEditHandler = catchErrors(async (req: Request, res: Response) => {
+  const userId = req.userId as string;
+  const { timesheetId } = req.body;
+
+  const result = await requestTimesheetEdit(userId, timesheetId);
+  return res.status(OK).json(result);
+});
+
+export const approveTimesheetEditRequestHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
+  const { timesheetId } = req.body;
+
+  const result = await approveTimesheetEditRequest(supervisorId, timesheetId);
+  return res.status(OK).json(result);
+});
+
+export const rejectTimesheetEditRequestHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
+  const { timesheetId } = req.body;
+
+  const result = await rejectTimesheetEditRequest(supervisorId, timesheetId);
+  return res.status(OK).json(result);
+});
+
+export const getPendingEditRequestsHandler = catchErrors(async (req: Request, res: Response) => {
+  const supervisorId = req.userId as string;
+
+  const editRequests = await getPendingEditRequestsForSupervisor(supervisorId);
+  return res.status(OK).json({ editRequests });
 });

@@ -4,6 +4,7 @@ import {
   submitMyDraftTimesheets,
   createMyTimesheet,
   updateMyTimesheet,
+  requestTimesheetEdit,
 } from '../../api/timesheet';
 import { useToast } from '../../contexts/ToastContext';
 import { TimesheetStatus } from '@tms/shared';
@@ -158,6 +159,23 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     }
   };
 
+  const handleRequestEdit = async () => {
+    try {
+      const currentId = timesheetData.currentTimesheetId;
+      if (!currentId) {
+        toast.error('No timesheet to request edit for');
+        return;
+      }
+
+      await requestTimesheetEdit(currentId);
+      toast.success('Edit request sent to supervisors');
+      await refresh();
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || 'Failed to request edit';
+      toast.error(errMsg);
+    }
+  };
+
   const isDataSavedInDB = JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '');
   
 
@@ -171,6 +189,10 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     isDataSavedInDB;
     
   const isSelectWorkDisabled = ![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(timesheetData.status as TimesheetStatus);
+  
+  // Request to Edit button should be enabled for Pending or Approved timesheets
+  const isRequestEditDisabled = ![TimesheetStatus.Pending, TimesheetStatus.Approved].includes(timesheetData.status as TimesheetStatus) ||
+    timesheetData.status === TimesheetStatus.EditRequested;
 
   return {
     totalHours,
@@ -181,8 +203,10 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     handleActivitySuccess,
     handleSubmit,
     handleSaveAsDraft,
+    handleRequestEdit,
     isSubmitDisabled,
     isSaveDisabled,
     isSelectWorkDisabled,
+    isRequestEditDisabled,
   };
 };
