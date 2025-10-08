@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { UserRole } from '@tms/shared';
 
 export interface IUser extends Document {
+  employee_id?: string;
   firstName: string;
   lastName: string;
   designation: string;
@@ -19,6 +20,7 @@ export interface IUser extends Document {
   comparePassword(val: string): Promise<boolean>;
   omitPassword(): Pick<
     IUser,
+    | 'employee_id'
     | 'firstName'
     | 'lastName'
     | 'designation'

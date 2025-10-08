@@ -95,6 +95,7 @@ const SuperAdminWindow: React.FC = () => {
   const rows: EmployeeRow[] = useMemo(() => {
     return users.map((user) => ({
       id: (user as any)._id,
+      employee_id: (user as any).employee_id || '',
       email: user.email || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',

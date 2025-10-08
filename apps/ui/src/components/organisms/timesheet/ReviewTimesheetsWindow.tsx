@@ -44,6 +44,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
       groups.push({
         employee: {
           _id: row.employee._id,
+          employee_id: row.employee.employee_id || '',
           firstName: row.employee.firstName || '',
           lastName: row.employee.lastName || '',
           email: row.employee.email || '',
@@ -125,9 +126,9 @@ const ReviewTimesheetsWindow: React.FC = () => {
       <TableHead>
         <TableRow>
           <TableCell sx={{ textAlign: 'left' }} />
+          <TableCell sx={{ textAlign: 'left' }}>Employee ID</TableCell>
           <TableCell sx={{ textAlign: 'left' }}>Name</TableCell>
           <TableCell sx={{ textAlign: 'left' }}>Email</TableCell>
-          <TableCell sx={{ textAlign: 'left' }}>Contact</TableCell>
           <TableCell sx={{ textAlign: 'left' }}>Designation</TableCell>
         </TableRow>
       </TableHead>
@@ -152,9 +153,9 @@ const ReviewTimesheetsWindow: React.FC = () => {
                     {openRow === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                   </IconButton>
                 </TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.employee_id || '-'}</TableCell>
                 <TableCell sx={{ textAlign: 'left' }}>{group.employee.firstName} {group.employee.lastName}</TableCell>
                 <TableCell sx={{ textAlign: 'left' }}>{group.employee.email}</TableCell>
-                <TableCell sx={{ textAlign: 'left' }}>{group.employee.contactNumber || '-'}</TableCell>
                 <TableCell sx={{ textAlign: 'left' }}>{group.employee.designation || '-'}</TableCell>
               </TableRow>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>

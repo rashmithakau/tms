@@ -1,5 +1,6 @@
 export interface EmployeeRow {
   id?: string;
+  employee_id?: string;
   email: string;
   firstName: string;
   lastName: string;
