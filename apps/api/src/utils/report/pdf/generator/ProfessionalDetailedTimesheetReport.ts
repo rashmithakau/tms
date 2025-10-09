@@ -22,8 +22,12 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     data: IDetailedTimesheetReport[],
     filters: { startDate?: string; endDate?: string }
   ): PDFDocument {
-    // Add custom header without date and period info 
-    this.addCustomHeader();
+    // Header 
+    this.components.addProfessionalHeader(
+      'Detailed Timesheet Report',
+      filters,
+      'Comprehensive breakdown of employee work hours and project allocations'
+    );
 
     // Group data by employee
     const groupedData = this.groupDataByEmployee(data);
@@ -73,7 +77,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
 
     sortedEmployees.forEach(([employeeKey, employeeData], index) => {
       if (index > 0) {
-        // Add page break before each new employee (except the first one)
+        // Add page break before each new employee 
         this.checkPageBreak(200);
         this.currentY += 20;
       }
@@ -89,89 +93,132 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     
     // Employee section header
     this.components.addSectionDivider(`${employee.employeeName} (${employee.employeeEmail})`);
-    
-    // Table headers
-    const headers = ['Week Start', 'Status', 'Category', 'Work', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total'];
-    const columnWidths = [70, 60, 70, 80, 45, 45, 45, 45, 45, 45];
+    // Group data into separate sub-tables similar to the preview 
+    type SubRow = { sortDate: Date; cells: string[] };
+    type SubTable = { title: string; includeWork: boolean; rows: SubRow[] };
+    const tablesByTitle = new Map<string, SubTable>();
 
-    const tableData: string[][] = [];
-    
     // Calculate totals for this employee
     const employeeDailyTotals = [0, 0, 0, 0, 0];
     let employeeGrandTotal = 0;
-    
-    employeeData.forEach(timesheetWeek => {
-      timesheetWeek.categories.forEach(category => {
-        category.items.forEach(item => {
+
+    employeeData.forEach((timesheetWeek) => {
+      timesheetWeek.categories.forEach((category) => {
+        category.items.forEach((item) => {
           const dailyHours = item.dailyHours || [];
-          
-          // Add to employee daily totals
+
+          // Totals
           dailyHours.forEach((hours, index) => {
             if (index < 5 && hours) {
               employeeDailyTotals[index] += parseFloat(hours.toString()) || 0;
             }
           });
-          
-          // Calculate row total from daily hours 
-          const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => {
-            return sum + (parseFloat(hours?.toString()) || 0);
-          }, 0);
-          
-          // Add to employee grand total
+          const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => sum + (parseFloat(hours?.toString()) || 0), 0);
           employeeGrandTotal += rowTotal;
-          
-          tableData.push([
-            this.formatDate(timesheetWeek.weekStartDate),
+
+          // Determine sub-table title and whether to include Work column
+          let title = 'General';
+          let includeWork = false;
+          if (item.projectName) {
+            title = `Project: ${item.projectName}`;
+          } else if (item.teamName) {
+            title = `Team: ${item.teamName}`;
+          } else if (category.category === 'Absence') {
+            title = 'Leave';
+            includeWork = true;
+          }
+
+          // Ensure table container
+          if (!tablesByTitle.has(title)) {
+            tablesByTitle.set(title, { title, includeWork, rows: [] });
+          }
+          const table = tablesByTitle.get(title)!;
+
+          // Build row
+          const weekStartRaw = new Date(timesheetWeek.weekStartDate);
+          const weekStart = this.formatDate(weekStartRaw);
+          const weekEnd = this.formatDate(this.addDays(timesheetWeek.weekStartDate, 6));
+          const baseCells = [
+            weekStart,
+            weekEnd,
             timesheetWeek.status,
-            category.category,
-            item.work || 'No description',
+          ];
+          const workCells = includeWork ? [item.work || ''] : [];
+          const dayCells = [
             this.formatHoursForDisplay(dailyHours[0]),
             this.formatHoursForDisplay(dailyHours[1]),
             this.formatHoursForDisplay(dailyHours[2]),
             this.formatHoursForDisplay(dailyHours[3]),
             this.formatHoursForDisplay(dailyHours[4]),
-            this.formatHoursForDisplay(rowTotal)
-          ]);
+            this.formatHoursForDisplay(rowTotal),
+          ];
+          table.rows.push({ sortDate: weekStartRaw, cells: [...baseCells, ...workCells, ...dayCells] });
         });
       });
     });
 
-    // Add the table
-    this.components.addProfessionalTable(headers, tableData, columnWidths, {
-      alternateRows: true,
-      fontSize: 8
+    // Sort tables
+    const tableOrder = Array.from(tablesByTitle.values()).sort((a, b) => {
+      const rank = (t: string) => (t.startsWith('Project:') ? 0 : t.startsWith('Team:') ? 1 : t === 'Leave' ? 2 : 3);
+      const rA = rank(a.title);
+      const rB = rank(b.title);
+      if (rA !== rB) return rA - rB;
+      return a.title.localeCompare(b.title);
     });
 
-    
+    // Render each sub-table with consistent styling
+    tableOrder.forEach((sub) => {
+      // Lightweight subtitle for the sub-table
+      this.doc.fontSize(11)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica-Bold')
+        .text(sub.title, this.margin, this.currentY);
+      this.currentY += 18;
+
+      const headers = sub.includeWork
+        ? ['Week Start', 'Week End', 'Status', 'Work', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total']
+        : ['Week Start', 'Week End', 'Status', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total'];
+      const columnWidths = sub.includeWork
+        ? [80, 80, 70, 120, 50, 50, 50, 50, 50, 55]
+        : [90, 90, 60, 45, 45, 45, 45, 45, 50];
+
+      const sortedRows = sub.rows
+        .slice()
+        .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime())
+        .map((r) => r.cells);
+
+      this.components.addProfessionalTable(headers, sortedRows, columnWidths, {
+        alternateRows: true,
+        fontSize: 8,
+      });
+
+      this.currentY += 10;
+    });
+
+    // Per-employee key metrics 
+    const metricsHeaders = ['Metric', 'Value'];
+    const metricsData: string[][] = [
+      ['Total Hours', `${employeeGrandTotal.toFixed(2)}h`],
+      ['Mon Hours', employeeDailyTotals[0].toFixed(2)],
+      ['Tue Hours', employeeDailyTotals[1].toFixed(2)],
+      ['Wed Hours', employeeDailyTotals[2].toFixed(2)],
+      ['Thu Hours', employeeDailyTotals[3].toFixed(2)],
+      ['Fri Hours', employeeDailyTotals[4].toFixed(2)],
+    ];
+    this.doc.fontSize(11)
+      .fillColor(this.colors.text.primary)
+      .font('Helvetica-Bold')
+      .text('Key Metrics', this.margin, this.currentY);
+    this.currentY += 18;
+    this.components.addProfessionalTable(metricsHeaders, metricsData, [255, 255], {
+      alternateRows: true,
+      fontSize: 9,
+      rowHeight: 20,
+    });
   }
 
   
-  private addCustomHeader(): void {
-    // Header background
-    this.doc.rect(0, 0, this.pageWidth, 120)
-      .fill(this.colors.primary);
-
-    // Report title 
-    this.doc.fontSize(22)
-      .fillColor('white')
-      .font('Helvetica-Bold')
-      .text('Detailed Timesheet Report', 0, 35, { 
-        align: 'center',
-        width: this.pageWidth
-      });
-
-    // Subtitle
-    this.doc.fontSize(12)
-      .fillColor('#E2E8F0')
-      .font('Helvetica')
-      .text('Comprehensive breakdown of employee work hours and project allocations', 0, 65, { 
-        align: 'center',
-        width: this.pageWidth
-      });
-
-    this.currentY = 140;
-  }
-
+  
   private addSummaryStatistics(data: IDetailedTimesheetReport[]): void {
     // Add page break before summary if needed
     this.checkPageBreak(200);
@@ -192,7 +239,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
         type: 'info' as const
       },
       { 
-        label: 'Active Projects', 
+        label: 'Total Projects', 
         value: stats.totalProjects,
         type: 'info' as const
       },
@@ -200,6 +247,11 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
         label: 'Work Items', 
         value: stats.totalTasks,
         type: 'info' as const
+      },
+      { 
+        label: 'Absence Days', 
+        value: stats.absenceDays,
+        type: 'warning' as const
       },
       { 
         label: 'Grand Total Hours', 
@@ -362,10 +414,17 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     return numHours.toFixed(2);
   }
 
+  private addDays(dateInput: string | Date, days: number): string {
+    const d = new Date(dateInput);
+    d.setDate(d.getDate() + days);
+    return this.formatDate(d);
+  }
+
   private calculateDetailedStatistics(data: IDetailedTimesheetReport[]) {
     const totalEmployees = new Set(data.map(d => d.employeeId)).size;
     let totalHours = 0;
     let grandTotal = 0;
+    let absenceDays = 0;
     
     const allProjects = new Set<string>();
     const allTeams = new Set<string>();
@@ -386,6 +445,15 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
             return sum + (parseFloat(hours?.toString()) || 0);
           }, 0);
           grandTotal += rowTotal;
+
+          // Count absence days 
+          if (cat.category === 'Absence') {
+            for (let i = 0; i < 5; i++) {
+              const h = dailyHours[i];
+              const n = typeof h === 'string' ? parseFloat(h) : (h || 0);
+              if (!isNaN(n) && n > 0) absenceDays++;
+            }
+          }
         });
       });
     });
@@ -403,6 +471,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
       totalProjects,
       totalTeams,
       totalTasks,
+      absenceDays,
       avgHoursPerWeek,
       utilizationRate
     };

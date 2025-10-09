@@ -98,7 +98,7 @@ export interface IDetailedTimesheetReport {
 }
 
 export interface ProfessionalPDFConfig {
-  // Company branding
+
   company: {
     name: string;
     address?: string;
@@ -107,7 +107,7 @@ export interface ProfessionalPDFConfig {
     phone?: string;
   };
 
-  // Color scheme
+  
   colors: {
     primary: string;
     secondary: string;
@@ -123,7 +123,7 @@ export interface ProfessionalPDFConfig {
     };
   };
 
-  // Typography
+
   fonts: {
     primary: string;
     bold: string;
@@ -136,7 +136,7 @@ export interface ProfessionalPDFConfig {
     };
   };
 
-  // Layout
+ 
   layout: {
     pageMargin: number;
     headerHeight: number;
@@ -144,7 +144,6 @@ export interface ProfessionalPDFConfig {
     sectionSpacing: number;
   };
 
-  // Features
   features: {
     watermark: boolean;
     pageNumbers: boolean;
@@ -154,7 +153,7 @@ export interface ProfessionalPDFConfig {
     charts: boolean;
   };
 
-  // Report-specific settings
+ 
   reports: {
     submissionStatus: {
       includeAnalytics: boolean;

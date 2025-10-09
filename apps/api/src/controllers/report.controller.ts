@@ -13,6 +13,8 @@ import {
   ProfessionalDetailedTimesheetReport
 } from '../utils/report/pdf';
 import { getSupervisedUserIds } from '../utils/data/assignmentUtils';
+import RejectReason from '../models/rejectReason.model';
+import { createWeekOverlapQuery } from '../utils/report/date/dateFilterUtils';
 
 type ReportFormat = 'pdf' | 'excel';
 
@@ -82,9 +84,8 @@ const buildTimesheetQuery = (supervisorId: string, userRole: UserRole, params: a
 
   const query: any = {};
   if (startDate || endDate) {
-    query.weekStartDate = {};
-    if (startDate) query.weekStartDate.$gte = parseDate(startDate);
-    if (endDate) query.weekStartDate.$lte = parseDate(endDate);
+    const dateFilter = createWeekOverlapQuery(startDate, endDate);
+    Object.assign(query, dateFilter);
   }
 
   if (approvalStatus) {
@@ -157,7 +158,8 @@ export const generateSubmissionStatusReportHandler: RequestHandler = async (req,
   const userMap = new Map<string, { name: string; email: string }>();
   users.forEach((u: any) => userMap.set(String(u._id), { name: `${u.firstName} ${u.lastName}`, email: u.email }));
 
-  const data = timesheets.map((t: any) => {
+  // Build raw rows per timesheet
+  const rawRows = timesheets.map((t: any) => {
     const u = userMap.get(String(t.userId));
     const status: 'Submitted' | 'Missing' = t.status === TimesheetStatus.Draft ? 'Missing' : 'Submitted';
     const projectIdSet = new Set<string>();
@@ -214,6 +216,47 @@ export const generateSubmissionStatusReportHandler: RequestHandler = async (req,
     };
   });
 
+  // Group by employeeId + weekStartDate and apply precedence
+  const precedence: Record<string, number> = { Submitted: 3, Late: 2, Missing: 1 };
+  const groupKey = (r: any) => `${r.employeeId}|${r.weekStartDate}`;
+  const groupedMap = new Map<string, any>();
+  for (const r of rawRows) {
+    const key = groupKey(r);
+    const existing = groupedMap.get(key);
+    if (!existing) {
+      groupedMap.set(key, r);
+      continue;
+    }
+    // Pick the row with higher precedence; if equal, prefer one with larger totalHours and with submissionDate
+    const pickNew =
+      (precedence[r.submissionStatus] ?? 0) > (precedence[existing.submissionStatus] ?? 0) ||
+      ((precedence[r.submissionStatus] ?? 0) === (precedence[existing.submissionStatus] ?? 0) &&
+        ((r.totalHours ?? 0) > (existing.totalHours ?? 0) || (!!r.submissionDate && !existing.submissionDate)));
+    if (pickNew) groupedMap.set(key, r);
+  }
+  const data = Array.from(groupedMap.values());
+
+  //reject dates and reasons from RejectReason collection
+  const timesheetIds = data.map((r: any) => r.timesheetId).filter(Boolean);
+  let rejectMap = new Map<string, { rejectDates: string; rejectReasons: string }>();
+  if (timesheetIds.length) {
+    const rejects = await RejectReason.find({ timesheet_id: { $in: timesheetIds } })
+      .select('timesheet_id reason createdAt')
+      .lean();
+    const tmp = new Map<string, { dates: string[]; reasons: string[] }>();
+    for (const rec of rejects as any[]) {
+      const id = String(rec.timesheet_id);
+      const entry = tmp.get(id) || { dates: [], reasons: [] };
+      const dateStr = formatDateForDisplay(rec.createdAt);
+      if (!entry.dates.includes(dateStr)) entry.dates.push(dateStr);
+      if (rec.reason && !entry.reasons.includes(rec.reason)) entry.reasons.push(rec.reason);
+      tmp.set(id, entry);
+    }
+    rejectMap = new Map(
+      Array.from(tmp.entries()).map(([id, v]) => [id, { rejectDates: v.dates.join(', '), rejectReasons: v.reasons.join(', ') }])
+    );
+  }
+
   const statusFilter = submissionStatus ? (Array.isArray(submissionStatus) ? submissionStatus : [submissionStatus]) : [];
   const filtered = statusFilter.length ? data.filter((r) => statusFilter.includes(r.submissionStatus)) : data;
 
@@ -266,16 +309,50 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
   const userMap = new Map<string, { name: string; email: string }>();
   users.forEach((u: any) => userMap.set(String(u._id), { name: `${u.firstName} ${u.lastName}`, email: u.email }));
 
-  const data = timesheets.map((t: any) => {
-    // Calculate total hours from timesheet data
+  // Build raw rows per timesheet with computed weekly approval based on daily statuses
+  const rawRows = timesheets.map((t: any) => {
+    // Calculate total hours and aggregate daily statuses across items
     let totalHours = 0;
+    const aggregatedDayStatus: string[] = Array(7).fill(TimesheetStatus.Draft);
+    const dayStatusPrecedence: Record<string, number> = {
+      [TimesheetStatus.Rejected]: 4,
+      [TimesheetStatus.Pending]: 3,
+      [TimesheetStatus.Approved]: 2,
+      [TimesheetStatus.Draft]: 1,
+    };
+
     (t.data || []).forEach((cat: any) => {
       (cat.items || []).forEach((it: any) => {
+        const hoursArr: number[] = Array.isArray(it.hours) ? it.hours.map((h: any) => Number(h) || 0) : [];
+        const dailyStatusArr: string[] = Array.isArray(it.dailyStatus) ? it.dailyStatus : [];
         if (Array.isArray(it.hours)) {
-          totalHours += it.hours.reduce((sum: number, hours: number) => sum + (hours || 0), 0);
+          totalHours += it.hours.reduce((sum: number, hours: number) => sum + (Number(hours) || 0), 0);
+        }
+        for (let d = 0; d < 7; d++) {
+          const hasHours = (hoursArr[d] || 0) > 0;
+          if (!hasHours) continue;
+          const statusForItem = dailyStatusArr[d] || TimesheetStatus.Draft;
+          const currentAgg = aggregatedDayStatus[d];
+          if ((dayStatusPrecedence[statusForItem] || 0) > (dayStatusPrecedence[currentAgg] || 0)) {
+            aggregatedDayStatus[d] = statusForItem;
+          }
         }
       });
     });
+
+    // Determine approved week and rejected weekday dates (Mon-Fri indices 0..4)
+    const weekStart = new Date(t.weekStartDate);
+    const weekdayIndices = [0, 1, 2, 3, 4];
+    const isWeekFullyApproved = weekdayIndices.every((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Approved);
+    const rejectedWeekdayDates: string[] = weekdayIndices
+      .filter((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Rejected)
+      .map((idx) => {
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + idx);
+        return formatDateForDisplay(d);
+      });
+
+    const computedApprovalStatus = isWeekFullyApproved ? TimesheetStatus.Approved : TimesheetStatus.Pending;
 
     return {
       employeeId: String(t.userId),
@@ -284,16 +361,80 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
       weekStartDate: formatDateForDisplay(t.weekStartDate),
       timesheetId: String(t._id),
       submissionDate: t.submittedAt ? formatDateForDisplay(t.submittedAt) : null,
-      approvalStatus: t.status,
-      approvalDate: t.approvedAt ? formatDateForDisplay(t.approvedAt) : null,
+      approvalStatus: computedApprovalStatus,
+      approvalDate: isWeekFullyApproved && t.approvedAt ? formatDateForDisplay(t.approvedAt) : null,
       totalHours: Math.round(totalHours * 100) / 100,
       rejectionReason: t.rejectionReason,
       projectIds: Array.from(new Set((t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => String(it.projectId || ''))).filter(Boolean))),
       teamIds: Array.from(new Set((t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => String(it.teamId || ''))).filter(Boolean))),
+      rejectDates: rejectedWeekdayDates.join(', '),
     };
   });
 
+  // Group by employeeId + weekStartDate with precedence
+  const statusPrecedence: Record<string, number> = {
+    [TimesheetStatus.Approved]: 3,
+    [TimesheetStatus.Pending]: 2,
+    [TimesheetStatus.Draft]: 1,
+  };
+  const groupKey = (r: any) => `${r.employeeId}|${r.weekStartDate}`;
+  const groupedMap = new Map<string, any>();
+  for (const r of rawRows) {
+    const key = groupKey(r);
+    const existing = groupedMap.get(key);
+    if (!existing) {
+      groupedMap.set(key, r);
+      continue;
+    }
+    const pickNew =
+      (statusPrecedence[r.approvalStatus] ?? 0) > (statusPrecedence[existing.approvalStatus] ?? 0) ||
+      ((statusPrecedence[r.approvalStatus] ?? 0) === (statusPrecedence[existing.approvalStatus] ?? 0) &&
+        // Prefer one with approvalDate if available, else later submissionDate, else higher totalHours
+        (!!r.approvalDate && !existing.approvalDate) ||
+        ((r.submissionDate || '') > (existing.submissionDate || '')) ||
+        ((r.totalHours ?? 0) > (existing.totalHours ?? 0)));
+    if (pickNew) groupedMap.set(key, r);
+  }
+  const data = Array.from(groupedMap.values());
+
   if (format === 'json') {
+    // Build per-timesheet per-date reject reason aggregation
+    const timesheetIds = data.map((r: any) => r.timesheetId).filter(Boolean);
+    const weekStartByTimesheet = new Map<string, Date>(
+      data.map((r: any) => [r.timesheetId, new Date(r.weekStartDate)])
+    );
+
+    type RejectDetailsMap = Record<string, string[]>; 
+    const rejectDetailsMapByTs = new Map<string, RejectDetailsMap>();
+
+    if (timesheetIds.length) {
+      const rejects = await RejectReason.find({ timesheet_id: { $in: timesheetIds } })
+        .select('timesheet_id reason rejected_days_indexes')
+        .lean();
+
+      for (const rec of rejects as any[]) {
+        const tsId = String(rec.timesheet_id);
+        const weekStart = weekStartByTimesheet.get(tsId);
+        if (!weekStart) continue;
+        const idxs: number[] = Array.isArray(rec.rejected_days_indexes) ? rec.rejected_days_indexes : [];
+        const reason: string | undefined = rec.reason ? String(rec.reason) : undefined;
+        if (!idxs.length || !reason) continue;
+        const mapForTs = rejectDetailsMapByTs.get(tsId) || {};
+        for (const idx of idxs) {
+          // Only consider Mon-Fri in display
+          if (idx < 0 || idx > 6) continue;
+          const d = new Date(weekStart);
+          d.setDate(weekStart.getDate() + idx);
+          const dateStr = formatDateForDisplay(d);
+          const arr = mapForTs[dateStr] || [];
+          if (!arr.includes(reason)) arr.push(reason);
+          mapForTs[dateStr] = arr;
+        }
+        rejectDetailsMapByTs.set(tsId, mapForTs);
+      }
+    }
+
+    // Prepare lookups for project/team names
     const allProjectIds = Array.from(new Set(data.flatMap((r: any) => r.projectIds)));
     const allTeamIds = Array.from(new Set(data.flatMap((r: any) => r.teamIds)));
     const [projects, teams] = await Promise.all([
@@ -302,11 +443,27 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
     ]);
     const projectMap = new Map<string, string>(projects.map((p: any) => [String(p._id), p.projectName] as [string, string]));
     const teamMap = new Map<string, string>(teams.map((t: any) => [String(t._id), t.teamName] as [string, string]));
-    const withNames = data.map((r: any) => ({
-      ...r,
-      projects: (r.projectIds || []).map((id: string) => projectMap.get(id) || id),
-      teams: (r.teamIds || []).map((id: string) => teamMap.get(id) || id),
-    }));
+
+    const withNames = data.map((r: any) => {
+      const detailsMap = rejectDetailsMapByTs.get(r.timesheetId) || {};
+      const rejectDates = Object.keys(detailsMap);
+      const uniqueReasons = Array.from(
+        new Set(Object.values(detailsMap).flat())
+      );
+      const rejectDetails = rejectDates
+        .map((d) => `${d}: ${detailsMap[d].join(' | ')}`)
+        .join('; ');
+
+      return {
+        ...r,
+        projects: (r.projectIds || []).map((id: string) => projectMap.get(id) || id),
+        teams: (r.teamIds || []).map((id: string) => teamMap.get(id) || id),
+        rejectDates: rejectDates.length ? rejectDates.join(', ') : undefined,
+        rejectReasons: uniqueReasons.length ? uniqueReasons.join(', ') : (r.rejectionReason ? String(r.rejectionReason) : undefined),
+        rejectDetailsMap: Object.keys(detailsMap).length ? detailsMap : undefined,
+        rejectDetails: rejectDetails || undefined,
+      };
+    });
     return res.json({ data: withNames });
   }
   if (format === 'pdf') {
@@ -423,6 +580,7 @@ export const previewSubmissionStatusHandler: RequestHandler = async (req, res) =
   
   res.status(400).json({ message: 'Preview endpoint not implemented' });
 };
+
 
 
 

@@ -1,7 +1,7 @@
 export interface ReportTypeSelectProps {
-  reportType: string | null;
+  reportType: '' | 'submission-status' | 'approval-status' | 'detailed-timesheet' | null;
   onReportTypeChange?: (
-    value: 'submission-status' | 'approval-status' | 'detailed-timesheet'
+    value: '' | 'submission-status' | 'approval-status' | 'detailed-timesheet'
   ) => void;
   disabled?: boolean;
 }

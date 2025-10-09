@@ -53,12 +53,24 @@ const ReportFilterForm: React.FC<IReportFilterForm> = ({
   React.useEffect(() => {
     if (resetSignal !== undefined) {
       resetFilter();
+      // Cast to maintain compatibility with older narrower callback types
+      onReportTypeChange?.('' as any);
     }
   }, [resetSignal]);
   const theme = useTheme();
   const updateDateRange = (start: Dayjs, end: Dayjs) => {
     setStartDate(start.format('YYYY-MM-DD'));
     setEndDate(end.format('YYYY-MM-DD'));
+  };
+
+  const handleResetClick = () => {
+   
+    onReportTypeChange?.('' as any);
+    if (onResetFilters) {
+      onResetFilters();
+    } else {
+      resetFilter();
+    }
   };
 
   return (
@@ -72,7 +84,7 @@ const ReportFilterForm: React.FC<IReportFilterForm> = ({
             startIcon={<RestartAltRoundedIcon />}
             variant="contained"
             size="small"
-            onClick={resetFilter}
+            onClick={handleResetClick}
             disabled={disabled}
           >
             Reset

@@ -47,6 +47,7 @@ export const generateDetailedTimesheetReport = async (
 
 export const previewSubmissionStatus = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
+  params.set('format', 'json');
   const res = await API.get<{ data: SubmissionStatusPreviewRow[] }>(`/api/reports/submission-status?${params.toString()}`);
   return res.data.data;
 };
@@ -54,6 +55,7 @@ export const previewSubmissionStatus = async (filter: ReportFilter) => {
 
 export const previewApprovalStatus = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
+  params.set('format', 'json');
   const res = await API.get<{ data: ApprovalStatusPreviewRow[] }>(`/api/reports/approval-status?${params.toString()}`);
   return res.data.data;
 };
@@ -61,9 +63,13 @@ export const previewApprovalStatus = async (filter: ReportFilter) => {
 
 export const previewDetailedTimesheet = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
+  params.set('format', 'json');
   const res = await API.get<{ data: any[] }>(`/api/reports/detailed-timesheet?${params.toString()}`);
   return transformDetailedTimesheetData(res.data.data);
 };
+
+
+// removed previewRejectedTimesheets API as feature is not supported
 
 
 export const getSupervisedEmployees = async () => {

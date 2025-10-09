@@ -17,6 +17,7 @@ import {
 import { ExcelReportGenerator } from '../utils/report/excel';
 import { PDFReportGenerator } from '../utils/report/pdf';
 import { getSupervisedUserIds } from '../utils/data';
+import { createWeekOverlapQuery } from '../utils/report/date/dateFilterUtils';
 
 export class ReportService {
   
@@ -39,13 +40,8 @@ export class ReportService {
     };
 
     if (filter.startDate || filter.endDate) {
-      query.weekStartDate = {};
-      if (filter.startDate) {
-        query.weekStartDate.$gte = new Date(filter.startDate);
-      }
-      if (filter.endDate) {
-        query.weekStartDate.$lte = new Date(filter.endDate);
-      }
+      const dateFilter = createWeekOverlapQuery(filter.startDate, filter.endDate);
+      Object.assign(query, dateFilter);
     }
 
     if (filter.employeeIds && filter.employeeIds.length > 0) {
@@ -201,20 +197,14 @@ export class ReportService {
       'You have no supervised employees to generate reports for'
     );
 
-    // Build query
     const query: any = {
       userId: { $in: supervisedUserIds },
-      status: { $ne: TimesheetStatus.Draft } // Only submitted timesheets
+      status: { $ne: TimesheetStatus.Draft } 
     };
 
     if (filter.startDate || filter.endDate) {
-      query.weekStartDate = {};
-      if (filter.startDate) {
-        query.weekStartDate.$gte = new Date(filter.startDate);
-      }
-      if (filter.endDate) {
-        query.weekStartDate.$lte = new Date(filter.endDate);
-      }
+      const dateFilter = createWeekOverlapQuery(filter.startDate, filter.endDate);
+      Object.assign(query, dateFilter);
     }
 
     if (filter.employeeIds && filter.employeeIds.length > 0) {
@@ -280,19 +270,13 @@ export class ReportService {
       'You have no supervised employees to generate reports for'
     );
 
-    // Build query
     const query: any = {
       userId: { $in: supervisedUserIds }
     };
 
     if (filter.startDate || filter.endDate) {
-      query.weekStartDate = {};
-      if (filter.startDate) {
-        query.weekStartDate.$gte = new Date(filter.startDate);
-      }
-      if (filter.endDate) {
-        query.weekStartDate.$lte = new Date(filter.endDate);
-      }
+      const dateFilter = createWeekOverlapQuery(filter.startDate, filter.endDate);
+      Object.assign(query, dateFilter);
     }
 
     if (filter.employeeIds && filter.employeeIds.length > 0) {
@@ -401,7 +385,6 @@ export class ReportService {
 
   
    // Get available employees for a supervisor
-   
   static async getSupervisedEmployees(supervisorId: string) {
     const supervisedUserIds = await getSupervisedUserIds(supervisorId);
     
@@ -413,7 +396,6 @@ export class ReportService {
 
   
     //Calculate total hours for a timesheet
-   
   private static calculateTotalHours(timesheet: any): number {
     let total = 0;
     timesheet.data?.forEach((category: any) => {
@@ -428,7 +410,6 @@ export class ReportService {
 
   
    //Calculate total hours for a timesheet item
-   
   private static calculateItemTotalHours(hours: string[]): number {
     return hours.reduce((total, hour) => {
       const parsed = parseFloat(hour) || 0;

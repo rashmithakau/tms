@@ -23,16 +23,41 @@ export const transformDetailedTimesheetData = (data: any[]): DetailedTimesheetPr
       (c.items || []).forEach((it: any) => {
         // Calculate total hours from daily hours
         const dailyHours = it.dailyHours || [];
+        const dailyStatus: string[] = Array.isArray(it.dailyStatus) ? it.dailyStatus : [];
         const totalHours = dailyHours.reduce((sum: number, hours: number) => {
           const numHours = typeof hours === 'number' ? hours : parseFloat(hours) || 0;
           return sum + numHours;
         }, 0);
         
+        // Determine item status for the week based on weekday (Mon-Fri) statuses where hours exist
+        // Rules:
+        // - Approved: all weekdays with hours > 0 are Approved
+        // - Rejected: all weekdays with hours > 0 are Rejected
+        // - Pending: otherwise
+        const weekdayIndices = [0, 1, 2, 3, 4];
+        const consideredDays = weekdayIndices.filter((idx) => {
+          const h = dailyHours?.[idx];
+          const num = typeof h === 'number' ? h : parseFloat(h) || 0;
+          return num > 0;
+        });
+        let computedStatus = t.status as string;
+        if (consideredDays.length > 0) {
+          const statuses = consideredDays.map((idx) => dailyStatus?.[idx] || 'Pending');
+          const allApproved = statuses.every((s) => s === 'Approved');
+          const allRejected = statuses.every((s) => s === 'Rejected');
+          if (allApproved) computedStatus = 'Approved';
+          else if (allRejected) computedStatus = 'Rejected';
+          else computedStatus = 'Pending';
+        } else {
+          // If no weekday hours, default to Pending for item-level view
+          computedStatus = 'Pending';
+        }
+        
         rows.push({
           employeeName: t.employeeName,
           employeeEmail: t.employeeEmail,
           weekStartDate: typeof t.weekStartDate === 'string' ? t.weekStartDate : new Date(t.weekStartDate).toISOString().slice(0, 10),
-          status: t.status,
+          status: computedStatus,
           category: c.category,
           work: it.work,
           mon: String(it.dailyHours?.[0] ?? ''),
@@ -64,7 +89,7 @@ export const downloadBlobAsFile = (blob: Blob, filename: string) => {
 };
 
 export const generateReportFilename = (
-  reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet',
+  reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'rejected-timesheets',
   format: 'pdf' | 'excel'
 ): string => {
   const date = new Date().toISOString().split('T')[0];
