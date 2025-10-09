@@ -51,17 +51,22 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
       return;
     }
 
-    const headers = ['Employee', 'Week Period', 'Status'];
-    const columnWidths = [200, 180, 160];
+    const headers = ['Employee', 'Email', 'Week Start', 'Week End', 'Status'];
+    const columnWidths = [150, 130, 80, 80, 80];
 
-    const tableData = data.map(item => {
+    const tableData = data
+      .slice()
+      .sort((a, b) => new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime())
+      .map(item => {
       const startDate = new Date(item.weekStartDate);
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
       
       return [
         item.employeeName,
-        `${this.formatDate(item.weekStartDate)} - ${this.formatDate(endDate)}`,
+        item.employeeEmail,
+        `${this.formatDate(item.weekStartDate)}`,
+        `${this.formatDate(endDate)}`,
         item.approvalStatus
       ];
     });
@@ -94,16 +99,6 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
         label: 'Approved', 
         value: stats.approvedCount,
         type: 'success' as const
-      },
-      { 
-        label: 'Pending Review', 
-        value: stats.pendingCount,
-        type: 'warning' as const
-      },
-      { 
-        label: 'Rejected', 
-        value: stats.rejectedCount,
-        type: 'danger' as const
       },
       { 
         label: 'Approval Rate', 
@@ -188,12 +183,12 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
         .font('Helvetica')
         .text(item.label, this.margin + 30, rowY + 8);
       
-      // Metric value
+      // Metric value 
       this.doc.fontSize(12)
         .fillColor(this.colors.text.primary)
         .font('Helvetica-Bold')
         .text(String(item.value), this.margin + tableWidth - 90, rowY + 8, {
-          align: 'right',
+          align: 'left',
           width: 80
         });
       

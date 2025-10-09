@@ -41,7 +41,7 @@ export class ExcelReportGenerator {
       throw new Error('No report generator initialized. Call a generate method first.');
     }
     
-    // Use the workbook's xlsx.writeBuffer method to get the buffer directly
+    
     const workbook = (this.generator as any).workbook;
     if (workbook && workbook.xlsx && workbook.xlsx.writeBuffer) {
       return await workbook.xlsx.writeBuffer();

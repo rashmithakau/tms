@@ -29,12 +29,17 @@ export interface SubmissionStatusPreviewRow {
 
 export interface ApprovalStatusPreviewRow {
   employeeName: string;
+  employeeEmail: string;
   weekStartDate: string;
   submissionDate?: string | null;
   approvalStatus: string;
   approvalDate?: string | null;
   totalHours: number;
   rejectionReason?: string;
+  rejectDates?: string; // comma-separated dates of rejections
+  rejectReasons?: string; // aggregated reasons
+  rejectDetails?: string; // e.g., "2025-10-01: Reason A | Reason B; 2025-10-03: Reason C"
+  rejectDetailsMap?: Record<string, string[]>; // { '2025-10-01': ['Reason A', 'Reason B'] }
 }
 
 export interface DetailedTimesheetPreviewRow {

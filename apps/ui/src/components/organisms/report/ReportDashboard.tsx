@@ -12,6 +12,7 @@ import {
 import { ReportFilter } from '../../../interfaces/api';
 import { TableWindowLayout } from '../../templates';
 import { TwoColumnReportLayout } from '../../templates/report';
+import ReportLayout from '../../templates/report/ReportLayout';
 import { useTheme } from '@mui/material/styles';
 import { ReportInformationPanel } from '../../molecules/report';
 
@@ -20,8 +21,8 @@ const ReportDashboard: React.FC = () => {
   const [resetCounter, setResetCounter] = useState(0);
   const [isFilterValid, setIsFilterValid] = useState(false);
   const [reportType, setReportType] = useState<
-    'submission-status' | 'approval-status' | 'detailed-timesheet'
-  >('submission-status');
+    'submission-status' | 'approval-status' | 'detailed-timesheet' | ''
+  >('');
 
   const {
     isGenerating,
@@ -69,6 +70,7 @@ const ReportDashboard: React.FC = () => {
         case 'detailed-timesheet':
           await generateDetailedReport(currentFilter, format);
           break;
+        
         default:
           throw new Error('Invalid report type');
       }
@@ -83,12 +85,28 @@ const ReportDashboard: React.FC = () => {
   const [previewColumns, setPreviewColumns] = useState<
     { key: string; header: string }[]
   >([]);
+  const [groupedPreviewData, setGroupedPreviewData] = useState<{
+    [employeeKey: string]: {
+      employeeName: string;
+      employeeEmail: string;
+      tables: Array<{
+        title: string;
+        columns: { key: string; header: string }[];
+        rows: any[];
+      }>;
+    };
+  }>({});
 
   const loadPreview = async (
     type: 'submission-status' | 'approval-status' | 'detailed-timesheet',
     filter: ReportFilter
   ) => {
     try {
+      // Clear grouped data for non-detailed timesheet reports
+      if (type !== 'detailed-timesheet') {
+        setGroupedPreviewData({});
+      }
+      
       if (type === 'submission-status') {
         const rows = await previewSubmissionStatus(filter);
         setPreviewColumns([
@@ -102,29 +120,112 @@ const ReportDashboard: React.FC = () => {
         const rows = await previewApprovalStatus(filter);
         setPreviewColumns([
           { key: 'employeeName', header: 'Employee' },
+          { key: 'employeeEmail', header: 'Email' },
           { key: 'weekStartDate', header: 'Week Start' },
           { key: 'approvalStatus', header: 'Approval' },
         ]);
         setPreviewRows(rows);
-      } else {
-        const rows = await previewDetailedTimesheet(filter);
+      } else if (type === 'detailed-timesheet') {
+        const rawData = await previewDetailedTimesheet(filter);
+        
+        // Group data by employee and project/team
+        const groupedData: {
+          [employeeKey: string]: {
+            employeeName: string;
+            employeeEmail: string;
+            tables: Array<{
+              title: string;
+              columns: { key: string; header: string }[];
+              rows: any[];
+            }>;
+          };
+        } = {};
+
+        // Process raw data to group by employee and project/team
+        rawData.forEach((row: any) => {
+          const employeeKey = `${row.employeeName}|${row.employeeEmail}`;
+          
+          if (!groupedData[employeeKey]) {
+            groupedData[employeeKey] = {
+              employeeName: row.employeeName,
+              employeeEmail: row.employeeEmail,
+              tables: []
+            };
+          }
+
+          // Check if this row belongs to a project, team, or absence
+          const isProject = row.category === 'Project' || row.work?.includes('Project');
+          const isTeam = row.category === 'Team' || row.work?.includes('Team');
+          const isAbsence = row.category === 'Absence';
+          
+          let tableTitle = 'General';
+          if (isProject) {
+            tableTitle = `Project: ${row.work}`;
+          } else if (isTeam) {
+            tableTitle = `Team: ${row.work}`;
+          } else if (isAbsence) {
+            tableTitle = 'Leave';
+          }
+
+          // Find existing table for this project/team or create new one
+          let existingTable = groupedData[employeeKey].tables.find(t => t.title === tableTitle);
+          if (!existingTable) {
+            // Define columns based on table type
+            const baseColumns = [
+              { key: 'weekStartDate', header: 'Week Start' },
+              { key: 'status', header: 'Status' },
+              { key: 'mon', header: 'Mon' },
+              { key: 'tue', header: 'Tue' },
+              { key: 'wed', header: 'Wed' },
+              { key: 'thu', header: 'Thu' },
+              { key: 'fri', header: 'Fri' },
+              { key: 'total', header: 'Total' },
+            ];
+            
+            // Add Work column for absence tables
+            const columns = isAbsence 
+              ? [
+                  { key: 'weekStartDate', header: 'Week Start' },
+                  { key: 'status', header: 'Status' },
+                  { key: 'work', header: 'Work' },
+                  { key: 'mon', header: 'Mon' },
+                  { key: 'tue', header: 'Tue' },
+                  { key: 'wed', header: 'Wed' },
+                  { key: 'thu', header: 'Thu' },
+                  { key: 'fri', header: 'Fri' },
+                  { key: 'total', header: 'Total' },
+                ]
+              : baseColumns;
+            
+            existingTable = {
+              title: tableTitle,
+              columns: columns,
+              rows: []
+            };
+            groupedData[employeeKey].tables.push(existingTable);
+          }
+
+          // Add row to the appropriate table
+          existingTable.rows.push(row);
+        });
+
+        setGroupedPreviewData(groupedData);
+        
+        // For backward compatibility, also set the original format
         setPreviewColumns([
           { key: 'employeeName', header: 'Employee' },
           { key: 'employeeEmail', header: 'Email' },
           { key: 'weekStartDate', header: 'Week Start' },
           { key: 'status', header: 'Status' },
-          { key: 'category', header: 'Category' },
-          { key: 'work', header: 'Work' },
+
           { key: 'mon', header: 'Mon' },
           { key: 'tue', header: 'Tue' },
           { key: 'wed', header: 'Wed' },
           { key: 'thu', header: 'Thu' },
           { key: 'fri', header: 'Fri' },
-          { key: 'sat', header: 'Sat' },
-          { key: 'sun', header: 'Sun' },
           { key: 'total', header: 'Total' },
         ]);
-        setPreviewRows(rows);
+        setPreviewRows(rawData);
       }
     } catch (e) {
       
@@ -132,7 +233,8 @@ const ReportDashboard: React.FC = () => {
   };
 
   React.useEffect(() => {
-    loadPreview(reportType, currentFilter);
+    if (!reportType) return;
+    loadPreview(reportType as 'submission-status' | 'approval-status' | 'detailed-timesheet', currentFilter);
   }, [
     reportType,
     currentFilter.startDate,
@@ -188,12 +290,12 @@ const ReportDashboard: React.FC = () => {
                       supervisedEmployees={supervisedEmployees}
                       reportMetadata={reportMetadata}
                       onFilterChange={handleFilterChange}
-                      reportType={reportType}
+                      reportType={reportType as any}
                       onReportTypeChange={(t) => setReportType(t)}
                       disabled={isGenerating}
                       resetSignal={resetCounter}
                       isGenerating={isGenerating}
-                      onGenerateReport={(f) => handleGenerateReport(reportType, f)}
+                      onGenerateReport={(f) => reportType && handleGenerateReport(reportType, f)}
                       error={error}
                       onResetFilters={() => setResetCounter((c) => c + 1)}
                     />
@@ -206,13 +308,41 @@ const ReportDashboard: React.FC = () => {
                 <Divider sx={{ my: 2 }} />
 
                 {/* Preview Table */}
+                {reportType && (
                 <Box mb={3}>
-                  <ReportPreviewTable
-                    columns={previewColumns}
-                    rows={previewRows}
-                    title="Preview"
-                  />
+                  {reportType === 'detailed-timesheet' && Object.keys(groupedPreviewData).length > 0 ? (
+                    // Display grouped tables for detailed timesheet
+                    <ReportLayout title="Preview Table" noBorder>
+                      {Object.entries(groupedPreviewData).map(([employeeKey, employeeData]) => (
+                        <Box key={employeeKey} mb={4}>
+                          {/* Employee header - shown once per employee */}
+                          <Typography variant="h6" sx={{ mb: 2, color: theme.palette.primary.main }}>
+                            {employeeData.employeeName} - {employeeData.employeeEmail}
+                          </Typography>
+                          
+                          {/* Tables for this employee */}
+                          {employeeData.tables.map((table, tableIndex) => (
+                            <Box key={tableIndex} mb={3}>
+                              <ReportPreviewTable
+                                columns={table.columns}
+                                rows={table.rows}
+                                title={table.title}
+                              />
+                            </Box>
+                          ))}
+                        </Box>
+                      ))}
+                    </ReportLayout>
+                  ) : (
+                    // Display single table for other report types
+                    <ReportPreviewTable
+                      columns={previewColumns}
+                      rows={previewRows}
+                      
+                    />
+                  )}
                 </Box>
+                )}
                
               </Box>
             )}

@@ -19,5 +19,7 @@ export interface ReportPreviewTableProps<T = any> {
   columns: InputColumn<T>[];
   rows: T[];
   title?: string;
+  subtitle?: string;
+  subtitle2?: string;
   getRowKey?: (row: T) => string | number;
 }
