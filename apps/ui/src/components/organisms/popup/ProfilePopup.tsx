@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Divider } from '@mui/material';
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import BaseButton from '../../atoms/common/button/BaseBtn';
@@ -8,16 +8,15 @@ import {
   ProfileWorkSection 
 } from '../../molecules/profile';
 import { ProfileSectionLabel } from '../../atoms/profile';
-import { useSupervisorDisplay } from '../../../hooks/profile';
 import { ProfilePopupProps } from '../../../interfaces/organisms/popup';
 import { useAuth } from '../../../contexts/AuthContext';
+import { listTeams } from '../../../api/team';
+import { listProjects } from '../../../api/project';
 
 const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose }) => {
   const { authState } = useAuth();
   const user = authState.user as any;
   
-  const supervisorDisplay = useSupervisorDisplay({ user, open });
-
   const [supervisors, setSupervisors] = useState<string[]>([]);
   const [supervisorEmails, setSupervisorEmails] = useState<string[]>([]);
 
@@ -92,12 +91,10 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose }) => {
     if (!supervisors.length || !supervisorEmails.length) return undefined;
 
     
-    const combined = supervisors.map((name, index) => {
-      const email = supervisorEmails[index] || '';
-      return `${name} - ${email}`;
-    });
-
-    return combined.join(' ');
+        const combined = supervisors.map((name: string, index: number) => {
+          const email = supervisorEmails[index] || '';
+          return `${name} - ${email}`;
+        });    return combined.join(' ');
   }, [supervisors, supervisorEmails]);
 
   return (
@@ -139,7 +136,7 @@ const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose }) => {
 
       {/* Work Information Section */}
       <ProfileSectionLabel label="Work Information" />
-      <ProfileWorkSection supervisorDisplay={supervisorDisplay} />
+      <ProfileWorkSection supervisorDisplay={supervisorDisplay ?? ''} />
     </PopupLayout>
   );
 };
