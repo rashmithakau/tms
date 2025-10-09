@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../interfaces';
 import { TimesheetStatus } from '@tms/shared';
@@ -25,10 +25,12 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
   const [data, setData] = useState<TimesheetData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const isUpdatingFromLocal = useRef(false);
   
   const selectedWeekStartIso = useSelector((state: RootState) => state.timesheet.weekStartDate);
   const timesheetStatus = useSelector((state: RootState) => state.timesheet.status);
   const selectedActivities = useSelector((state: RootState) => state.timesheet.selectedActivities);
+  const reduxTimesheetData = useSelector((state: RootState) => state.timesheet.timesheetData);
 
 
   const createAbsenceRows = (): TimesheetItem[] => {
@@ -41,8 +43,25 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
   };
 
   useEffect(() => {
+    isUpdatingFromLocal.current = true;
     dispatch(setTimesheetData(data));
+    setTimeout(() => {
+      isUpdatingFromLocal.current = false;
+    }, 0);
   }, [data, dispatch]);
+
+  // Sync Redux timesheet data back to local state when updated externally
+  useEffect(() => {
+    if (!isUpdatingFromLocal.current && reduxTimesheetData && reduxTimesheetData.length > 0) {
+      const reduxDataString = JSON.stringify(reduxTimesheetData);
+      const localDataString = JSON.stringify(data);
+      
+      if (reduxDataString !== localDataString) {
+        console.log('Syncing Redux data to local state');
+        setData(reduxTimesheetData);
+      }
+    }
+  }, [reduxTimesheetData]);
 
   useEffect(() => {
     if (!selectedWeekStartIso) {

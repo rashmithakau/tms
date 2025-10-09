@@ -16,8 +16,8 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
   supervisedTeamIds,
 }) => (
   <TableRow>
-    <TableCell />
-    <TableCell>{row.work}</TableCell>
+    <TableCell sx={{ textAlign: 'left', verticalAlign: 'middle' }} />
+    <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>{row.work}</TableCell>
     {row.hours.map((hour: string, colIndex: number) => {
       const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
       const isSelected = isDaySelected(catIndex, rowIndex, colIndex);
@@ -44,8 +44,8 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
       
       const isCheckboxDisabled = isDisabled || !canApprove;
       return (
-        <TableCell key={colIndex} align="center">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '4px' }}>
+        <TableCell key={colIndex} align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', flexDirection: 'column', gap: '4px', width: '100%' }}>
             {isSelectionMode && hasHours && (
               <Checkbox
                 size="small"
@@ -56,22 +56,22 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
                 title={!canApprove ? tooltipMessage : undefined}
               />
             )}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isDisabled ? 0.6 : (!canApprove ? 0.4 : 1), position: 'relative' }}>
-              <div style={{ marginRight: 4 }}>{hour}</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '6px', opacity: isDisabled ? 0.6 : (!canApprove ? 0.4 : 1), position: 'relative', width: '100%' }}>
+              <div>{hour}</div>
               {row.descriptions[colIndex] && (
                 <Tooltip title={row.descriptions[colIndex]}>
                   <EditNoteIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                 </Tooltip>
               )}
+              {hasHours && dailyStatus !== TimesheetStatus.Draft && (
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dailyStatus === TimesheetStatus.Approved ? '#4caf50' : dailyStatus === TimesheetStatus.Rejected ? '#f44336' : dailyStatus === TimesheetStatus.Pending ? '#ff9800' : '#9e9e9e' }} />
+              )}
             </div>
-            {hasHours && dailyStatus !== TimesheetStatus.Draft && (
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dailyStatus === TimesheetStatus.Approved ? '#4caf50' : dailyStatus === TimesheetStatus.Rejected ? '#f44336' : dailyStatus === TimesheetStatus.Pending ? '#ff9800' : '#9e9e9e' }} />
-            )}
           </div>
         </TableCell>
       );
     })}
-    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+    <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>
       {row.hours.reduce((sum: number, h: string) => sum + parseFloat(h || '0'), 0).toFixed(2)}
     </TableCell>
   </TableRow>

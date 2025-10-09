@@ -165,6 +165,7 @@ const AdminWindow: React.FC = () => {
       const uid = (user as any)._id as string;
       return {
         id: uid,
+        employee_id: (user as any).employee_id || '',
         email: user.email || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',

@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   submitMyDraftTimesheets,
   createMyTimesheet,
   updateMyTimesheet,
+  requestTimesheetEdit,
 } from '../../api/timesheet';
 import { useToast } from '../../contexts/ToastContext';
 import { TimesheetStatus } from '@tms/shared';
+import { setTimesheetData } from '../../store/slices/timesheetSlice';
 
 export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   const timesheetData = useSelector((state: any) => state.timesheet);
+  const dispatch = useDispatch();
   const toast = useToast();
   const [isActivityPopupOpen, setActivityPopupOpen] = useState(false);
 
@@ -44,6 +47,53 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
 
   const handleActivityClosePopup = () => {
     setActivityPopupOpen(false);
+  };
+
+  const handleActivitySuccess = (customActivity?: string | null) => {
+    // If a custom activity was provided, add it to the Absence category for this week only
+    if (customActivity) {
+      console.log('Adding custom activity:', customActivity);
+      console.log('Current timesheet data:', timesheetData.timesheetData);
+      
+      const currentData = [...timesheetData.timesheetData];
+      const absenceCatIndex = currentData.findIndex((c: any) => c.category === 'Absence');
+      
+      console.log('Absence category index:', absenceCatIndex);
+      
+      const newAbsenceItem = {
+        work: customActivity,
+        hours: Array(7).fill('00.00'),
+        descriptions: Array(7).fill(''),
+        dailyStatus: Array(7).fill(TimesheetStatus.Draft),
+      };
+      
+      if (absenceCatIndex >= 0) {
+        // Check if this custom activity already exists
+        const exists = currentData[absenceCatIndex].items.some(
+          (item: any) => item.work === customActivity
+        );
+        
+        if (!exists) {
+          currentData[absenceCatIndex] = {
+            ...currentData[absenceCatIndex],
+            items: [...currentData[absenceCatIndex].items, newAbsenceItem],
+          };
+          console.log('Updated data with new activity:', currentData);
+          dispatch(setTimesheetData(currentData));
+        } else {
+          console.log('Activity already exists');
+        }
+      } else {
+        // Create Absence category if it doesn't exist
+        console.log('Creating new Absence category');
+        currentData.push({
+          category: 'Absence',
+          items: [newAbsenceItem],
+        });
+        console.log('Updated data with new category:', currentData);
+        dispatch(setTimesheetData(currentData));
+      }
+    }
   };
 
   const handleSubmit = async () => {
@@ -109,6 +159,23 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     }
   };
 
+  const handleRequestEdit = async () => {
+    try {
+      const currentId = timesheetData.currentTimesheetId;
+      if (!currentId) {
+        toast.error('No timesheet to request edit for');
+        return;
+      }
+
+      await requestTimesheetEdit(currentId);
+      toast.success('Edit request sent to supervisors');
+      await refresh();
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || 'Failed to request edit';
+      toast.error(errMsg);
+    }
+  };
+
   const isDataSavedInDB = JSON.stringify(timesheetData.timesheetData) === (timesheetData.originalDataHash || '');
   
 
@@ -122,6 +189,10 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     isDataSavedInDB;
     
   const isSelectWorkDisabled = ![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(timesheetData.status as TimesheetStatus);
+  
+  // Request to Edit button should be enabled for Pending or Approved timesheets
+  const isRequestEditDisabled = ![TimesheetStatus.Pending, TimesheetStatus.Approved].includes(timesheetData.status as TimesheetStatus) ||
+    timesheetData.status === TimesheetStatus.EditRequested;
 
   return {
     totalHours,
@@ -129,10 +200,13 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
     isActivityPopupOpen,
     handleActivityOpenPopup,
     handleActivityClosePopup,
+    handleActivitySuccess,
     handleSubmit,
     handleSaveAsDraft,
+    handleRequestEdit,
     isSubmitDisabled,
     isSaveDisabled,
     isSelectWorkDisabled,
+    isRequestEditDisabled,
   };
 };

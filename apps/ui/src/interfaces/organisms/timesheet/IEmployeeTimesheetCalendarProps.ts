@@ -10,4 +10,8 @@ export interface IEmployeeTimesheetCalendarProps {
   onDaySelectionChange?: (selections: DaySelection[]) => void;
   selectedDays?: DaySelection[];
   isSelectionMode?: boolean;
+  onApproveEditRequest?: (timesheetId: string) => void;
+  onRejectEditRequest?: (timesheetId: string) => void;
+  isApprovingEditRequest?: boolean;
+  isRejectingEditRequest?: boolean;
 }

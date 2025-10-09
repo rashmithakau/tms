@@ -26,14 +26,14 @@ const TimesheetTableRow: React.FC<ITimesheetTableRowProps> = ({
         <TableCell
           rowSpan={rowSpan}
           align="left"
-          sx={{ fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'left' }}
+          sx={{ fontWeight: 'bold', verticalAlign: 'middle', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}
         >
           {categoryName}
         </TableCell>
       )}
       
       {/* Work/Project name */}
-      <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>{item.work}</TableCell>
+      <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>{item.work}</TableCell>
       
       {/* Hour cells for each day */}
       {item.hours.map((hour: string, colIndex: number) => {
@@ -44,7 +44,7 @@ const TimesheetTableRow: React.FC<ITimesheetTableRowProps> = ({
         const isEditable = isCellEditable(catIndex, rowIndex, colIndex);
         
         return (
-          <TableCell key={colIndex} align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>
+          <TableCell key={colIndex} align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>
             <TimesheetCell
               hour={hour}
               description={item.descriptions[colIndex]}
@@ -61,7 +61,7 @@ const TimesheetTableRow: React.FC<ITimesheetTableRowProps> = ({
       })}
       
       {/* Row total */}
-      <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>
+      <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>
         {calcRowTotal(item.hours)}
       </TableCell>
     </TableRow>

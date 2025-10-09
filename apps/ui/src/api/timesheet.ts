@@ -82,3 +82,19 @@ export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
   return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
 };
 
+export const requestTimesheetEdit = async (timesheetId: string) => {
+  return API.post('/api/timesheets/request-edit', { timesheetId });
+};
+
+export const approveTimesheetEditRequest = async (timesheetId: string) => {
+  return API.post('/api/timesheets/approve-edit-request', { timesheetId });
+};
+
+export const rejectTimesheetEditRequest = async (timesheetId: string) => {
+  return API.post('/api/timesheets/reject-edit-request', { timesheetId });
+};
+
+export const getPendingEditRequests = async () => {
+  return API.get<{ editRequests: any[] }>('/api/timesheets/pending-edit-requests');
+};
+

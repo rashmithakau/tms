@@ -20,6 +20,11 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
 
   const columns: DataTableColumn<EmployeeRow>[] = [
     { label: '', key: 'empty', render: () => null },
+    { 
+      label: 'Employee ID', 
+      key: 'employee_id', 
+      render: (row) => row.employee_id || '-' 
+    },
     { label: 'Email', key: 'email', render: (row) => row.email },
     {
       label: 'Name',
@@ -93,8 +98,6 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
           setConfirm({ open: false });
         }}
       />
-      {/* Edit Popup */}
-      {/* We do not import here to avoid circulars; parent AdminWindow will provide popup */}
     </>
   );
 };

@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material';
 import PageLoading from '../../molecules/common/loading/PageLoading';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
 import { useSupervisedTimesheets } from '../../../hooks/timesheet/useSupervisedTimesheets';
-import { deleteMyTimesheet } from '../../../api/timesheet';
+import { deleteMyTimesheet, approveTimesheetEditRequest, rejectTimesheetEditRequest } from '../../../api/timesheet';
 import ConfirmDialog from '../../molecules/common/dialog/ConfirmDialog';
 import RejectionReasonDialog from '../../molecules/timesheet/approval/RejectionReasonDialog';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -44,6 +44,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
       groups.push({
         employee: {
           _id: row.employee._id,
+          employee_id: row.employee.employee_id || '',
           firstName: row.employee.firstName || '',
           lastName: row.employee.lastName || '',
           email: row.employee.email || '',
@@ -83,6 +84,40 @@ const ReviewTimesheetsWindow: React.FC = () => {
   
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
   const [openRow, setOpenRow] = useState<number | null>(null);
+  const [approvingEditRequest, setApprovingEditRequest] = useState(false);
+  const [rejectingEditRequest, setRejectingEditRequest] = useState(false);
+
+  const handleApproveEditRequest = async (timesheetId: string) => {
+    setApprovingEditRequest(true);
+    try {
+      const response = await approveTimesheetEditRequest(timesheetId);
+      if (response.data?.allApproved) {
+        toast.success('Edit request approved! Timesheet is now editable.');
+      } else {
+        toast.success('Your approval has been recorded. Waiting for other supervisors.');
+      }
+      await refresh();
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || 'Failed to approve edit request';
+      toast.error(errMsg);
+    } finally {
+      setApprovingEditRequest(false);
+    }
+  };
+
+  const handleRejectEditRequest = async (timesheetId: string) => {
+    setRejectingEditRequest(true);
+    try {
+      await rejectTimesheetEditRequest(timesheetId);
+      toast.success('Edit request rejected');
+      await refresh();
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || 'Failed to reject edit request';
+      toast.error(errMsg);
+    } finally {
+      setRejectingEditRequest(false);
+    }
+  };
 
   if (isLoading) return <PageLoading variant="inline" message="Loading timesheets..." />;
 
@@ -90,17 +125,17 @@ const ReviewTimesheetsWindow: React.FC = () => {
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell />
-          <TableCell>Name</TableCell>
-          <TableCell>Email</TableCell>
-          <TableCell>Contact</TableCell>
-          <TableCell>Designation</TableCell>
+          <TableCell sx={{ textAlign: 'left' }} />
+          <TableCell sx={{ textAlign: 'left' }}>Employee ID</TableCell>
+          <TableCell sx={{ textAlign: 'left' }}>Name</TableCell>
+          <TableCell sx={{ textAlign: 'left' }}>Email</TableCell>
+          <TableCell sx={{ textAlign: 'left' }}>Designation</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {filteredEmployeeGroups.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+            <TableCell colSpan={5} align="left" sx={{ py: 4, textAlign: 'left' }}>
               <Typography color="textSecondary">
                 {searchText.trim() 
                   ? `No employees found matching "${searchText}"`
@@ -113,15 +148,15 @@ const ReviewTimesheetsWindow: React.FC = () => {
           filteredEmployeeGroups.map((group, index) => (
             <React.Fragment key={group.employee._id}>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
-                <TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>
                   <IconButton onClick={() => setOpenRow(openRow === index ? null : index)}>
                     {openRow === index ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                   </IconButton>
                 </TableCell>
-                <TableCell>{group.employee.firstName} {group.employee.lastName}</TableCell>
-                <TableCell>{group.employee.email}</TableCell>
-                <TableCell>{group.employee.contactNumber || '-'}</TableCell>
-                <TableCell>{group.employee.designation || '-'}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.employee_id || '-'}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.firstName} {group.employee.lastName}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.email}</TableCell>
+                <TableCell sx={{ textAlign: 'left' }}>{group.employee.designation || '-'}</TableCell>
               </TableRow>
               <TableRow sx={{ backgroundColor: openRow === index ? theme.palette.background.paper : 'inherit' }}>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
@@ -137,6 +172,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
                         onDaySelectionChange={handleDaySelectionChange}
                         selectedDays={selectedDays}
                         isSelectionMode={isSelectionMode}
+                        onApproveEditRequest={handleApproveEditRequest}
+                        onRejectEditRequest={handleRejectEditRequest}
+                        isApprovingEditRequest={approvingEditRequest}
+                        isRejectingEditRequest={rejectingEditRequest}
                       />
                     </Box>
                   </Collapse>

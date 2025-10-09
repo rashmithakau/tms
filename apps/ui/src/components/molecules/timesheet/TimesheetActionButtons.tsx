@@ -4,6 +4,7 @@ import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
 import SelectActivityPopup from '../../organisms/popup/SelectActivityPopup';
 import { ITimesheetActionButtonsProps } from '../../../interfaces/component/timesheet';
 
@@ -11,11 +12,14 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
   onSubmit,
   onSaveAsDraft,
   onSelectWork,
+  onRequestEdit,
   isSubmitDisabled,
   isSaveDisabled,
   isSelectWorkDisabled,
+  isRequestEditDisabled,
   isActivityPopupOpen,
   onCloseActivityPopup,
+  onActivitySuccess,
 }) => {
   return (
     <Box
@@ -32,7 +36,7 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
         onClick={onSubmit}
         startIcon={<SendOutlinedIcon />}
       >
-        Sign And Submit
+        Submit
       </BaseBtn>
       
       <BaseBtn
@@ -45,17 +49,27 @@ const TimesheetActionButtons: React.FC<ITimesheetActionButtonsProps> = ({
       </BaseBtn>
       
       <BaseBtn
+        onClick={onRequestEdit}
+        variant="text"
+        startIcon={<EditIcon />}
+        disabled={isRequestEditDisabled}
+      >
+        Request to Edit
+      </BaseBtn>
+      
+      <BaseBtn
         onClick={onSelectWork}
         variant="contained"
         startIcon={<AddOutlinedIcon />}
         disabled={isSelectWorkDisabled}
       >
-        Select Work
+        Select Activity
       </BaseBtn>
       
       <SelectActivityPopup
         open={isActivityPopupOpen}
         onClose={onCloseActivityPopup}
+        onSuccess={onActivitySuccess}
       />
     </Box>
   );

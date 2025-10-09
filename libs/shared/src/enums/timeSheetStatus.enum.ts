@@ -2,5 +2,6 @@ export enum TimesheetStatus {
   Draft = "Draft",
   Pending = "Pending",
   Approved = "Approved",
-  Rejected = "Rejected"
+  Rejected = "Rejected",
+  EditRequested = "EditRequested"
 }

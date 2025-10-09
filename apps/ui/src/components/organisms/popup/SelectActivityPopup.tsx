@@ -1,6 +1,6 @@
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import BaseBtn from '../../atoms/common/button/BaseBtn';
-import { Box, Checkbox, FormControlLabel } from '@mui/material';
+import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
 import { absenceActivity } from '@tms/shared';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { RootState } from '../../../interfaces';
 import { SelectActivityPopupProps } from '../../../interfaces/organisms/popup';
 
 const absenceActivitiesArray = Object.values(absenceActivity);
+const OTHER_ACTIVITY_KEY = 'Other';
 
 function SelectActivityPopup({
   open,
@@ -25,10 +26,14 @@ function SelectActivityPopup({
   const [selectedActivities, setSelectedActivitiesState] = useState<
     absenceActivity[]
   >([]);
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
+  const [otherActivityText, setOtherActivityText] = useState('');
 
   useEffect(() => {
     if (open) {
       setSelectedActivitiesState(reduxSelectedActivities || []);
+      setIsOtherSelected(false);
+      setOtherActivityText('');
     }
   }, [open, reduxSelectedActivities]);
 
@@ -40,9 +45,25 @@ function SelectActivityPopup({
     );
   };
 
+  const handleOtherCheckboxChange = () => {
+    setIsOtherSelected((prev) => !prev);
+    if (isOtherSelected) {
+      setOtherActivityText('');
+    }
+  };
+
   const handleConfirm = () => {
+    // Save standard activities to Redux (global)
     dispatch(setSelectedActivities(selectedActivities));
-    if (onSuccess) onSuccess();
+    
+    // If "Other" is selected with text, pass it separately to be added to current week only
+    if (onSuccess) {
+      const customActivity = isOtherSelected && otherActivityText.trim() 
+        ? otherActivityText.trim() 
+        : null;
+      onSuccess(customActivity);
+    }
+    
     onClose();
   };
 
@@ -73,6 +94,32 @@ function SelectActivityPopup({
             />
           </div>
         ))}
+
+        {/* Other option with text input */}
+        <div>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isOtherSelected}
+                onChange={handleOtherCheckboxChange}
+              />
+            }
+            label={OTHER_ACTIVITY_KEY}
+          />
+          {isOtherSelected && (
+            <Box sx={{width: '90%'}}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Enter custom activity"
+              value={otherActivityText}
+              onChange={(e) => setOtherActivityText(e.target.value)}
+              sx={{ mt: 1, ml: 4 }}
+            />
+              </Box>
+
+          )}
+        </div>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
           <BaseBtn
