@@ -135,7 +135,7 @@ const TeamTable: React.FC<{ rows?: TeamRow[] }> = ({ rows: externalRows }) => {
       ),
     },
     {
-      label: 'Created At',
+      label: 'Created On',
       key: 'createdAt',
       render: (row) => (
         <span>
