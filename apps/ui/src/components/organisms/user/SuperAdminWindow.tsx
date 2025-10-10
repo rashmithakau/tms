@@ -9,8 +9,9 @@ import { EmployeeRow } from '../../../interfaces/component/table/ITableRowTypes'
 import CreateAccountPopup from '../auth/popup/CreateAccountPopup';
 import BaseBtn from '../../atoms/common/button/BaseBtn';
 import EmpTable from '../table/EmpTable';
+import EmpTableToolbar from '../../molecules/common/other/EmpTableToolbar';
 import { select_btn } from '../../../store/slices/dashboardNavSlice';
-import { useUsers } from '../../../hooks/api/useUsers';
+import { useUsers, useUsersByRoles } from '../../../hooks/api/useUsers';
 import AdminDashboardWindow from '../admin/AdminDashboardWindow';
 import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
 
@@ -39,9 +40,10 @@ const SuperAdminWindow: React.FC = () => {
   } = useTimesheetRejectionReasons();
 
   // Users hooks 
-  const { users, isLoading: usersLoading, error: usersError, refreshUsers } = useUsers(UserRole.Admin);
+  const { users, isLoading: usersLoading, error: usersError, refreshUsers } = useUsersByRoles([UserRole.Admin, UserRole.SupervisorAdmin]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'supervisorAdmin'>('all');
 
   // Transform dashboard stats for the component
   const dashboardStatsData = useMemo(() => {
@@ -73,24 +75,42 @@ const SuperAdminWindow: React.FC = () => {
       userStats: {
         totalUsers: dashboardStats.userStats?.totalUsers || 0,
         activeUsers: dashboardStats.userStats?.activeUsers || 0,
-        newUsersThisMonth: 0, // This field might not exist in API
+        newUsersThisMonth: 0, 
         totalAdmins: dashboardStats.userStats?.totalAdmins || 0
       },
       projectStats: {
         totalProjects: dashboardStats.projectStats?.totalProjects || 0,
         activeProjects: dashboardStats.projectStats?.activeProjects || 0,
-        completedProjects: 0 // This field might not exist in API
+        completedProjects: 0 
       },
       timesheetStats: {
         pendingApprovals: dashboardStats.timesheetStats?.pendingCount || 0,
         approvedThisWeek: dashboardStats.timesheetStats?.approvedCount || 0,
-        totalHoursLogged: 0 // This field might not exist in API
+        totalHoursLogged: 0 
       },
       teamStats: {
         totalTeams: dashboardStats.teamStats?.totalTeams || 0
       }
     };
   }, [dashboardStats]);
+
+  // Helper function to convert role enum to display text
+  const getRoleDisplayText = (role: UserRole): string => {
+    switch (role) {
+      case UserRole.Admin:
+        return 'Admin';
+      case UserRole.SupervisorAdmin:
+        return 'Supervisor Admin';
+      case UserRole.SuperAdmin:
+        return 'Super Admin';
+      case UserRole.Supervisor:
+        return 'Supervisor';
+      case UserRole.Emp:
+        return 'Employee';
+      default:
+        return 'Unknown';
+    }
+  };
 
   const rows: EmployeeRow[] = useMemo(() => {
     return users.map((user) => ({
@@ -100,6 +120,7 @@ const SuperAdminWindow: React.FC = () => {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       team: undefined,
+      role: getRoleDisplayText(user.role),
       status:
         typeof user.status === 'boolean'
           ? user.status
@@ -116,6 +137,12 @@ const SuperAdminWindow: React.FC = () => {
   const handleOpenPopup = () => setIsPopupOpen(true);
   const handleClosePopup = () => setIsPopupOpen(false);
   const handleAccountCreated = () => refreshUsers();
+  
+  const handleRoleFilterChange = (val: string) => {
+    if (val === 'all' || val === 'admin' || val === 'supervisorAdmin') {
+      setRoleFilter(val as 'all' | 'admin' | 'supervisorAdmin');
+    }
+  };
 
 
   if (selectedBtn === 'Dashboard') {
@@ -167,13 +194,29 @@ const SuperAdminWindow: React.FC = () => {
           <TableWindowLayout
             title="Admin Accounts"
             buttons={[
-              <Box sx={{ mt: 2, ml: 2 }}>
+              <Box sx={{ mt: 2 }}>
+                <EmpTableToolbar
+                  projectsOptions={[]}
+                  selectedProjectIds={[]}
+                  onSelectedProjectIdsChange={() => {}}
+                  statusFilter="all"
+                  onStatusFilterChange={() => {}}
+                  roleFilter={roleFilter}
+                  onRoleFilterChange={handleRoleFilterChange}
+                  availableRoles={[
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'supervisorAdmin', label: 'Supervisor Admin' }
+                  ]}
+                />
+              </Box>,
+              <Box sx={{ mt: 2 }}>
                 <BaseBtn onClick={handleOpenPopup} variant="contained" startIcon={<AddOutlinedIcon />}>
                   Admin
                 </BaseBtn>
               </Box>,
             ]}
-            table={<EmpTable rows={rows} onRefresh={refreshUsers} />}
+            filter={null}
+            table={<EmpTable rows={rows} onRefresh={refreshUsers} roleFilter={roleFilter} />}
           />
         )}
 

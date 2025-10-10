@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import StatusChip from '../../atoms/common/button/StatusChip';
 import ActionButtons from '../../molecules/common/other/ActionButtons';
 import ConfirmDialog from '../../molecules/common/dialog/ConfirmDialog';
@@ -9,7 +9,7 @@ import DataTable from './DataTable';
 import { DataTableColumn, EmployeeRow, EmpTableProps } from '../../../interfaces';
 import { useTheme } from '@mui/material/styles';
 
-const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
+const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
@@ -17,6 +17,29 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
   const selectedRow = rows.find((r) => r.id === confirm.id);
   const toast = useToast();
   const theme = useTheme();
+
+  const filteredRows = useMemo(() => {
+    if (roleFilter === 'all') {
+      return rows;
+    }
+    return rows.filter((row) => {
+      // Handle both raw role values and display text
+      const rowRole = row.role;
+      if (typeof rowRole === 'string') {
+        // If it's display text, convert back to enum value for comparison
+        const roleMap: Record<string, string> = {
+          'Admin': 'admin',
+          'Supervisor Admin': 'supervisorAdmin', 
+          'Super Admin': 'superAdmin',
+          'Supervisor': 'supervisor',
+          'Employee': 'emp'
+        };
+        const actualRole = roleMap[rowRole] || rowRole;
+        return actualRole === roleFilter;
+      }
+      return rowRole === roleFilter;
+    });
+  }, [rows, roleFilter]);
 
   const columns: DataTableColumn<EmployeeRow>[] = [
     { label: '', key: 'empty', render: () => null },
@@ -32,12 +55,17 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
       render: (row) => `${row.firstName} ${row.lastName}`.trim(),
     },
     {
+      label: 'Role',
+      key: 'role',
+      render: (row) => row.role || '-',
+    },
+    {
       label: 'Contact Number',
       key: 'contactNumber',
       render: (row) => row.contactNumber,
     },
     {
-      label: 'Created At',
+      label: 'Created On',
       key: 'createdAt',
       render: (row) =>
         row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '',
@@ -75,7 +103,7 @@ const EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow }) => {
     <>
       <DataTable
         columns={columns}
-        rows={rows}
+        rows={filteredRows}
         getRowKey={(row) => row.id ?? ''}
       />
       <ConfirmDialog

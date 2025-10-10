@@ -9,6 +9,8 @@ export interface IEmployeeManagementProps {
   onSelectedProjectIdsChange: (ids: string[]) => void;
   statusFilter: 'all' | 'Active' | 'Inactive';
   onStatusFilterChange: (filter: 'all' | 'Active' | 'Inactive') => void;
+  roleFilter: 'all' | 'admin' | 'supervisorAdmin' | 'supervisor' | 'emp';
+  onRoleFilterChange: (filter: 'all' | 'admin' | 'supervisorAdmin' | 'supervisor' | 'emp') => void;
   onAddEmployee: () => void;
   onEditEmployee?: (row: EmployeeRow) => void;
   onRefresh?: () => Promise<void>;

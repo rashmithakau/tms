@@ -7,6 +7,7 @@ export interface EmpTableProps {
   rows: EmployeeRow[];
   onRefresh?: () => Promise<void>;
   onEditRow?: (row: EmployeeRow) => void;
+  roleFilter?: 'all' | 'admin' | 'supervisorAdmin' | 'supervisor' | 'emp';
 }
  
 export interface ProjectTableProps {

@@ -20,7 +20,7 @@ function CreateAccountPopup({
   onClose,
   onSuccess,
 }: CreateAccountPopupProps) {
-  const title = `${role === 'admin' ? 'Create Admin' : 'Create Employee'}`;
+  const title = `${role === UserRole.Admin ? 'Create Admin' : 'Create Employee'}`;
 
   const { execute, isLoading, resetError } = useApiCall({
     loadingMessage: 'Creating account...',
