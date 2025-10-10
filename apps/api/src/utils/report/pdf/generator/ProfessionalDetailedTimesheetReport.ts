@@ -101,6 +101,9 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     // Calculate totals for this employee
     const employeeDailyTotals = [0, 0, 0, 0, 0];
     let employeeGrandTotal = 0;
+    let hasProject = false;
+    let hasTeam = false;
+    let hasLeave = false;
 
     employeeData.forEach((timesheetWeek) => {
       timesheetWeek.categories.forEach((category) => {
@@ -121,11 +124,14 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
           let includeWork = false;
           if (item.projectName) {
             title = `Project: ${item.projectName}`;
+            hasProject = true;
           } else if (item.teamName) {
             title = `Team: ${item.teamName}`;
+            hasTeam = true;
           } else if (category.category === 'Absence') {
             title = 'Leave';
             includeWork = true;
+            hasLeave = true;
           }
 
           // Ensure table container
@@ -168,7 +174,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
 
     // Render each sub-table with consistent styling
     tableOrder.forEach((sub) => {
-      // Lightweight subtitle for the sub-table
+      
       this.doc.fontSize(11)
         .fillColor(this.colors.text.primary)
         .font('Helvetica-Bold')
@@ -179,8 +185,9 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
         ? ['Week Start', 'Week End', 'Status', 'Work', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total']
         : ['Week Start', 'Week End', 'Status', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total'];
       const columnWidths = sub.includeWork
-        ? [80, 80, 70, 120, 50, 50, 50, 50, 50, 55]
-        : [90, 90, 60, 45, 45, 45, 45, 45, 50];
+
+        ? [60, 60, 50, 60, 45, 45, 45, 45, 45, 50]
+        : [80, 80, 70, 45, 45, 45, 45, 45, 50];
 
       const sortedRows = sub.rows
         .slice()
@@ -195,15 +202,21 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
       this.currentY += 10;
     });
 
+    // If project, team, and leave tables exist, start Key Metrics on a new page
+    if (hasProject && hasTeam && hasLeave) {
+      this.doc.addPage();
+      this.currentY = this.margin + 20;
+    }
+
     // Per-employee key metrics 
     const metricsHeaders = ['Metric', 'Value'];
     const metricsData: string[][] = [
       ['Total Hours', `${employeeGrandTotal.toFixed(2)}h`],
-      ['Mon Hours', employeeDailyTotals[0].toFixed(2)],
-      ['Tue Hours', employeeDailyTotals[1].toFixed(2)],
-      ['Wed Hours', employeeDailyTotals[2].toFixed(2)],
-      ['Thu Hours', employeeDailyTotals[3].toFixed(2)],
-      ['Fri Hours', employeeDailyTotals[4].toFixed(2)],
+      ['Monday Hours', employeeDailyTotals[0].toFixed(2)],
+      ['Tuesday Hours', employeeDailyTotals[1].toFixed(2)],
+      ['Wednesday Hours', employeeDailyTotals[2].toFixed(2)],
+      ['Thursday Hours', employeeDailyTotals[3].toFixed(2)],
+      ['Friday Hours', employeeDailyTotals[4].toFixed(2)],
     ];
     this.doc.fontSize(11)
       .fillColor(this.colors.text.primary)
@@ -432,30 +445,39 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     
     // Calculate accurate total hours from all items
     data.forEach(d => {
+      // Track per-week leave hours aggregated across all absence items
+      const weeklyLeaveHours: number[] = [0, 0, 0, 0, 0];
+
       d.categories.forEach(cat => {
         cat.items.forEach(item => {
           if (item.projectName) allProjects.add(item.projectName);
           if (item.teamName) allTeams.add(item.teamName);
           totalTasks++;
           totalHours += item.totalHours || 0;
-          
-          // Calculate from daily hours 
+
+          // Calculate from daily hours
           const dailyHours = item.dailyHours || [];
           const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => {
             return sum + (parseFloat(hours?.toString()) || 0);
           }, 0);
           grandTotal += rowTotal;
 
-          // Count absence days 
+          // Aggregate leave hours per day for this week
           if (cat.category === 'Absence') {
             for (let i = 0; i < 5; i++) {
               const h = dailyHours[i];
-              const n = typeof h === 'string' ? parseFloat(h) : (h || 0);
-              if (!isNaN(n) && n > 0) absenceDays++;
+              const n = typeof h === 'string' ? parseFloat(h) : (typeof h === 'number' ? h : 0);
+              if (!isNaN(n) && n > 0) weeklyLeaveHours[i] += n;
             }
           }
         });
       });
+
+      // Convert weekly aggregated leave hours to absence day fractions (8h = 1 day)
+      for (let i = 0; i < 5; i++) {
+        const fraction = weeklyLeaveHours[i] / 8;
+        if (fraction > 0) absenceDays += Math.min(fraction, 1);
+      }
     });
 
     const totalProjects = allProjects.size;
@@ -471,7 +493,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
       totalProjects,
       totalTeams,
       totalTasks,
-      absenceDays,
+      absenceDays: Math.round(absenceDays * 100) / 100,
       avgHoursPerWeek,
       utilizationRate
     };
