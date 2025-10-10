@@ -20,8 +20,8 @@ import { INotificationDropdownProps } from '../../../interfaces/organisms';
 const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
   iconButtonSx = {},
   popoverSx = {},
-  dropdownWidth = 360,
-  maxHeight = 440,
+  dropdownWidth = 420,
+  maxHeight = 500,
 }) => {
   const { 
     notifications, 
@@ -172,6 +172,7 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
                   backgroundColor: notification.read ? 'transparent' : 'action.hover',
                   borderRadius: 1,
                   mb: 0.5,
+                  pb: 1.5,
                   '&:hover': {
                     backgroundColor: 'action.selected',
                   },
@@ -211,15 +212,16 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
                     </Box>
                   }
                   secondary={
-                    <Box sx={{ mt: 0.5 }}>
+                    <Box sx={{ mt: 0.5, pb: 0.5 }}>
                       <Typography 
                         variant="body2" 
                         color="text.primary"
                         sx={{ 
                           display: '-webkit-box',
-                          WebkitLineClamp: 2,
+                          WebkitLineClamp: 4,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
+                          lineHeight: 1.6,
                         }}
                       >
                         {notification.message}
