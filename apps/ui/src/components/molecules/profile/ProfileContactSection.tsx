@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { Email, Phone } from '@mui/icons-material';
 import { ProfileFieldRow, ProfileSectionLabel } from '../../atoms/profile';
 import { ProfileContactSectionProps } from '../../../interfaces/profile/molecule';
+import { formatContactNumber } from '../../../utils';
 
 const ProfileContactSection: React.FC<ProfileContactSectionProps> = ({
   email,
@@ -18,7 +19,7 @@ const ProfileContactSection: React.FC<ProfileContactSectionProps> = ({
       />
       <ProfileFieldRow
         label="Phone Number"
-        value={contactNumber}
+        value={formatContactNumber(contactNumber)}
         icon={<Phone fontSize="small" />}
       />
     </Box>

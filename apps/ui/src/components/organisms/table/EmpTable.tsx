@@ -8,6 +8,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import DataTable from './DataTable';
 import { DataTableColumn, EmployeeRow, EmpTableProps } from '../../../interfaces';
 import { useTheme } from '@mui/material/styles';
+import { formatContactNumber } from '../../../utils';
 
 const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -62,7 +63,7 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
     {
       label: 'Contact Number',
       key: 'contactNumber',
-      render: (row) => row.contactNumber,
+      render: (row) => formatContactNumber(row.contactNumber),
     },
     {
       label: 'Created On',
