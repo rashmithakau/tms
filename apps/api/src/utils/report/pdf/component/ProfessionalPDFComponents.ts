@@ -100,10 +100,11 @@ export class ProfessionalPDFComponents {
       rowHeight = 22
     } = options;
 
-    this.checkPageBreak(50);
+    const headerHeight = 35;
+   
+    this.checkPageBreak(headerHeight + 5 + rowHeight);
 
     // Table header
-    const headerHeight = 35;
     let x = this.margin;
     const tableY = this.getCurrentY();
 
