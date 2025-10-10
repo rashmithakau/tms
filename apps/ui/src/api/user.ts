@@ -18,8 +18,9 @@ import { UserRole } from "@tms/shared";
         case UserRole.Admin:return await API.get(`/api/user/all?roles=${UserRole.Admin}`);
         case UserRole.Emp:return await API.get("/api/user/emp");
         case UserRole.Supervisor:
+          return await API.get(`/api/user/all?roles=${UserRole.Supervisor}`);
         case UserRole.SupervisorAdmin:
-          return await API.get("/api/user/supervisor");
+          return await API.get(`/api/user/all?roles=${UserRole.SupervisorAdmin}`);
       }
     } catch (error) {
       throw error; 

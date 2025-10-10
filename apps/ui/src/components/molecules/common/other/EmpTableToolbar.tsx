@@ -19,12 +19,15 @@ export default function EmpTableToolbar({
   onSelectedProjectIdsChange,
   statusFilter,
   onStatusFilterChange,
+  roleFilter,
+  onRoleFilterChange,
+  availableRoles,
 }: IEmpTableToolbarProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const activeCount =
-    (selectedProjectIds.length > 0 ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0);
+    (selectedProjectIds.length > 0 ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0) + (roleFilter !== 'all' ? 1 : 0);
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -80,6 +83,44 @@ export default function EmpTableToolbar({
           </ToggleButton>
         </ToggleButtonGroup>
 
+        <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
+          Role
+        </Typography>
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={roleFilter}
+          onChange={(_, value) => value && onRoleFilterChange(value)}
+          aria-label="Role filter"
+          sx={{ flexWrap: 'wrap', gap: 1, mb: 2 }}
+        >
+          <ToggleButton value="all" aria-label="All">
+            All
+          </ToggleButton>
+          {availableRoles ? (
+            availableRoles.map((role) => (
+              <ToggleButton key={role.value} value={role.value} aria-label={role.label}>
+                {role.label}
+              </ToggleButton>
+            ))
+          ) : (
+            <>
+              <ToggleButton value="admin" aria-label="Admin">
+                Admin
+              </ToggleButton>
+              <ToggleButton value="supervisorAdmin" aria-label="Supervisor Admin">
+                Supervisor Admin
+              </ToggleButton>
+              <ToggleButton value="supervisor" aria-label="Supervisor">
+                Supervisor
+              </ToggleButton>
+              <ToggleButton value="emp" aria-label="Employee">
+                Employee
+              </ToggleButton>
+            </>
+          )}
+        </ToggleButtonGroup>
+
         <Divider sx={{ my: 1 }} />
         <Box>
           {activeCount > 0 && (
@@ -98,6 +139,13 @@ export default function EmpTableToolbar({
                   onDelete={() => onStatusFilterChange('all')}
                 />
               )}
+              {roleFilter !== 'all' && (
+                <Chip
+                  size="small"
+                  label={`Role: ${availableRoles ? availableRoles.find(r => r.value === roleFilter)?.label || roleFilter : roleFilter === 'supervisorAdmin' ? 'Supervisor Admin' : roleFilter === 'emp' ? 'Employee' : roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)}`}
+                  onDelete={() => onRoleFilterChange('all')}
+                />
+              )}
             </Stack>
           )}
           <Box
@@ -114,6 +162,7 @@ export default function EmpTableToolbar({
               onClick={() => {
                 onSelectedProjectIdsChange([]);
                 onStatusFilterChange('all');
+                onRoleFilterChange('all');
               }}
             >
               Clear

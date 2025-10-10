@@ -44,6 +44,7 @@ const AdminWindow: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<
     'all' | 'Active' | 'Inactive'
   >('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'supervisorAdmin' | 'supervisor' | 'emp'>('all');
   const [billable, setBillable] = useState<'all' | 'Yes' | 'No'>('all');
   
   const dispatch = useDispatch();
@@ -160,6 +161,24 @@ const AdminWindow: React.FC = () => {
     [projects]
   );
 
+  // Helper function to convert role enum to display text
+  const getRoleDisplayText = (role: UserRole): string => {
+    switch (role) {
+      case UserRole.Admin:
+        return 'Admin';
+      case UserRole.SupervisorAdmin:
+        return 'Supervisor Admin';
+      case UserRole.SuperAdmin:
+        return 'Super Admin';
+      case UserRole.Supervisor:
+        return 'Supervisor';
+      case UserRole.Emp:
+        return 'Employee';
+      default:
+        return 'Unknown';
+    }
+  };
+
   const rows: EmployeeRow[] = useMemo(() => {
     const mappedRows = users.map((user) => {
       const uid = (user as any)._id as string;
@@ -180,6 +199,7 @@ const AdminWindow: React.FC = () => {
             ? user.status
             : 'Active',
         contactNumber: user.contactNumber || '',
+        role: getRoleDisplayText(user.role),
         createdAt: user.createdAt || '',
       } as EmployeeRow;
     });
@@ -193,8 +213,28 @@ const AdminWindow: React.FC = () => {
     if (statusFilter !== 'all') {
       res = res.filter((r) => r.status === statusFilter);
     }
+
+    if (roleFilter !== 'all') {
+      res = res.filter((r) => {
+        // Handle both raw role values and display text
+        const rowRole = r.role;
+        if (typeof rowRole === 'string') {
+          // If it's display text, convert back to enum value for comparison
+          const roleMap: Record<string, string> = {
+            'Admin': 'admin',
+            'Supervisor Admin': 'supervisorAdmin', 
+            'Super Admin': 'superAdmin',
+            'Supervisor': 'supervisor',
+            'Employee': 'emp'
+          };
+          const actualRole = roleMap[rowRole] || rowRole;
+          return actualRole === roleFilter;
+        }
+        return rowRole === roleFilter;
+      });
+    }
     return res;
-  }, [rows, statusFilter]);
+  }, [rows, statusFilter, roleFilter]);
 
 
   const projectRows: ProjectRow[] = useMemo(
@@ -351,6 +391,8 @@ const AdminWindow: React.FC = () => {
             onSelectedProjectIdsChange={setSelectedProjectIds}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
+            roleFilter={roleFilter}
+            onRoleFilterChange={setRoleFilter}
             onAddEmployee={handleOpenPopup}
             onEditEmployee={(row) => { setEditingUser(row); setIsEditOpen(true); }}
             onRefresh={refreshUsers}

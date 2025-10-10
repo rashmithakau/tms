@@ -16,6 +16,8 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
   onSelectedProjectIdsChange,
   statusFilter,
   onStatusFilterChange,
+  roleFilter,
+  onRoleFilterChange,
   onAddEmployee,
   onEditEmployee,
   onRefresh,
@@ -44,6 +46,9 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
             onSelectedProjectIdsChange={onSelectedProjectIdsChange}
             statusFilter={statusFilter}
             onStatusFilterChange={onStatusFilterChange}
+            roleFilter={roleFilter}
+            onRoleFilterChange={onRoleFilterChange}
+            availableRoles={undefined}
           />
         </Box>,
         <Box sx={{ mt: 2 }}>
@@ -52,7 +57,7 @@ const EmployeeSection: React.FC<IEmployeeManagementProps> = ({
             variant="contained"
             startIcon={<AddOutlinedIcon />}
           >
-            Add Account
+            Employee
           </BaseBtn>
         </Box>,
       ]}

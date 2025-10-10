@@ -8,6 +8,7 @@ export interface EmployeeRow {
   status: 'Active' | 'Inactive' | string;
   contactNumber: string;
   designation?: string;
+  role?: string;
   createdAt?: string;
 }
 
