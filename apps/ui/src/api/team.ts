@@ -25,6 +25,10 @@ export const getSupervisedTeams = async () => {
   return API.get<{ teams: Array<{ _id: string; teamName: string }> }>('/api/team/supervised');
 };
 
+export const getAllSupervisedTeams = async () => {
+  return API.get<{ teams: Array<{ _id: string; teamName: string; members: Array<{ _id: string }> }> }>('/api/team/supervised-all');
+};
+
 export const updateTeamStaff = async (
   teamId: string,
   data: { members?: string[]; supervisor?: string | null }

@@ -233,27 +233,28 @@ export const updateDailyTimesheetStatus = async (
   );
 
   const item = timesheet.data[categoryIndex].items[itemIndex];
+  const supervisesEmployee = allSupervisedUserIds.includes(timesheetUserId);
 
   if (item.projectId && item.teamId) {
     const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
     appAssert(
-      isProjectSupervised,
+      isProjectSupervised || supervisesEmployee,
       UNAUTHORIZED,
-      'Unauthorized: You can only approve project timesheet items if you supervise that specific project'
+      'Unauthorized: You can only approve project timesheet items if you supervise that specific project or the employee'
     );
   } else if (item.projectId) {
     const isProjectSupervised = supervisedProjectIds.includes(item.projectId);
     appAssert(
-      isProjectSupervised,
+      isProjectSupervised || supervisesEmployee,
       UNAUTHORIZED,
-      'Unauthorized: You can only approve project timesheets if you supervise that specific project'
+      'Unauthorized: You can only approve project timesheets if you supervise that specific project or the employee'
     );
   } else if (item.teamId) {
     const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
     appAssert(
-      isTeamSupervised,
+      isTeamSupervised || supervisesEmployee,
       UNAUTHORIZED,
-      'Unauthorized: You can only approve team timesheets if you supervise that specific team'
+      'Unauthorized: You can only approve team timesheets if you supervise that specific team or the employee'
     );
   }
 
@@ -493,50 +494,57 @@ export const batchUpdateDailyTimesheetStatus = async (
         }
 
         const item = category.items[itemIndex];
+        
+        // Authorization logic: Allow approval if supervisor supervises the employee OR the specific resource
+        const supervisesEmployee = allSupervisedUserIds.includes(timesheetUserId);
 
         if (item.projectId && item.teamId) {
           const isProjectSupervised = supervisedProjectIds.includes(
             item.projectId
           );
-          if (!isProjectSupervised) {
+          if (!isProjectSupervised && !supervisesEmployee) {
             console.error('Authorization failed:', {
               itemProjectId: item.projectId,
               itemTeamId: item.teamId,
               supervisedProjectIds,
+              supervisesEmployee,
               message:
-                'You can only approve project timesheet items if you supervise that specific project',
+                'You can only approve project timesheet items if you supervise that specific project or the employee',
             });
             throw new Error(
-              'Unauthorized: You can only approve project timesheet items if you supervise that specific project'
+              'Unauthorized: You can only approve project timesheet items if you supervise that specific project or the employee'
             );
           }
         } else if (item.projectId) {
-          // Project timesheet - only project supervisors can approve
+          // Project timesheet - can approve if supervises project OR employee
           const isProjectSupervised = supervisedProjectIds.includes(
             item.projectId
           );
-          if (!isProjectSupervised) {
+          if (!isProjectSupervised && !supervisesEmployee) {
             console.error('Authorization failed:', {
               itemProjectId: item.projectId,
               supervisedProjectIds,
+              supervisesEmployee,
               message:
-                'You can only approve project timesheets if you supervise that specific project',
+                'You can only approve project timesheets if you supervise that specific project or the employee',
             });
             throw new Error(
-              'Unauthorized: You can only approve project timesheets if you supervise that specific project'
+              'Unauthorized: You can only approve project timesheets if you supervise that specific project or the employee'
             );
           }
         } else if (item.teamId) {
+          // Team timesheet - can approve if supervises team OR employee
           const isTeamSupervised = supervisedTeamIds.includes(item.teamId);
-          if (!isTeamSupervised) {
+          if (!isTeamSupervised && !supervisesEmployee) {
             console.error('Authorization failed:', {
               itemTeamId: item.teamId,
               supervisedTeamIds,
+              supervisesEmployee,
               message:
-                'You can only approve team timesheets if you supervise that specific team',
+                'You can only approve team timesheets if you supervise that specific team or the employee',
             });
             throw new Error(
-              'Unauthorized: You can only approve team timesheets if you supervise that specific team'
+              'Unauthorized: You can only approve team timesheets if you supervise that specific team or the employee'
             );
           }
         }

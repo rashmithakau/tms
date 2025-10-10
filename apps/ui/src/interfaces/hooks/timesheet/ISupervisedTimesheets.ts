@@ -6,6 +6,7 @@ export interface SupervisedTimesheetsReturn {
   timesheets: Timesheet[];
   supervisedProjectIds: string[];
   supervisedTeamIds: string[];
+  supervisedUserIds: string[];
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;

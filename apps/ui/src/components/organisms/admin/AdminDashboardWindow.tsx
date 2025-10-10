@@ -128,8 +128,8 @@ const AdminDashboardWindow: React.FC<IAdminDashboardWindowProps> = ({
                   lateCount={septemberTimesheetData.lateCount}
                   approvedCount={septemberTimesheetData.approvedCount}
                   rejectedCount={septemberTimesheetData.rejectedCount}
-                  month="September"
-                  year={2025}
+                  month={new Date().toLocaleString('en-US', { month: 'long' })}
+                  year={new Date().getFullYear()}
                   loading={statsLoading}
                   error={statsError}
                 />

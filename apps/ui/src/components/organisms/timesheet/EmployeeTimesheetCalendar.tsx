@@ -16,11 +16,13 @@ import { IEmployeeTimesheetCalendarProps } from '../../../interfaces/organisms/t
 import { DaySelection } from 'apps/ui/src/interfaces';
 
 const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
+  employeeId,
   employeeName,
   timesheets,
   originalTimesheets = [],
   supervisedProjectIds = [],
   supervisedTeamIds = [],
+  supervisedUserIds = [],
   onDaySelectionChange,
   selectedDays = [],
   isSelectionMode = false,
@@ -114,10 +116,19 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
   };
 
 
-  const calcColTotal = (colIndex: number) =>
-    data.flatMap(cat => cat.items).reduce((sum, row) => sum + parseFloat(row.hours[colIndex] || '0'), 0).toFixed(2);
-  const calcGrandTotal = () =>
-    data.flatMap(cat => cat.items).reduce((sum, row) => sum + row.hours.reduce((s, h) => s + parseFloat(h || '0'), 0), 0).toFixed(2);
+  const formatTotal = (value: number): string => {
+    return value.toFixed(2).padStart(5, '0');
+  };
+
+  const calcColTotal = (colIndex: number) => {
+    const total = data.flatMap(cat => cat.items).reduce((sum, row) => sum + parseFloat(row.hours[colIndex] || '0'), 0);
+    return formatTotal(total);
+  };
+
+  const calcGrandTotal = () => {
+    const total = data.flatMap(cat => cat.items).reduce((sum, row) => sum + row.hours.reduce((s, h) => s + parseFloat(h || '0'), 0), 0);
+    return formatTotal(total);
+  };
 
   const weekEndDate = new Date(currentWeekStart);
   weekEndDate.setUTCDate(weekEndDate.getUTCDate() + 6);
@@ -249,6 +260,8 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
                         handleDaySelectionChange={handleDaySelectionChange}
                         supervisedProjectIds={supervisedProjectIds}
                         supervisedTeamIds={supervisedTeamIds}
+                        supervisedUserIds={supervisedUserIds}
+                        employeeId={employeeId}
                       />
                     ))}
                   </React.Fragment>

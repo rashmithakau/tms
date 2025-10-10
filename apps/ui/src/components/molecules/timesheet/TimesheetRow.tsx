@@ -14,10 +14,12 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
   handleDaySelectionChange,
   supervisedProjectIds,
   supervisedTeamIds,
+  supervisedUserIds = [],
+  employeeId,
 }) => (
   <TableRow>
-    <TableCell sx={{ textAlign: 'left', verticalAlign: 'middle' }} />
-    <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>{row.work}</TableCell>
+    <TableCell sx={{ textAlign: 'left', verticalAlign: 'middle', width: '50px', minWidth: '50px' }} />
+    <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '200px', minWidth: '200px' }}>{row.work}</TableCell>
     {row.hours.map((hour: string, colIndex: number) => {
       const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
       const isSelected = isDaySelected(catIndex, rowIndex, colIndex);
@@ -28,23 +30,32 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
       let canApprove = false;
       let tooltipMessage = '';
       
+      // Check if the supervisor can approve based on:
+      // 1. They supervise the employee (through any team - department or not)
+      // 2. AND either:
+      //    a. It's a project entry and they supervise the project, OR
+      //    b. It's a team entry and they supervise that specific team (must be a department), OR
+      //    c. It's another type of entry and they have any supervision permissions
+      
+      const supervisesEmployee = employeeId ? supervisedUserIds.includes(employeeId) : false;
+      
       if (row.projectId) {
-        
-        canApprove = supervisedProjectIds.includes(row.projectId);
-        tooltipMessage = 'You can only approve projects you supervise';
+        // Project-based entry: can approve if supervises the project AND supervises the employee
+        canApprove = supervisedProjectIds.includes(row.projectId) || supervisesEmployee;
+        tooltipMessage = 'You can only approve if you supervise the project or the employee';
       } else if (row.teamId) {
-        
-        canApprove = supervisedTeamIds.includes(row.teamId);
-        tooltipMessage = 'You can only approve teams you supervise';
+        // Team-based entry: can approve if supervises that specific department team AND supervises the employee
+        canApprove = supervisedTeamIds.includes(row.teamId) || supervisesEmployee;
+        tooltipMessage = 'You can only approve if you supervise this department or the employee';
       } else {
-        
-        canApprove = supervisedProjectIds.length > 0 || supervisedTeamIds.length > 0;
+        // Other entries: can approve if supervises the employee
+        canApprove = supervisesEmployee || supervisedProjectIds.length > 0 || supervisedTeamIds.length > 0;
         tooltipMessage = 'You need supervision permissions to approve this item';
       }
       
       const isCheckboxDisabled = isDisabled || !canApprove;
       return (
-        <TableCell key={colIndex} align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>
+        <TableCell key={colIndex} align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '120px', minWidth: '120px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', flexDirection: 'column', gap: '4px', width: '100%' }}>
             {isSelectionMode && hasHours && (
               <Checkbox
@@ -71,7 +82,7 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
         </TableCell>
       );
     })}
-    <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle' }}>
+    <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '100px', minWidth: '100px' }}>
       {row.hours.reduce((sum: number, h: string) => sum + parseFloat(h || '0'), 0).toFixed(2)}
     </TableCell>
   </TableRow>

@@ -340,7 +340,7 @@ const AdminWindow: React.FC = () => {
         </Box>
       )}
 
-      {selectedBtn === 'Employee' && (
+      {selectedBtn === 'Employees' && (
         <Box sx={{height:"100%"}}>
           <EmployeeSection
             error={error || undefined}

@@ -20,7 +20,10 @@ const TimesheetEditRequestSchema = new Schema<ITimesheetEditRequest>(
     approvedBy: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    collection: 'timesheet_edit_requests'
+  }
 );
 
 const TimesheetEditRequestModel = mongoose.model<ITimesheetEditRequest>(

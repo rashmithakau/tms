@@ -5,6 +5,7 @@ export interface ITeam extends Document {
   members: mongoose.Types.ObjectId[];
   supervisor?: mongoose.Types.ObjectId | null;
   status: boolean;
+  isDepartment: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +17,7 @@ export interface ICreateTeamParams {
   members?: mongoose.Types.ObjectId[];
   supervisor?: mongoose.Types.ObjectId;
   status?: boolean;
+  isDepartment?: boolean;
 }
 
 export interface IUpdateTeamParams extends Partial<ICreateTeamParams> {
@@ -27,4 +29,5 @@ export interface CreateTeamParams {
   members?: string[];
   supervisor?: string | null;
   status?: boolean;
+  isDepartment?: boolean;
 }

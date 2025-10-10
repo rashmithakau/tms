@@ -1,10 +1,10 @@
 import { CREATED, OK } from '../constants/http';
 import { catchErrors } from '../utils/error';
-import { createTeam, listTeams, listTeamsForUser,softDeleteTeam, listMyMemberTeams, listSupervisedTeams, updateTeamStaff } from '../services/team.service';
+import { createTeam, listTeams, listTeamsForUser,softDeleteTeam, listMyMemberTeams, listSupervisedTeams, listAllSupervisedTeams, updateTeamStaff } from '../services/team.service';
 
 
 export const createTeamHandler = catchErrors(async (req, res) => {
-  const { teamName, employees, supervisor } = req.body as any;
+  const { teamName, employees, supervisor, isDepartment } = req.body as any;
 
   
 
@@ -12,6 +12,7 @@ export const createTeamHandler = catchErrors(async (req, res) => {
     teamName,
     members: Array.isArray(employees) ? employees : [],
     supervisor: supervisor ?? null,
+    isDepartment: isDepartment ?? true,
   };
 
 
@@ -44,6 +45,12 @@ export const listMyMemberTeamsHandler = catchErrors(async (req, res) => {
 export const listSupervisedTeamsHandler = catchErrors(async (req, res) => {
   const supervisorId = req.userId as string;
   const data = await listSupervisedTeams(supervisorId);
+  return res.json(data);
+});
+
+export const listAllSupervisedTeamsHandler = catchErrors(async (req, res) => {
+  const supervisorId = req.userId as string;
+  const data = await listAllSupervisedTeams(supervisorId);
   return res.json(data);
 });
 

@@ -47,6 +47,8 @@ export const getSupervisedUserIds = async (supervisorId: string): Promise<string
     )
   );
 
+  // Include ALL teams (both department and non-department) to determine supervised users
+  // Non-department teams allow supervisors to see and approve project/department timesheets of their members
   const supervisedTeams = await TeamModel.find({ supervisor: supervisorId });
   const teamSupervisedUserIds = Array.from(
     new Set(

@@ -17,7 +17,7 @@ const AdminPage = () => {
       { text: 'Dashboard', icon: <DashboardOutlinedIcon /> },
       { text: 'Projects', icon: <LibraryBooksOutlinedIcon /> },
       { text: 'Reports', icon: <AssessmentOutlinedIcon /> },
-      { text: 'Employee', icon: <AssessmentOutlinedIcon /> },
+      { text: 'Employees', icon: <AssessmentOutlinedIcon /> },
       { text: 'Teams', icon: <BusinessOutlinedIcon /> },
       { text: 'My Timesheets', icon: <AssignmentIcon /> },
     ]

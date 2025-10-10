@@ -14,6 +14,7 @@ export const createTeamSchema = z.object({
   teamName: teamNameSchema,
   employees: employeeIdsSchema,
   supervisor: supervisorIdSchema,
+  isDepartment: z.boolean().optional().default(true),
 });
 
 export type CreateTeamInput = z.infer<typeof createTeamSchema>;
