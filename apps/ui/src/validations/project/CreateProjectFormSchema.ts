@@ -10,7 +10,7 @@ const CreateProjectFormSchema: yup.ObjectSchema<{
     .mixed<'yes' | 'no'>()
     .oneOf(['yes', 'no'])
     .required('Billable status is required'),
-  supervisor: yup.string().nullable().required().default(null),
+  supervisor: yup.string().nullable().default(null),
 });
 
 export default CreateProjectFormSchema;

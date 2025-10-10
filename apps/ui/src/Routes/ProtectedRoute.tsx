@@ -14,28 +14,32 @@ const ProtectedRoute: React.FC<IProtectedRouteProps> = ({
   const { authState, checkAuth } = useAuth();
   const { user, isLoading } = authState;
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
 
   const isAuthenticated = !!user;
 
   useEffect(() => {
     const performAuthCheck = async () => {
-      if (requireAuth && !hasCheckedAuth && !isAuthenticated) {
+      if (requireAuth && !hasCheckedAuth) {
+        setIsCheckingAuth(true);
         try {
           await checkAuth();
         } catch (error) {
-          
+          // Auth check failed, user will be redirected to login
         } finally {
           setHasCheckedAuth(true);
+          setIsCheckingAuth(false);
         }
-      } else {
+      } else if (!requireAuth) {
         setHasCheckedAuth(true);
       }
     };
 
     performAuthCheck();
-  }, [checkAuth, isAuthenticated, hasCheckedAuth, requireAuth]);
+  }, [checkAuth, hasCheckedAuth, requireAuth]);
 
-  if (requireAuth && (isLoading || !hasCheckedAuth)) {
+  // Show loading while checking authentication
+  if (requireAuth && (isLoading || isCheckingAuth || !hasCheckedAuth)) {
     return (
       <PageLoading
         message="Verifying authentication..."
