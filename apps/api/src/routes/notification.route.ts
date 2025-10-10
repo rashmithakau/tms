@@ -5,8 +5,8 @@ import { listMyNotificationsHandler, markAllMyNotificationsReadHandler } from '.
 
 const router = Router();
 
-router.get('/', authenticate([UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin]), listMyNotificationsHandler);
-router.post('/mark-all-read', authenticate([UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin]), markAllMyNotificationsReadHandler);
+router.get('/', authenticate([UserRole.SuperAdmin, UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin]), listMyNotificationsHandler);
+router.post('/mark-all-read', authenticate([UserRole.SuperAdmin, UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin]), markAllMyNotificationsReadHandler);
 
 export default router;
 

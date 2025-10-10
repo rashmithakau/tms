@@ -25,8 +25,11 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 
 // Middleware to generate employee_id before saving
 userSchema.pre('save', async function (next) {
-  // Generate employee_id only for new documents
-  if (this.isNew && !this.employee_id) {
+  // Generate employee_id only for new documents and only for employee roles
+  // SuperAdmin and Admin don't get employee IDs
+  if (this.isNew && !this.employee_id && 
+      this.role !== UserRole.SuperAdmin && 
+      this.role !== UserRole.Admin) {
     try {
       // Find the last user with an employee_id
       const lastUser = await mongoose.model('User').findOne(
