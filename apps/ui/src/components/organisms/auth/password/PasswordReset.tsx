@@ -100,7 +100,7 @@ const PasswordReset: React.FC = () => {
           )}
         </form>
         <Box sx={{textAlign: 'center', display: 'block', mt: 2}}>
-          <Link to="/">Back to Login</Link>
+          <Link to="/login">Back to Login</Link>
         </Box>
       </Box>
     </AuthFormContainer>
