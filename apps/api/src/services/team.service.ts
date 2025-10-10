@@ -38,6 +38,7 @@ export const createTeam = async (data: CreateTeamParams) => {
     members: stringArrayToObjectIds(validMemberIds),
     supervisor: stringToObjectId(data.supervisor),
     status: data.status ?? true,
+    isDepartment: data.isDepartment ?? true,
   });
 
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team creation failed');
@@ -96,7 +97,15 @@ export const listTeamsForUser = async (userId: string, userRole: UserRole) => {
 };
 
 export const listMyMemberTeams = async (userId: string) => {
-  const teams = await TeamModel.find({ status: true, members: userId })
+  // Only return teams where isDepartment is true (or not set, for backward compatibility)
+  const teams = await TeamModel.find({ 
+    status: true, 
+    members: userId,
+    $or: [
+      { isDepartment: true },
+      { isDepartment: { $exists: false } }
+    ]
+  })
     .sort({ createdAt: -1 })
     .populate({ path: 'members', select: 'firstName lastName email designation' })
     .populate({ path: 'supervisor', select: 'firstName lastName email designation' });
@@ -104,11 +113,29 @@ export const listMyMemberTeams = async (userId: string) => {
 };
 
 export const listSupervisedTeams = async (supervisorId: string) => {
+  // Only return teams where isDepartment is true (or not set, for backward compatibility)
   const teams = await TeamModel.find({ 
     supervisor: supervisorId, 
-    status: true 
+    status: true,
+    $or: [
+      { isDepartment: true },
+      { isDepartment: { $exists: false } }
+    ]
   })
     .select('_id teamName')
+    .sort({ teamName: 1 });
+  
+  return { teams };
+};
+
+export const listAllSupervisedTeams = async (supervisorId: string) => {
+  // Return ALL teams (including non-departments) for approval permissions
+  const teams = await TeamModel.find({ 
+    supervisor: supervisorId, 
+    status: true
+  })
+    .select('_id teamName members')
+    .populate('members', '_id')
     .sort({ teamName: 1 });
   
   return { teams };

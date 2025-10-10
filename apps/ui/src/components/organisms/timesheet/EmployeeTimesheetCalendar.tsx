@@ -16,11 +16,13 @@ import { IEmployeeTimesheetCalendarProps } from '../../../interfaces/organisms/t
 import { DaySelection } from 'apps/ui/src/interfaces';
 
 const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
+  employeeId,
   employeeName,
   timesheets,
   originalTimesheets = [],
   supervisedProjectIds = [],
   supervisedTeamIds = [],
+  supervisedUserIds = [],
   onDaySelectionChange,
   selectedDays = [],
   isSelectionMode = false,
@@ -258,6 +260,8 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
                         handleDaySelectionChange={handleDaySelectionChange}
                         supervisedProjectIds={supervisedProjectIds}
                         supervisedTeamIds={supervisedTeamIds}
+                        supervisedUserIds={supervisedUserIds}
+                        employeeId={employeeId}
                       />
                     ))}
                   </React.Fragment>

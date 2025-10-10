@@ -8,6 +8,8 @@ import {
   FormControl,
   FormHelperText,
   Divider,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import EmployeeSection from '../user/EmployeeSection';
 import { useState } from 'react';
@@ -38,6 +40,7 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
     defaultValues: {
       teamName: '',
       supervisor: '',
+      isDepartment: true,
     },
   });
 
@@ -61,6 +64,7 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
         teamName: data.teamName,
         employees: selectedEmployees.map((e) => e.id),
         supervisor: data.supervisor || null,
+        isDepartment: data.isDepartment,
       });
       
       // Check if team was created successfully
@@ -119,6 +123,30 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
                 />
               )}
             />
+            {/* Is Department Checkbox */}
+            <Box sx={{ mb: 1 }}>
+              <Controller
+                name="isDepartment"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Is a Department"
+                  />
+                )}
+              />
+              <FormHelperText sx={{ m: 0, mt: -0.5, ml: 4 }}>
+                <span style={{ fontSize: '0.75rem' }}>
+                  Check this if the team represents a department. Uncheck for organizational groups.
+                </span>
+              </FormHelperText>
+            </Box>
             <EmployeeSection
               selectedEmployees={selectedEmployees}
               onAddEmployeesClick={handleOpenEmployeeDialog}

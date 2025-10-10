@@ -8,4 +8,6 @@ export interface ITimesheetRowProps {
   handleDaySelectionChange: (catIndex: number, rowIndex: number, colIndex: number, checked: boolean) => void;
   supervisedProjectIds: string[];
   supervisedTeamIds: string[];
+  supervisedUserIds?: string[];
+  employeeId?: string;
 }

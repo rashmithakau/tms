@@ -7,6 +7,7 @@ const teamSchema = new mongoose.Schema<ITeamDocument>(
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
     supervisor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     status: { type: Boolean, default: true },
+    isDepartment: { type: Boolean, default: true },
   },
   {
     timestamps: true,

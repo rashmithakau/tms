@@ -19,12 +19,15 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useTimesheetApproval } from '../../../hooks/timesheet/useTimesheetApproval';
 import ApprovalActionButtons from '../../molecules/timesheet/approval/ApprovalActionButtons';
 import { useSelector } from 'react-redux';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const ReviewTimesheetsWindow: React.FC = () => {
-  const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, refresh } = useSupervisedTimesheets();
+  const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, supervisedUserIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
+  const { authState } = useAuth();
 
   const searchText = useSelector((state: any) => state.searchBar.searchText);
+  const currentUserId = authState.user?._id;
   
   
   const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
@@ -36,6 +39,11 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const employeeGroups = filteredRows.reduce((groups: any[], row) => {
 
     if (!row.employee) return groups;
+    
+    // Exclude the current user's timesheets
+    if (currentUserId && row.employee._id === currentUserId) {
+      return groups;
+    }
     
     const existingGroup = groups.find(g => g.employee && row.employee && g.employee._id === row.employee._id);
     if (existingGroup) {
@@ -169,6 +177,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
                         originalTimesheets={timesheets.filter(ts => ts.userId?._id === group.employee._id)}
                         supervisedProjectIds={supervisedProjectIds}
                         supervisedTeamIds={supervisedTeamIds}
+                        supervisedUserIds={supervisedUserIds}
                         onDaySelectionChange={handleDaySelectionChange}
                         selectedDays={selectedDays}
                         isSelectionMode={isSelectionMode}

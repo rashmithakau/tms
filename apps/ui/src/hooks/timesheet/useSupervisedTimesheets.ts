@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { listSupervisedTimesheets, getSupervisedProjects, getSupervisedTeams } from '../../api/timesheet';
+import { getAllSupervisedTeams } from '../../api/team';
 import { Timesheet } from '../../interfaces';
 import { ITimeSheetRow } from '../../interfaces/entity/ITimeSheetRow';
 import { SupervisedTimesheetsReturn } from '../../interfaces/hooks/timesheet';
@@ -9,6 +10,7 @@ export const useSupervisedTimesheets = (): SupervisedTimesheetsReturn => {
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]); 
   const [supervisedProjectIds, setSupervisedProjectIds] = useState<string[]>([]);
   const [supervisedTeamIds, setSupervisedTeamIds] = useState<string[]>([]);
+  const [supervisedUserIds, setSupervisedUserIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,21 +20,29 @@ export const useSupervisedTimesheets = (): SupervisedTimesheetsReturn => {
       setError(null);
       
       
-      const [timesheetsResp, projectsResp, teamsResp] = await Promise.all([
+      const [timesheetsResp, projectsResp, teamsResp, allTeamsResp] = await Promise.all([
         listSupervisedTimesheets(),
         getSupervisedProjects(),
-        getSupervisedTeams()
+        getSupervisedTeams(),
+        getAllSupervisedTeams()
       ]);
       
       const data = timesheetsResp.data?.timesheets || [];
       const supervisedProjects = projectsResp.data?.projects || [];
       const supervisedTeams = teamsResp.data?.teams || [];
+      const allSupervisedTeams = allTeamsResp.data?.teams || [];
       
 
       setTimesheets(data);
  
       setSupervisedProjectIds(supervisedProjects.map(p => p._id));
       setSupervisedTeamIds(supervisedTeams.map(t => t._id));
+      
+      // Extract all user IDs from ALL supervised teams (including non-departments)
+      const userIdsFromTeams = allSupervisedTeams.flatMap(team => 
+        team.members?.map(m => m._id) || []
+      );
+      setSupervisedUserIds(Array.from(new Set(userIdsFromTeams)));
       
 
       const mapped: ITimeSheetRow[] = [];
@@ -92,5 +102,5 @@ export const useSupervisedTimesheets = (): SupervisedTimesheetsReturn => {
     fetchData();
   }, [fetchData]);
 
-  return { rows, timesheets, supervisedProjectIds, supervisedTeamIds, isLoading, error, refresh: fetchData };
+  return { rows, timesheets, supervisedProjectIds, supervisedTeamIds, supervisedUserIds, isLoading, error, refresh: fetchData };
 };

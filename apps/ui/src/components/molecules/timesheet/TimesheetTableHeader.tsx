@@ -8,8 +8,8 @@ const TimesheetTableHeader: React.FC<ITimesheetTableHeaderProps> = ({ days }) =>
   return (
     <TableHead>
       <TableRow sx={{ backgroundColor: theme.palette.background.paper }}>
-        <TableCell align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }} />
-        <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>
+        <TableCell align="left" sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', width: '50px', minWidth: '50px' }} />
+        <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', width: '200px', minWidth: '200px' }}>
           Task/Project
         </TableCell>
         {days.map((day) => (
@@ -21,6 +21,8 @@ const TimesheetTableHeader: React.FC<ITimesheetTableHeaderProps> = ({ days }) =>
               textAlign: 'left',
               paddingLeft: '16px',
               paddingRight: '16px',
+              width: '120px',
+              minWidth: '120px',
               backgroundColor: isSameDay(day.date, new Date())
                 ? theme.palette.action.hover
                 : 'inherit',
@@ -29,7 +31,7 @@ const TimesheetTableHeader: React.FC<ITimesheetTableHeaderProps> = ({ days }) =>
             {day.day}
           </TableCell>
         ))}
-        <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px' }}>
+        <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', width: '100px', minWidth: '100px' }}>
           Total
         </TableCell>
       </TableRow>

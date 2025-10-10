@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createTeamHandler, listTeamsHandler, listTeamsForUserHandler, listMyMemberTeamsHandler, listSupervisedTeamsHandler, updateStaffHandler ,deleteTeamHandler} from '../controllers/team.controller';
+import { createTeamHandler, listTeamsHandler, listTeamsForUserHandler, listMyMemberTeamsHandler, listSupervisedTeamsHandler, listAllSupervisedTeamsHandler, updateStaffHandler ,deleteTeamHandler} from '../controllers/team.controller';
 import authenticate from '../middleware/authenticate';
 import { validate } from '../middleware/validate';
 import { createTeamSchema } from '../schemas/team.schema';
@@ -14,6 +14,7 @@ teamRoutes.delete('/:id', authenticate([UserRole.Admin, UserRole.SupervisorAdmin
 teamRoutes.get('/my-teams', authenticate([UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), listTeamsForUserHandler);
 teamRoutes.get('/my-member-teams', authenticate([UserRole.Emp, UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), listMyMemberTeamsHandler);
 teamRoutes.get('/supervised', authenticate([UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), listSupervisedTeamsHandler);
+teamRoutes.get('/supervised-all', authenticate([UserRole.Supervisor, UserRole.Admin, UserRole.SupervisorAdmin, UserRole.SuperAdmin]), listAllSupervisedTeamsHandler);
 
 export default teamRoutes;
 
