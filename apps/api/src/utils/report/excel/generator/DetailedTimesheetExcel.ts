@@ -317,7 +317,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
    
     this.autoSizeColumns();
   
-    const columnMaxWidths = [14, 14, 12, 24, 8, 8, 8, 8, 8, 10];
+    const columnMaxWidths = [14, 14, 12, 8, 8, 8, 8, 8, 8, 10];
     this.worksheet.columns.forEach((col, idx) => {
       const current = col.width ?? 10;
       const max = columnMaxWidths[idx] ?? 16;
