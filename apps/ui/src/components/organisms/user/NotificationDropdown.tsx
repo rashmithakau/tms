@@ -43,21 +43,10 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
 
   useEffect(() => {
     const currentNotificationCount = notifications.length;
-    const hasNewNotification = currentNotificationCount > previousNotificationCount.current;
-    
-    if (hasNewNotification && !isInitialMount.current && !open && buttonRef.current) {
-      setAnchorEl(buttonRef.current);
-      
-      const autoCloseTimer = setTimeout(() => {
-        setAnchorEl(null);
-      }, 5000);
-      
-      return () => clearTimeout(autoCloseTimer);
-    }
     
     previousNotificationCount.current = currentNotificationCount;
     isInitialMount.current = false;
-  }, [notifications.length, open]);
+  }, [notifications.length]);
 
   const handleNotificationClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
