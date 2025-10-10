@@ -51,7 +51,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       key: 'projectName',
       render: (row) => row.projectName,
     },
-    { label: 'Billable Type', key: 'billable', render: (row) => row.billable },
+    { label: 'Billable ', key: 'billable', render: (row) => row.billable },
     {
       label: 'Supervisor Name',
       key: 'supervisorName',
@@ -82,7 +82,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       ),
     },
     {
-      label: 'Created At',
+      label: 'Created On',
       key: 'createdAt',
       render: (row) =>
         row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '',
