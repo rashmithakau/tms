@@ -817,7 +817,7 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
   const timesheets = await Timesheet.find({
     userId: { $in: allSupervisedUserIds },
   })
-    .populate('userId', 'firstName lastName email contactNumber designation')
+    .populate('userId', 'firstName lastName email contactNumber designation employee_id')
     .sort({ weekStartDate: -1 });
 
   const projectIds = new Set<string>();

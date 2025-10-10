@@ -75,6 +75,7 @@ export const useSupervisedTimesheets = (): SupervisedTimesheetsReturn => {
                   description: item.descriptions?.[dayIndex] || '',
                   employee: timesheet.userId ? {
                     _id: timesheet.userId._id,
+                    employee_id: timesheet.userId.employee_id,
                     firstName: timesheet.userId.firstName,
                     lastName: timesheet.userId.lastName,
                     email: timesheet.userId.email,

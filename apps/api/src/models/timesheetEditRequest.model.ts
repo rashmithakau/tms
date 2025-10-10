@@ -4,8 +4,8 @@ export interface ITimesheetEditRequest extends Document {
   timesheetId: mongoose.Types.ObjectId;
   employeeId: mongoose.Types.ObjectId;
   weekStartDate: Date;
-  requiredApprovals: mongoose.Types.ObjectId[]; // Array of supervisor IDs who need to approve
-  approvedBy: mongoose.Types.ObjectId[]; // Array of supervisor IDs who have approved
+  requiredApprovals: mongoose.Types.ObjectId[]; 
+  approvedBy: mongoose.Types.ObjectId[]; 
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: Date;
   updatedAt: Date;
