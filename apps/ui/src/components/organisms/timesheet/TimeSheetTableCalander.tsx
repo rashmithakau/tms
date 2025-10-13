@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -7,6 +7,7 @@ import {
   TableCell,
   Box,
   Typography,
+  Alert,
 } from '@mui/material';
 import { TimesheetStatus } from '@tms/shared';
 import theme from '../../../styles/theme';
@@ -19,6 +20,7 @@ import TimesheetTableRow from '../../molecules/timesheet/TimesheetTableRow';
 import DescriptionEditor from '../../molecules/common/dialog/DescriptionEditor';
 import PageLoading from '../../molecules/common/loading/PageLoading';
 import StatusDot from '../../atoms/common/StatusDot';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const TimeSheetTableCalendar: React.FC = () => {
 
@@ -33,10 +35,31 @@ const TimeSheetTableCalendar: React.FC = () => {
     handleCellChange,
     handleDescriptionClick,
     handleDescriptionChange,
+    closeEditCell,
     closeDescriptionEditor,
     handleCellKeyDown,
   } = useTimesheetCellEditing(data, updateData, timesheetStatus || undefined);
   const { calcRowTotal, columnTotals, grandTotal } = useTimesheetCalculations(data);
+  
+  // Calculate total hours from grandTotal
+  const totalHours = parseFloat(grandTotal || '0');
+  
+  // Ref for the table container
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  // Handle clicks outside the table to close edit cell
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tableContainerRef.current && !tableContainerRef.current.contains(event.target as Node)) {
+        closeEditCell();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [closeEditCell]);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -67,7 +90,23 @@ const TimeSheetTableCalendar: React.FC = () => {
             </Box>
           </Box>
 
-          <TableContainer sx={{ width: '100%' }}>
+          {totalHours < 40 && (timesheetStatus === TimesheetStatus.Draft || timesheetStatus === TimesheetStatus.Rejected) && (
+            <Alert 
+              severity="info" 
+              icon={<InfoOutlinedIcon />}
+              sx={{ 
+                mb: 2,
+                backgroundColor: '#e3f2fd',
+                '& .MuiAlert-icon': {
+                  color: '#1976d2'
+                }
+              }}
+            >
+              You need a minimum of 40 hours to submit your timesheet. Current total: {totalHours.toFixed(2)} hours
+            </Alert>
+          )}
+
+          <TableContainer ref={tableContainerRef} sx={{ width: '100%' }}>
         <Table sx={{ width: '100%' }}>
           <TimesheetTableHeader days={days} />
           <TableBody>

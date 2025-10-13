@@ -38,6 +38,11 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
         gap: '6px',
         width: '100%',
         position: 'relative',
+        margin: '-2px',
+        padding: '2px',
+        borderRadius: '4px',
+        border: isEditing ? '2px solid #1976d2' : '2px solid transparent',
+        transition: 'all 0.2s ease-in-out',
       }}
     >
           {/* Hour input/display */}

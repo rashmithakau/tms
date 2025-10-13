@@ -98,13 +98,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
 
   const handleSubmit = async () => {
     try {
-      const currentId = timesheetData.currentTimesheetId;
       const currentStatus = timesheetData.status;
-      
-      if (!currentId) {
-        toast.error('No timesheet for this week');
-        return;
-      }
       
       if (![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(currentStatus as TimesheetStatus)) {
         toast.error('Only draft and rejected timesheets can be submitted');
@@ -118,13 +112,39 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         return;
       }
       
-      if (currentStatus === TimesheetStatus.Rejected) {
-        await updateMyTimesheet(currentId, {
+      // If no current timesheet ID or data not saved, save as draft first
+      let timesheetId = timesheetData.currentTimesheetId;
+      
+      if (!timesheetId || (currentStatus === TimesheetStatus.Draft && !isDataSavedInDB)) {
+        const payload = {
+          weekStartDate: timesheetData.weekStartDate,
+          data: timesheetData.timesheetData,
+        };
+
+        if (timesheetId) {
+          // Update existing draft
+          await updateMyTimesheet(timesheetId, {
+            data: payload.data,
+          });
+        } else {
+          // Create new timesheet
+          const response = await createMyTimesheet(payload);
+          timesheetId = response.data?.timesheet?._id;
+          
+          if (!timesheetId) {
+            toast.error('Failed to create timesheet');
+            return;
+          }
+        }
+      } else if (currentStatus === TimesheetStatus.Rejected) {
+        // Update rejected timesheet
+        await updateMyTimesheet(timesheetId, {
           data: timesheetData.timesheetData,
         });
       }
       
-      await submitMyDraftTimesheets([currentId]);
+      // Now submit the timesheet
+      await submitMyDraftTimesheets([timesheetId]);
       toast.success('Timesheet submitted for approval');
       await refresh();
     } catch (e) {
@@ -180,8 +200,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   
 
   const isSubmitDisabled = ![TimesheetStatus.Draft, TimesheetStatus.Rejected].includes(timesheetData.status as TimesheetStatus) || 
-    isUnderMinimumHours || 
-    (timesheetData.status === TimesheetStatus.Draft && !isDataSavedInDB);
+    isUnderMinimumHours;
     
   
   const isSaveDisabled = timesheetData.status === TimesheetStatus.Rejected || 
