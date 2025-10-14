@@ -89,7 +89,7 @@ export const downloadBlobAsFile = (blob: Blob, filename: string) => {
 };
 
 export const generateReportFilename = (
-  reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'rejected-timesheets',
+  reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'rejected-timesheets' | 'timesheet-entries',
   format: 'pdf' | 'excel'
 ): string => {
   const date = new Date().toISOString().split('T')[0];

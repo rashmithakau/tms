@@ -7,6 +7,7 @@ import {
   generateSubmissionStatusReportHandler,
   generateApprovalStatusReportHandler,
   generateDetailedTimesheetReportHandler,
+  generateTimesheetEntriesReportHandler,
 } from '../controllers/report.controller';
 
 const reportRoutes = Router();
@@ -19,6 +20,7 @@ reportRoutes.get('/supervised-employees', authenticate(supervisorRoles), getSupe
 reportRoutes.get('/submission-status', authenticate(supervisorRoles), generateSubmissionStatusReportHandler);
 reportRoutes.get('/approval-status', authenticate(supervisorRoles), generateApprovalStatusReportHandler);
 reportRoutes.get('/detailed-timesheet', authenticate(supervisorRoles), generateDetailedTimesheetReportHandler);
+reportRoutes.get('/timesheet-entries', authenticate(supervisorRoles), generateTimesheetEntriesReportHandler);
 
 export default reportRoutes;
 

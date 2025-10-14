@@ -63,6 +63,7 @@ const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
           key: (col as any).key,
           label,
           render: (row: RowWithEnd) => renderFn(row),
+          width: (col as any).width,
         } as DataTableColumn<RowWithEnd>;
       }),
     [columns]

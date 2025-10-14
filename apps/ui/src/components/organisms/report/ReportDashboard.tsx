@@ -8,6 +8,7 @@ import {
   previewSubmissionStatus,
   previewApprovalStatus,
   previewDetailedTimesheet,
+  previewDetailedTimesheetRaw,
 } from '../../../api/report';
 import { ReportFilter } from '../../../interfaces/api';
 import { TableWindowLayout } from '../../templates';
@@ -21,7 +22,7 @@ const ReportDashboard: React.FC = () => {
   const [resetCounter, setResetCounter] = useState(0);
   const [isFilterValid, setIsFilterValid] = useState(false);
   const [reportType, setReportType] = useState<
-    'submission-status' | 'approval-status' | 'detailed-timesheet' | ''
+    'submission-status' | 'approval-status' | 'detailed-timesheet' | 'timesheet-entries' | ''
   >('');
 
   const {
@@ -34,6 +35,7 @@ const ReportDashboard: React.FC = () => {
     generateSubmissionReport,
     generateApprovalReport,
     generateDetailedReport,
+    generateTimesheetEntries,
     clearError,
   } = useReportGenerator({
     onSuccess: (filename) => {
@@ -70,6 +72,9 @@ const ReportDashboard: React.FC = () => {
         case 'detailed-timesheet':
           await generateDetailedReport(currentFilter, format);
           break;
+        case 'timesheet-entries':
+          await generateTimesheetEntries(currentFilter, format);
+          break;
         
         default:
           throw new Error('Invalid report type');
@@ -98,12 +103,12 @@ const ReportDashboard: React.FC = () => {
   }>({});
 
   const loadPreview = async (
-    type: 'submission-status' | 'approval-status' | 'detailed-timesheet',
+    type: 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'timesheet-entries',
     filter: ReportFilter
   ) => {
     try {
-      // Clear grouped data for non-detailed timesheet reports
-      if (type !== 'detailed-timesheet') {
+      // Clear grouped data for non-grouped reports
+      if (type !== 'detailed-timesheet' && type !== 'timesheet-entries') {
         setGroupedPreviewData({});
       }
       
@@ -226,6 +231,119 @@ const ReportDashboard: React.FC = () => {
           { key: 'total', header: 'Total' },
         ]);
         setPreviewRows(rawData);
+      } else if (type === 'timesheet-entries') {
+        const rawWeekly = await previewDetailedTimesheetRaw(filter);
+        const groupedEntries: {
+          [employeeKey: string]: {
+            employeeName: string;
+            employeeEmail: string;
+            tables: Array<{
+              title: string;
+              columns: { key: string; header: string }[];
+              rows: any[];
+            }>;
+          };
+        } = {};
+
+        // Resolve date bounds once for efficient per-day filtering
+        const startBound = filter.startDate ? new Date(filter.startDate) : null;
+        const endBound = filter.endDate ? new Date(filter.endDate) : null;
+
+        const ensureEmployee = (key: string, name: string, email: string) => {
+          if (!groupedEntries[key]) {
+            groupedEntries[key] = { employeeName: name, employeeEmail: email, tables: [] };
+          }
+          return groupedEntries[key];
+        };
+
+        const ensureTable = (emp: any, title: string) => {
+          let tbl = emp.tables.find((t: any) => t.title === title);
+          if (!tbl) {
+            tbl = {
+              title,
+              columns: [
+                { key: 'date', header: 'Date', width: '25%' },
+                { key: 'description', header: 'Description', width: '25%' },
+                { key: 'status', header: 'Status', width: '25%' },
+                { key: 'quantity', header: 'Quantity', width: '25%' },
+              ],
+              rows: [],
+            };
+            emp.tables.push(tbl);
+          }
+          return tbl;
+        };
+
+        // rawWeekly structure: array of weekly timesheets with categories and items (with hours, descriptions)
+        (rawWeekly || []).forEach((t: any) => {
+          const employeeName = t.employeeName;
+          const employeeEmail = t.employeeEmail;
+          const employeeKey = `${employeeName}|${employeeEmail}`;
+          const emp = ensureEmployee(employeeKey, employeeName, employeeEmail);
+          const weekStartDate = typeof t.weekStartDate === 'string' ? new Date(t.weekStartDate) : new Date(t.weekStartDate);
+
+          (t.categories || []).forEach((c: any) => {
+            (c.items || []).forEach((it: any) => {
+              const isProject = c.category === 'Project';
+              const isTeam = c.category === 'Team';
+              const isAbsence = c.category === 'Absence';
+              const title = isProject ? `Project: ${it.work || it.projectName || 'Project'}` : isTeam ? `Team: ${it.work || it.teamName || 'Team'}` : isAbsence ? 'Leave' : 'General';
+              const tbl = ensureTable(emp, title);
+
+              const hours: any[] = it.dailyHours || it.hours || [];
+              const descriptions: any[] = it.descriptions || it.dailyDescriptions || [];
+              for (let idx = 0; idx < 7; idx++) {
+                const qtyStr = String(hours[idx] ?? '');
+                const qty = parseFloat(qtyStr);
+                if (qty && !isNaN(qty) && qty > 0) {
+                  const date = new Date(weekStartDate);
+                  date.setDate(weekStartDate.getDate() + idx);
+                  const dateStr = date.toISOString().slice(0,10);
+                  // Apply per-day date filtering against selected range
+                  if (startBound && date < startBound) {
+                    continue;
+                  }
+                  if (endBound && date > endBound) {
+                    continue;
+                  }
+                  const rawDesc = descriptions[idx] || it.description || it.task || it.tasks || '';
+                  const desc = (typeof rawDesc === 'string' ? rawDesc.trim() : String(rawDesc || '')).length > 0 ? rawDesc : '-';
+                  const rawDayStatus = (it.dailyStatus && it.dailyStatus[idx]) || t.status || 'Pending';
+                  const status = rawDayStatus;
+                  tbl.rows.push({
+                    date: dateStr,
+                    description: desc,
+                    status,
+                    quantity: qtyStr,
+                  });
+                }
+              }
+            });
+          });
+        });
+
+        // Sort rows by date ascending within each table
+        Object.values(groupedEntries).forEach((emp: any) => {
+          emp.tables.forEach((t: any) => {
+            t.rows.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          });
+        });
+        setGroupedPreviewData(groupedEntries);
+
+        setPreviewColumns([
+          { key: 'date', header: 'Date' },
+          { key: 'description', header: 'Description' },
+          { key: 'status', header: 'Status' },
+          { key: 'quantity', header: 'Quantity' },
+        ]);
+        const flatRows: any[] = [];
+        Object.values(groupedEntries).forEach((emp: any) => {
+          emp.tables.forEach((t: any) => {
+            t.rows.forEach((r: any) => flatRows.push(r));
+          });
+        });
+        flatRows.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setPreviewRows(flatRows);
       }
     } catch (e) {
       
@@ -234,7 +352,7 @@ const ReportDashboard: React.FC = () => {
 
   React.useEffect(() => {
     if (!reportType) return;
-    loadPreview(reportType as 'submission-status' | 'approval-status' | 'detailed-timesheet', currentFilter);
+    loadPreview(reportType as any, currentFilter);
   }, [
     reportType,
     currentFilter.startDate,
@@ -310,7 +428,7 @@ const ReportDashboard: React.FC = () => {
                 {/* Preview Table */}
                 {reportType && (
                 <Box mb={3}>
-                  {reportType === 'detailed-timesheet' && Object.keys(groupedPreviewData).length > 0 ? (
+                  {(reportType === 'detailed-timesheet' || reportType === 'timesheet-entries') && Object.keys(groupedPreviewData).length > 0 ? (
                     // Display grouped tables for detailed timesheet
                     <ReportLayout title="Preview Table" noBorder>
                       {Object.entries(groupedPreviewData).map(([employeeKey, employeeData]) => (

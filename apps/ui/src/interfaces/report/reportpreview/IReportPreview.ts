@@ -4,6 +4,7 @@ export interface DataTableColumn<T> {
   key: string;
   label: string;
   render: (row: T) => React.ReactNode;
+  width?: string | number;
 }
 
 type InputColumn<T> =

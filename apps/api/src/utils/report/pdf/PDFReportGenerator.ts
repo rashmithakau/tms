@@ -1,7 +1,7 @@
 import { 
-  ProfessionalApprovalStatusReport, 
-  ProfessionalDetailedTimesheetReport, 
-  ProfessionalSubmissionStatusReport 
+  ApprovalStatusPdf, 
+  DetailedTimesheetPdf, 
+  SubmissionStatusPdf 
   
 } from './generator';
 import { 
@@ -11,13 +11,13 @@ import {
 } from '../../../interfaces';
 
 export class PDFReportGenerator {
-  private generator: ProfessionalSubmissionStatusReport | ProfessionalApprovalStatusReport | ProfessionalDetailedTimesheetReport | null = null;
+  private generator: SubmissionStatusPdf | ApprovalStatusPdf | DetailedTimesheetPdf | null = null;
 
   generateSubmissionStatusReport(
     data: ISubmissionStatusReport[], 
     filters?: { startDate?: string; endDate?: string }
   ): void {
-    this.generator = new ProfessionalSubmissionStatusReport();
+    this.generator = new SubmissionStatusPdf();
     this.generator.generate(data, filters);
   }
 
@@ -25,7 +25,7 @@ export class PDFReportGenerator {
     data: IApprovalStatusReport[], 
     filters?: { startDate?: string; endDate?: string }
   ): void {
-    this.generator = new ProfessionalApprovalStatusReport();
+    this.generator = new ApprovalStatusPdf();
     this.generator.generate(data, filters);
   }
 
@@ -33,7 +33,7 @@ export class PDFReportGenerator {
     data: IDetailedTimesheetReport[], 
     filters?: { startDate?: string; endDate?: string }
   ): void {
-    this.generator = new ProfessionalDetailedTimesheetReport();
+    this.generator = new DetailedTimesheetPdf();
     this.generator.generate(data, filters);
   }
 

@@ -1,5 +1,5 @@
 
-export * from './ProfessionalSubmissionStatusReport';
-export * from './ProfessionalApprovalStatusReport';
-export * from './ProfessionalDetailedTimesheetReport';
+export * from './SubmissionStatusPdf';
+export * from './ApprovalStatusPdf';
+export * from './DetailedTimesheetPdf';
 

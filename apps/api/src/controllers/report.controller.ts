@@ -7,11 +7,13 @@ import { appAssert } from '../utils/validation';
 import { BAD_REQUEST, FORBIDDEN } from '../constants/http';
 import { UserRole, TimesheetStatus, REPORT_METADATA } from '@tms/shared';
 import { SubmissionStatusExcel, ApprovalStatusExcel, DetailedTimesheetExcel } from '../utils/report/excel';
+import { TimesheetEntriesExcel } from '../utils/report/excel/generator/TimesheetEntriesExcel';
 import { 
-  ProfessionalSubmissionStatusReport,
-  ProfessionalApprovalStatusReport,
-  ProfessionalDetailedTimesheetReport
+  SubmissionStatusPdf,
+  ApprovalStatusPdf,
+  DetailedTimesheetPdf
 } from '../utils/report/pdf';
+import { TimesheetEntriesPdf } from '../utils/report/pdf/generator/TimesheetEntriesPdf';
 import { getSupervisedUserIds } from '../utils/data/assignmentUtils';
 import RejectReason from '../models/rejectReason.model';
 import { createWeekOverlapQuery } from '../utils/report/date/dateFilterUtils';
@@ -282,7 +284,7 @@ export const generateSubmissionStatusReportHandler: RequestHandler = async (req,
     return res.json({ data: filtered });
   }
   if (format === 'pdf') {
-    const pdf = new ProfessionalSubmissionStatusReport();
+    const pdf = new SubmissionStatusPdf();
     const doc = pdf.generate(filtered, { startDate, endDate });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=submission-status-report.pdf');
@@ -344,6 +346,7 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
     const weekStart = new Date(t.weekStartDate);
     const weekdayIndices = [0, 1, 2, 3, 4];
     const isWeekFullyApproved = weekdayIndices.every((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Approved);
+    const isWeekFullyRejected = weekdayIndices.every((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Rejected);
     const rejectedWeekdayDates: string[] = weekdayIndices
       .filter((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Rejected)
       .map((idx) => {
@@ -352,7 +355,12 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
         return formatDateForDisplay(d);
       });
 
-    const computedApprovalStatus = isWeekFullyApproved ? TimesheetStatus.Approved : TimesheetStatus.Pending;
+    // New rule: set Rejected only if the entire week (Mon-Fri) is rejected; otherwise Pending
+    const computedApprovalStatus = isWeekFullyApproved
+      ? TimesheetStatus.Approved
+      : isWeekFullyRejected
+        ? TimesheetStatus.Rejected
+        : TimesheetStatus.Pending;
 
     return {
       employeeId: String(t.userId),
@@ -467,7 +475,7 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
     return res.json({ data: withNames });
   }
   if (format === 'pdf') {
-    const pdf = new ProfessionalApprovalStatusReport();
+    const pdf = new ApprovalStatusPdf();
     const doc = pdf.generate(data, { startDate, endDate });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=approval-status-report.pdf');
@@ -560,7 +568,7 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
     return res.json({ data });
   }
   if (format === 'pdf') {
-    const pdf = new ProfessionalDetailedTimesheetReport();
+    const pdf = new DetailedTimesheetPdf();
     const doc = pdf.generate(data, { startDate, endDate });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=detailed-timesheet-report.pdf');
@@ -572,6 +580,95 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
   const excel = new DetailedTimesheetExcel();
   excel.build(data, { startDate, endDate });
   await excel.write(res, 'detailed-timesheet-report');
+};
+
+
+export const generateTimesheetEntriesReportHandler: RequestHandler = async (req, res) => {
+  const supervisorId = req.userId as string;
+  const userRole = req.userRole as UserRole;
+  const { format = 'pdf', startDate, endDate, employeeIds, projectIds, teamIds } = req.query as any;
+
+  const { query, memberFilter } = buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
+  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter);
+
+  const timesheets = await Timesheet.find({ ...query, userId: { $in: scopedIds } }).lean();
+  const users = await UserModel.find({ _id: { $in: scopedIds } }).select('_id firstName lastName email').lean();
+  const userMap = new Map<string, { name: string; email: string }>();
+  users.forEach((u: any) => userMap.set(String(u._id), { name: `${u.firstName} ${u.lastName}`, email: u.email }));
+
+  const dataByEmployee: Record<string, { employeeName: string; employeeEmail: string; tables: Array<{ title: string; rows: any[] }> }> = {};
+
+  for (const t of timesheets as any[]) {
+    const user = userMap.get(String(t.userId));
+    const employeeKey = String(t.userId);
+    if (!dataByEmployee[employeeKey]) {
+      dataByEmployee[employeeKey] = { employeeName: user?.name || 'Unknown', employeeEmail: user?.email || '', tables: [] };
+    }
+    const weekStart = new Date(t.weekStartDate);
+    // Resolve bounds once per timesheet for per-day filtering
+    const startBound = startDate ? new Date(startDate as any) : null;
+    const endBound = endDate ? new Date(endDate as any) : null;
+    (t.data || []).forEach((cat: any) => {
+      (cat.items || []).forEach((it: any) => {
+        const title = cat.category === 'Project' ? `Project: ${it.work || it.projectName || 'Project'}` : cat.category === 'Team' ? `Team: ${it.work || it.teamName || 'Team'}` : 'Leave';
+        let table = dataByEmployee[employeeKey].tables.find((tb) => tb.title === title);
+        if (!table) {
+          table = { title, rows: [] };
+          dataByEmployee[employeeKey].tables.push(table);
+        }
+        const hours: any[] = Array.isArray(it.hours) ? it.hours : [];
+        const descriptions: any[] = Array.isArray(it.descriptions) ? it.descriptions : [];
+        const dailyStatus: any[] = Array.isArray(it.dailyStatus) ? it.dailyStatus : [];
+        for (let idx = 0; idx < 7; idx++) {
+          const qty = Number(hours[idx] || 0);
+          if (qty > 0) {
+            const d = new Date(weekStart);
+            d.setDate(weekStart.getDate() + idx);
+            const dateStr = d.toISOString().slice(0, 10);
+            // Filter out daily rows outside the selected date range
+            if (startBound && d < startBound) {
+              continue;
+            }
+            if (endBound && d > endBound) {
+              continue;
+            }
+            const descRaw = descriptions[idx] || it.description || it.task || it.tasks || '';
+            const desc = (typeof descRaw === 'string' ? descRaw.trim() : String(descRaw || '')) || '-';
+            const status = dailyStatus[idx] || t.status || 'Pending';
+            table.rows.push({ date: dateStr, description: desc, status, quantity: String(qty) });
+          }
+        }
+      });
+    });
+  }
+
+  // Sort rows by date and employees by name
+  const employees = Object.values(dataByEmployee).map((emp) => {
+    emp.tables.forEach((tbl) => {
+      tbl.rows.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    });
+    return emp;
+  });
+
+  if (format === 'json') {
+    return res.json({ data: employees });
+  }
+  if (format === 'pdf') {
+    const pdf = new TimesheetEntriesPdf();
+    const doc = pdf.generate(employees, { startDate, endDate });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=timesheet-entries-report.pdf');
+    doc.pipe(res);
+    doc.end();
+    return;
+  }
+
+  if (format === 'excel') {
+    const excel = new TimesheetEntriesExcel();
+    excel.build(employees, { startDate, endDate });
+    await excel.write(res, 'timesheet-entries-report');
+    return;
+  }
 };
 
 
