@@ -33,7 +33,7 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
   const reduxTimesheetData = useSelector((state: RootState) => state.timesheet.timesheetData);
 
 
-  const createAbsenceRows = (): TimesheetItem[] => {
+  const createOtherRows = (): TimesheetItem[] => {
     return selectedActivities.map((activity: string) => ({
       work: activity,
       hours: Array(7).fill('00.00'),
@@ -107,7 +107,7 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
           dailyStatus: Array(7).fill(TimesheetStatus.Draft),
         }));
 
-        const absenceRows = createAbsenceRows();
+        const otherRows = createOtherRows();
 
         const resp = await getOrCreateMyTimesheetForWeek(selectedWeekStartIso);
         const existing: Timesheet | undefined = (resp.data as any).timesheet;
@@ -121,7 +121,7 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
 
 
           if ((existing.status as any) === TimesheetStatus.Draft) {
-            nextData = mergeNewItems(nextData, projectRows, teamRows, absenceRows);
+            nextData = mergeNewItems(nextData, projectRows, teamRows, otherRows);
           }
 
           setData(nextData);
@@ -130,7 +130,7 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
           const initialData = [
             { category: 'Project' as const, items: projectRows },
             { category: 'Team' as const, items: teamRows },
-            { category: 'Absence' as const, items: absenceRows },
+            { category: 'Other' as const, items: otherRows },
           ];
           setData(initialData);
           dispatch(setOriginalDataHash(JSON.stringify(initialData)));
@@ -151,7 +151,7 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
     existingData: any[],
     projectRows: TimesheetItem[],
     teamRows: TimesheetItem[],
-    absenceRows: TimesheetItem[]
+    otherRows: TimesheetItem[]
   ) => {
     let nextData = [...existingData];
 
@@ -193,19 +193,19 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
       nextData.splice(insertIndex, 0, { category: 'Team', items: teamRows });
     }
 
-    const absenceCatIndex = nextData.findIndex((c) => c.category === 'Absence');
-    if (absenceCatIndex >= 0) {
+    const otherCatIndex = nextData.findIndex((c) => c.category === 'Other');
+    if (otherCatIndex >= 0) {
       const presentWorks = new Set(
-        (nextData[absenceCatIndex].items || []).map((it: any) => it.work)
+        (nextData[otherCatIndex].items || []).map((it: any) => it.work)
       );
-      const newItems = absenceRows.filter((row) => row.work && !presentWorks.has(row.work));
+      const newItems = otherRows.filter((row) => row.work && !presentWorks.has(row.work));
       if (newItems.length > 0) {
         nextData = nextData.map((c, i) =>
-          i === absenceCatIndex ? { ...c, items: [...c.items, ...newItems] } : c
+          i === otherCatIndex ? { ...c, items: [...c.items, ...newItems] } : c
         );
       }
-    } else if (absenceRows.length > 0) {
-      nextData = [...nextData, { category: 'Absence', items: absenceRows }];
+    } else if (otherRows.length > 0) {
+      nextData = [...nextData, { category: 'Other', items: otherRows }];
     }
 
     return nextData;

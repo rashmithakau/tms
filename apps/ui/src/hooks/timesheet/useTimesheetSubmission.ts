@@ -50,33 +50,33 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
   };
 
   const handleActivitySuccess = (customActivity?: string | null) => {
-    // If a custom activity was provided, add it to the Absence category for this week only
+    // If a custom activity was provided, add it to the Other category for this week only
     if (customActivity) {
       console.log('Adding custom activity:', customActivity);
       console.log('Current timesheet data:', timesheetData.timesheetData);
       
       const currentData = [...timesheetData.timesheetData];
-      const absenceCatIndex = currentData.findIndex((c: any) => c.category === 'Absence');
+      const otherCatIndex = currentData.findIndex((c: any) => c.category === 'Other');
       
-      console.log('Absence category index:', absenceCatIndex);
+      console.log('Other category index:', otherCatIndex);
       
-      const newAbsenceItem = {
+      const newOtherItem = {
         work: customActivity,
         hours: Array(7).fill('00.00'),
         descriptions: Array(7).fill(''),
         dailyStatus: Array(7).fill(TimesheetStatus.Draft),
       };
       
-      if (absenceCatIndex >= 0) {
+      if (otherCatIndex >= 0) {
         // Check if this custom activity already exists
-        const exists = currentData[absenceCatIndex].items.some(
+        const exists = currentData[otherCatIndex].items.some(
           (item: any) => item.work === customActivity
         );
         
         if (!exists) {
-          currentData[absenceCatIndex] = {
-            ...currentData[absenceCatIndex],
-            items: [...currentData[absenceCatIndex].items, newAbsenceItem],
+          currentData[otherCatIndex] = {
+            ...currentData[otherCatIndex],
+            items: [...currentData[otherCatIndex].items, newOtherItem],
           };
           console.log('Updated data with new activity:', currentData);
           dispatch(setTimesheetData(currentData));
@@ -84,11 +84,11 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
           console.log('Activity already exists');
         }
       } else {
-        // Create Absence category if it doesn't exist
-        console.log('Creating new Absence category');
+        // Create Other category if it doesn't exist
+        console.log('Creating new Other category');
         currentData.push({
-          category: 'Absence',
-          items: [newAbsenceItem],
+          category: 'Other',
+          items: [newOtherItem],
         });
         console.log('Updated data with new category:', currentData);
         dispatch(setTimesheetData(currentData));

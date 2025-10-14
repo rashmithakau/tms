@@ -1,4 +1,4 @@
-import { absenceActivity } from '@tms/shared';
+import { otherActivity } from '@tms/shared';
 
 export interface SelectActivityPopupProps {
   open: boolean;

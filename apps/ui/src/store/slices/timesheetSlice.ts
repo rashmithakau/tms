@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { TimesheetStatus, absenceActivity } from '@tms/shared';
+import { TimesheetStatus, otherActivity } from '@tms/shared';
 import { TimesheetData } from '../../interfaces/hooks/timesheet';
 import { ITimesheetState } from '../../interfaces';
 
@@ -21,7 +21,7 @@ const timesheetSlice = createSlice({
   reducers: {
     setSelectedActivities: (
       state,
-      action: PayloadAction<absenceActivity[]>
+      action: PayloadAction<otherActivity[]>
     ) => {
       state.selectedActivities = action.payload;
     },

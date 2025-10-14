@@ -10,7 +10,7 @@ export interface TimesheetItem {
 }
 
 export interface TimesheetData {
-  category: 'Project' | 'Team' | 'Absence';
+  category: 'Project' | 'Team' | 'Other';
   items: TimesheetItem[];
 }
 

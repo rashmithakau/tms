@@ -1,4 +1,4 @@
-export enum absenceActivity {
+export enum otherActivity {
     Sick = "Sick",
     Vacation = "Vacation",
     VolunteerWrok = "Volunteer Work",
