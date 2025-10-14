@@ -13,6 +13,8 @@ export interface INotification extends Document {
   rejectedDates?: string[];
   reason?: string;
   isRead: boolean;
+  relatedUserId?: string;
+  weekStartDate?: string;
   createdAt: Date;
 }
 
@@ -29,6 +31,8 @@ export interface ICreateNotificationParams {
   teamName?: string;
   rejectedDates?: string[];
   reason?: string;
+  relatedUserId?: string;
+  weekStartDate?: string;
 }
 
 export interface INotificationFilter {

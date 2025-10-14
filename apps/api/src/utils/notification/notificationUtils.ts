@@ -13,6 +13,8 @@ export interface NotificationData {
   teamName?: string;
   rejectedDates?: string[];
   reason?: string;
+  relatedUserId?: string;
+  weekStartDate?: string;
 }
 
 export const createAndEmitNotification = async (data: NotificationData) => {
@@ -29,6 +31,8 @@ export const createAndEmitNotification = async (data: NotificationData) => {
       rejectedDates: data.rejectedDates,
       reason: data.reason,
       isRead: false,
+      relatedUserId: data.relatedUserId,
+      weekStartDate: data.weekStartDate,
     });
 
     // Emit socket notification
@@ -45,6 +49,8 @@ export const createAndEmitNotification = async (data: NotificationData) => {
       reason: notification.reason,
       createdAt: notification.createdAt,
       isRead: notification.isRead,
+      relatedUserId: notification.relatedUserId,
+      weekStartDate: notification.weekStartDate,
     });
 
     return notification;
@@ -91,13 +97,16 @@ export const createTimesheetSubmittedNotification = async (
   supervisorId: string,
   employeeName: string,
   weekStartDate: Date,
-  weekEndDate: Date
+  weekEndDate: Date,
+  employeeId?: string
 ) => {
   return createAndEmitNotification({
     userId: supervisorId,
     type: NotificationType.TimesheetSubmitted,
     title: 'Timesheet Submitted',
     message: `${employeeName} has submitted their timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
+    relatedUserId: employeeId,
+    weekStartDate: weekStartDate.toISOString().slice(0, 10),
   });
 };
 

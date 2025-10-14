@@ -4,6 +4,7 @@ import { getApiBaseURL } from '../config/apiClient';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
 import { AppNotification, SocketContextValue } from '../interfaces';
+import { listMyNotifications } from '../api/notification';
 
 const SocketContext = createContext<SocketContextValue>({ socket: null, notifications: [], unreadCount: 0, markAllRead: () => {}, clearNotifications: () => {}, setNotificationsFromServer: () => {}, addNotificationSilent: () => {} });
 
@@ -16,9 +17,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   const addNotification = useCallback((payload: any) => {
-    const { title, message, projectName, projectId, rejectedDates, reason, createdAt } = payload || {};
+    const { type, title, message, projectName, projectId, rejectedDates, reason, createdAt, relatedUserId, weekStartDate } = payload || {};
     const n: AppNotification = {
       id: Math.random().toString(36).slice(2),
+      type,
       title: title || 'Notification',
       message: message || 'New notification',
       createdAt: createdAt ? new Date(createdAt).getTime() : Date.now(),
@@ -27,6 +29,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       projectId,
       rejectedDates,
       reason,
+      relatedUserId,
+      weekStartDate,
     };
     setNotifications((prev) => [n, ...prev].slice(0, 100));
     info(n.message, n.title);
@@ -47,6 +51,38 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const addNotificationSilent = useCallback((item: AppNotification) => {
     setNotifications((prev) => [item, ...prev].slice(0, 100));
   }, []);
+
+  // Fetch notifications from server on mount/when user is authenticated
+  useEffect(() => {
+    if (!authState.user?._id) {
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        const response = await listMyNotifications();
+        const apiNotifications = (response.data?.notifications || []).map((n: any) => ({
+          id: n._id,
+          type: n.type,
+          title: n.title,
+          message: n.message,
+          createdAt: new Date(n.createdAt).getTime(),
+          read: n.isRead,
+          projectName: n.projectName,
+          projectId: n.projectId,
+          rejectedDates: n.rejectedDates,
+          reason: n.reason,
+          relatedUserId: n.relatedUserId,
+          weekStartDate: n.weekStartDate,
+        }));
+        setNotifications(apiNotifications);
+      } catch (error) {
+        console.error('Error fetching notifications on mount:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, [authState.user?._id]);
 
   useEffect(() => {
     if (!authState.user?._id) {

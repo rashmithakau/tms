@@ -153,17 +153,17 @@ const ReportDashboard: React.FC = () => {
             };
           }
 
-          // Check if this row belongs to a project, team, or absence
+          // Check if this row belongs to a project, team, or other
           const isProject = row.category === 'Project' || row.work?.includes('Project');
           const isTeam = row.category === 'Team' || row.work?.includes('Team');
-          const isAbsence = row.category === 'Absence';
+          const isOther = row.category === 'Other';
           
           let tableTitle = 'General';
           if (isProject) {
             tableTitle = `Project: ${row.work}`;
           } else if (isTeam) {
             tableTitle = `Team: ${row.work}`;
-          } else if (isAbsence) {
+          } else if (isOther) {
             tableTitle = 'Leave';
           }
 
@@ -182,8 +182,8 @@ const ReportDashboard: React.FC = () => {
               { key: 'total', header: 'Total' },
             ];
             
-            // Add Work column for absence tables
-            const columns = isAbsence 
+            // Add Work column for other tables
+            const columns = isOther 
               ? [
                   { key: 'weekStartDate', header: 'Week Start' },
                   { key: 'status', header: 'Status' },

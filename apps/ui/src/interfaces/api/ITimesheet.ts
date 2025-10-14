@@ -2,7 +2,7 @@ import { TimesheetStatus } from '@tms/shared';
 import { TimesheetItem } from '../hooks/timesheet';
 
 export interface TimesheetCategory {
-  category: 'Project' | 'Team' | 'Absence';
+  category: 'Project' | 'Team' | 'Other';
   items: TimesheetItem[];
 }
 
