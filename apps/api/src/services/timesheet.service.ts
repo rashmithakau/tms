@@ -160,7 +160,8 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
               supervisorId,
               employeeName,
               weekStartDate,
-              weekEndDate
+              weekEndDate,
+              userId
             );
           } catch (notifError) {
             console.error('Error sending notification to supervisor:', supervisorId, notifError);

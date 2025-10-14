@@ -8,6 +8,7 @@ import {
   EmployeeTimesheetCalendarParams,
   EmployeeTimesheetCalendarReturn
 } from '../../interfaces/hooks/timesheet';
+import { useSelector } from 'react-redux';
 
 export function useEmployeeTimesheetCalendar({
   timesheets,
@@ -15,8 +16,24 @@ export function useEmployeeTimesheetCalendar({
   supervisedProjectIds = [],
   supervisedTeamIds = [],
 }: EmployeeTimesheetCalendarParams): EmployeeTimesheetCalendarReturn {
+  const reviewWeekStartDate = useSelector((state: any) => state.timesheet.reviewWeekStartDate);
+  const weekStartDate = useSelector((state: any) => state.timesheet.weekStartDate);
+  
   const [data, setData] = useState<ITimesheetData[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
+    // Check if there's a review week start date (for Review Timesheets page)
+    // or week start date (for My Timesheets page) from Redux
+    const targetDate = reviewWeekStartDate || weekStartDate;
+    
+    if (targetDate) {
+      const date = new Date(targetDate);
+      // Ensure it's a Monday (start of week)
+      const utcDay = date.getUTCDay();
+      const diffToMonday = (utcDay + 6) % 7;
+      return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - diffToMonday));
+    }
+    
+    // Default to current week
     const now = new Date();
     const utcDay = now.getUTCDay();
     const diffToMonday = (utcDay + 6) % 7;
@@ -52,6 +69,24 @@ export function useEmployeeTimesheetCalendar({
       return tsDate >= currentWeekStart && tsDate < weekEnd;
     });
   }, [timesheets, currentWeekStart]);
+
+  // Update currentWeekStart when Redux state changes (from notifications)
+  useEffect(() => {
+    const targetDate = reviewWeekStartDate || weekStartDate;
+    
+    if (targetDate) {
+      const date = new Date(targetDate);
+      // Ensure it's a Monday (start of week)
+      const utcDay = date.getUTCDay();
+      const diffToMonday = (utcDay + 6) % 7;
+      const mondayDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - diffToMonday));
+      
+      // Only update if different to avoid infinite loops
+      if (mondayDate.getTime() !== currentWeekStart.getTime()) {
+        setCurrentWeekStart(mondayDate);
+      }
+    }
+  }, [reviewWeekStartDate, weekStartDate]);
 
   useEffect(() => {
     const fetchProjectsAndTeams = async () => {

@@ -13,6 +13,8 @@ const initialState: ITimesheetState = {
   status: null,
   originalDataHash: null,
   isDraftSaved: false,
+  reviewEmployeeId: null,
+  reviewWeekStartDate: null,
 };
 
 const timesheetSlice = createSlice({
@@ -46,9 +48,15 @@ const timesheetSlice = createSlice({
     setIsDraftSaved: (state, action: PayloadAction<boolean>) => {
       state.isDraftSaved = action.payload;
     },
+    setReviewEmployeeId: (state, action: PayloadAction<string | null>) => {
+      state.reviewEmployeeId = action.payload;
+    },
+    setReviewWeekStartDate: (state, action: PayloadAction<string | null>) => {
+      state.reviewWeekStartDate = action.payload;
+    },
   },
 });
 
 export default timesheetSlice.reducer;
-export const { setSelectedActivities, setTimesheetData, setWeekStartDate, setWeekEndDate, setCurrentTimesheetId, setTimesheetStatus, setOriginalDataHash, setIsDraftSaved } =
+export const { setSelectedActivities, setTimesheetData, setWeekStartDate, setWeekEndDate, setCurrentTimesheetId, setTimesheetStatus, setOriginalDataHash, setIsDraftSaved, setReviewEmployeeId, setReviewWeekStartDate } =
   timesheetSlice.actions;

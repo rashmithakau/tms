@@ -10,4 +10,6 @@ export interface ITimesheetState {
   status: TimesheetStatus | null;
   originalDataHash: string | null;
   isDraftSaved: boolean;
+  reviewEmployeeId: string | null;
+  reviewWeekStartDate: string | null;
 }

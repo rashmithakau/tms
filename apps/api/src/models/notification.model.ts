@@ -13,6 +13,8 @@ const NotificationSchema = new Schema<INotification>(
     rejectedDates: [{ type: String }],
     reason: { type: String },
     isRead: { type: Boolean, default: false },
+    relatedUserId: { type: String },
+    weekStartDate: { type: String },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
