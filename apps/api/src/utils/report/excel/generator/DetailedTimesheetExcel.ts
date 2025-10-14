@@ -132,7 +132,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       ['Total Employees', stats.totalEmployees],
       ['Total Teams', stats.totalTeams],
       ['Total Projects', stats.totalProjects],
-      ['Absence Days', stats.absenceDays],
+      ['Absence Days', stats.otherDays],
       ['Grand Total Hours', `${stats.grandTotal} h`]
     ];
     summaryMetrics.forEach((entry) => {
@@ -176,7 +176,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
             title = `Project: ${item.projectName}`;
           } else if (item.teamName) {
             title = `Team: ${item.teamName}`;
-          } else if (category.category === 'Absence') {
+          } else if (category.category === 'Other') {
             title = 'Leave';
             includeWork = true;
           }
@@ -251,13 +251,13 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
   private calculateDetailedStatistics(data: ITimesheetReportData[]) {
     const totalEmployees = new Set(data.map(d => d.employeeId)).size;
     let grandTotal = 0;
-    let absenceDays = 0;
+    let otherDays = 0;
     const allProjects = new Set<string>();
     const allTeams = new Set<string>();
     let totalTasks = 0;
 
     data.forEach(d => {
-      // Track per-week leave hours aggregated across all absence items
+      // Track per-week leave hours aggregated across all other items
       const weeklyLeaveHours: number[] = [0, 0, 0, 0, 0];
 
       d.categories.forEach(cat => {
@@ -272,7 +272,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
           }, 0);
           grandTotal += rowTotal;
 
-          if (cat.category === 'Absence') {
+          if (cat.category === 'Other') {
             for (let i = 0; i < 5; i++) {
               const h = dailyHours[i];
               const n = typeof h === 'string' ? parseFloat(h) : (typeof h === 'number' ? h : 0);
@@ -282,10 +282,10 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
         });
       });
 
-      // Convert weekly aggregated leave hours to absence day fractions 
+      // Convert weekly aggregated leave hours to other day fractions (8h = 1 day)
       for (let i = 0; i < 5; i++) {
         const fraction = weeklyLeaveHours[i] / 8;
-        if (fraction > 0) absenceDays += Math.min(fraction, 1);
+        if (fraction > 0) otherDays += Math.min(fraction, 1);
       }
     });
 
@@ -294,7 +294,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       totalProjects: allProjects.size,
       totalTeams: allTeams.size,
       totalTasks,
-      absenceDays: Math.round(absenceDays * 100) / 100,
+      otherDays: Math.round(otherDays * 100) / 100,
       grandTotal: Math.round(grandTotal * 100) / 100
     };
   }

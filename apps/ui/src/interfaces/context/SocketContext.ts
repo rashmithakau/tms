@@ -1,7 +1,10 @@
 import { Socket } from 'socket.io-client';
 
+import { NotificationType } from '@tms/shared';
+
 export interface AppNotification {
   id: string;
+  type?: NotificationType;
   title?: string;
   message: string;
   createdAt: number;
@@ -10,6 +13,8 @@ export interface AppNotification {
   projectId?: string;
   rejectedDates?: string[];
   reason?: string;
+  relatedUserId?: string;
+  weekStartDate?: string;
 }
 
 export interface SocketContextValue {

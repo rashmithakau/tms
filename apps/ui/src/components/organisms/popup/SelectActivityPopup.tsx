@@ -1,14 +1,14 @@
 import PopupLayout from '../../templates/popup/PopUpLayout';
 import BaseBtn from '../../atoms/common/button/BaseBtn';
 import { Box, Checkbox, FormControlLabel, TextField } from '@mui/material';
-import { absenceActivity } from '@tms/shared';
+import { otherActivity } from '@tms/shared';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedActivities } from '../../../store/slices/timesheetSlice';
 import { RootState } from '../../../interfaces';
 import { SelectActivityPopupProps } from '../../../interfaces/organisms/popup';
 
-const absenceActivitiesArray = Object.values(absenceActivity);
+const otherActivitiesArray = Object.values(otherActivity);
 const OTHER_ACTIVITY_KEY = 'Other';
 
 function SelectActivityPopup({
@@ -24,7 +24,7 @@ function SelectActivityPopup({
   );
 
   const [selectedActivities, setSelectedActivitiesState] = useState<
-    absenceActivity[]
+    otherActivity[]
   >([]);
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [otherActivityText, setOtherActivityText] = useState('');
@@ -37,7 +37,7 @@ function SelectActivityPopup({
     }
   }, [open, reduxSelectedActivities]);
 
-  const handleCheckboxChange = (activity: absenceActivity) => {
+  const handleCheckboxChange = (activity: otherActivity) => {
     setSelectedActivitiesState((prev) =>
       prev.includes(activity)
         ? prev.filter((a) => a !== activity)
@@ -81,7 +81,7 @@ function SelectActivityPopup({
           gap: 5,
         }}
       >
-        {absenceActivitiesArray.map((activity, index) => (
+        {otherActivitiesArray.map((activity, index) => (
           <div key={index}>
             <FormControlLabel
               control={

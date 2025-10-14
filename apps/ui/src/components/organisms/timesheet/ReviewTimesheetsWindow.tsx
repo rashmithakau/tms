@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
 import PageLoading from '../../molecules/common/loading/PageLoading';
 import TableWindowLayout from '../../templates/layout/TableWindowLayout';
@@ -18,16 +18,26 @@ import theme from '../../../styles/theme';
 import { useToast } from '../../../contexts/ToastContext';
 import { useTimesheetApproval } from '../../../hooks/timesheet/useTimesheetApproval';
 import ApprovalActionButtons from '../../molecules/timesheet/approval/ApprovalActionButtons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useAuth } from '../../../contexts/AuthContext';
+import { setReviewEmployeeId, setReviewWeekStartDate } from '../../../store/slices/timesheetSlice';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const ReviewTimesheetsWindow: React.FC = () => {
   const { rows, timesheets, supervisedProjectIds, supervisedTeamIds, supervisedUserIds, isLoading, refresh } = useSupervisedTimesheets();
   const toast = useToast();
   const { authState } = useAuth();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const searchText = useSelector((state: any) => state.searchBar.searchText);
+  const reviewEmployeeId = useSelector((state: any) => state.timesheet.reviewEmployeeId);
+  const reviewWeekStartDate = useSelector((state: any) => state.timesheet.reviewWeekStartDate);
   const currentUserId = authState.user?._id;
+  
+  // Get employee ID from URL params
+  const openEmployeeIdFromUrl = searchParams.get('openEmployeeId');
   
   
   const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
@@ -94,6 +104,63 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const [openRow, setOpenRow] = useState<number | null>(null);
   const [approvingEditRequest, setApprovingEditRequest] = useState(false);
   const [rejectingEditRequest, setRejectingEditRequest] = useState(false);
+  const hasProcessedReviewRef = useRef<string | null>(null);
+  const retryCountRef = useRef(0);
+
+  useEffect(() => {
+    const targetEmployeeId = openEmployeeIdFromUrl || reviewEmployeeId;
+    
+    if (targetEmployeeId && targetEmployeeId !== hasProcessedReviewRef.current && !isLoading) {
+      if (filteredEmployeeGroups.length === 0 && retryCountRef.current < 10) {
+        retryCountRef.current++;
+        setTimeout(() => {
+          setOpenRow(prev => prev === null ? -1 : null);
+        }, 500);
+        return;
+      }
+      
+      const employeeIndex = filteredEmployeeGroups.findIndex(
+        group => group.employee._id === targetEmployeeId
+      );
+      
+      if (employeeIndex !== -1) {
+        setTimeout(() => {
+          setOpenRow(employeeIndex);
+          
+          setTimeout(() => {
+            const tableRows = document.querySelectorAll('tbody tr');
+            const targetRowIndex = employeeIndex * 2;
+            if (tableRows[targetRowIndex]) {
+              tableRows[targetRowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 300);
+        }, 200);
+        
+        hasProcessedReviewRef.current = targetEmployeeId;
+        retryCountRef.current = 0;
+        
+        setTimeout(() => {
+          if (openEmployeeIdFromUrl) {
+            searchParams.delete('openEmployeeId');
+            setSearchParams(searchParams);
+          }
+          dispatch(setReviewEmployeeId(null));
+          dispatch(setReviewWeekStartDate(null));
+          hasProcessedReviewRef.current = null;
+        }, 1500);
+      } else {
+        retryCountRef.current = 0;
+        
+        if (openEmployeeIdFromUrl) {
+          searchParams.delete('openEmployeeId');
+          setSearchParams(searchParams);
+        }
+        dispatch(setReviewEmployeeId(null));
+        dispatch(setReviewWeekStartDate(null));
+        hasProcessedReviewRef.current = null;
+      }
+    }
+  }, [reviewEmployeeId, openEmployeeIdFromUrl, isLoading, filteredEmployeeGroups, employeeGroups.length, dispatch, searchText, searchParams, setSearchParams]);
 
   const handleApproveEditRequest = async (timesheetId: string) => {
     setApprovingEditRequest(true);

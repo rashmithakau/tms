@@ -16,6 +16,11 @@ import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined
 import { useSocket } from '../../../contexts/SocketContext';
 import { listMyNotifications, markAllNotificationsRead } from '../../../api/notification';
 import { INotificationDropdownProps } from '../../../interfaces/organisms';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setWeekStartDate, setWeekEndDate, setReviewEmployeeId, setReviewWeekStartDate } from '../../../store/slices/timesheetSlice';
+import { select_btn } from '../../../store/slices/dashboardNavSlice';
+import { NotificationType } from '@tms/shared';
 
 const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
   iconButtonSx = {},
@@ -29,6 +34,8 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
     markAllRead, 
     setNotificationsFromServer 
   } = useSocket();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const previousNotificationCount = useRef(notifications.length);
@@ -56,6 +63,7 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
       const response = await listMyNotifications();
       const apiNotifications = (response.data?.notifications || []).map((n: any) => ({
         id: n._id,
+        type: n.type,
         title: n.title,
         message: n.message,
         createdAt: new Date(n.createdAt).getTime(),
@@ -64,6 +72,8 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
         projectId: n.projectId,
         rejectedDates: n.rejectedDates,
         reason: n.reason,
+        relatedUserId: n.relatedUserId,
+        weekStartDate: n.weekStartDate,
       }));
       setNotificationsFromServer(apiNotifications);
     } catch (error) {
@@ -81,6 +91,101 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const getWeekStartFromDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday.toISOString().slice(0, 10);
+  };
+
+  const handleNotificationItemClick = (notification: any) => {
+    handleClose();
+
+    let weekStart: string | null = null;
+    
+    if (notification.weekStartDate) {
+      weekStart = notification.weekStartDate;
+    } 
+    else if (notification.rejectedDates && notification.rejectedDates.length > 0) {
+      const firstRejectedDate = notification.rejectedDates[0];
+      weekStart = getWeekStartFromDate(firstRejectedDate);
+    }
+    else if (notification.message && notification.type === NotificationType.TimesheetSubmitted) {
+      const dateMatch = notification.message.match(/week of (\w{3} \w{3} \d{1,2} \d{4})/);
+      if (dateMatch && dateMatch[1]) {
+        const parsedDate = new Date(dateMatch[1]);
+        if (!isNaN(parsedDate.getTime())) {
+          const year = parsedDate.getFullYear();
+          const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+          const day = String(parsedDate.getDate()).padStart(2, '0');
+          weekStart = `${year}-${month}-${day}`;
+        }
+      }
+    }
+
+    if (weekStart) {
+      const startDate = new Date(weekStart);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      const weekEnd = endDate.toISOString().slice(0, 10);
+
+      dispatch(setWeekStartDate(weekStart));
+      dispatch(setWeekEndDate(weekEnd));
+    }
+
+    switch (notification.type) {
+      case NotificationType.TimesheetRejected:
+      case NotificationType.TimesheetReminder:
+      case NotificationType.TimesheetEditRequest:
+      case NotificationType.TimesheetEditApproved:
+      case NotificationType.TimesheetEditRejected:
+        dispatch(select_btn('My Timesheets'));
+        navigate('/employee');
+        break;
+      
+      case NotificationType.TimesheetSubmitted:
+        // Navigate to Review Timesheets for supervisor notifications
+        console.log('👤 Review employee ID from notification:', notification.relatedUserId);
+        console.log('� Review week start:', weekStart);
+        
+        // Check if we have the necessary data
+        if (!notification.relatedUserId) {
+          console.warn('⚠️ This notification was created before the employee ID tracking feature was added.');
+          console.warn('⚠️ The drawer will not auto-open. Please manually find the employee.');
+          console.warn('💡 Tip: New notifications will have this feature.');
+        }
+        
+        // Set the employee ID and week for auto-opening the drawer
+        if (notification.relatedUserId) {
+          dispatch(setReviewEmployeeId(notification.relatedUserId));
+          if (weekStart) {
+            dispatch(setReviewWeekStartDate(weekStart));
+          }
+          dispatch(select_btn('Review Timesheets'));
+          navigate(`/employee?openEmployeeId=${notification.relatedUserId}`);
+        } else {
+          if (weekStart) {
+            dispatch(setReviewWeekStartDate(weekStart));
+          }
+          dispatch(select_btn('Review Timesheets'));
+          navigate('/employee');
+        }
+        break;
+      
+      case NotificationType.ProjectAssignment:
+      case NotificationType.TeamAssignment:
+        dispatch(select_btn('My Timesheets'));
+        navigate('/employee');
+        break;
+      
+      default:
+        navigate('/employee');
+        break;
+    }
   };
 
   const formatTime = (timestamp: number) => {
@@ -168,11 +273,13 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
               <ListItem 
                 key={notification.id} 
                 alignItems="flex-start"
+                onClick={() => handleNotificationItemClick(notification)}
                 sx={{
                   backgroundColor: notification.read ? 'transparent' : 'action.hover',
                   borderRadius: 1,
                   mb: 0.5,
                   pb: 1.5,
+                  cursor: 'pointer',
                   '&:hover': {
                     backgroundColor: 'action.selected',
                   },

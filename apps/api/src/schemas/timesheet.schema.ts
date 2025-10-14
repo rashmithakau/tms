@@ -10,7 +10,7 @@ const ItemSchema = z.object({
 });
 
 const CategorySchema = z.object({
-  category: z.enum(['Project', 'Team', 'Absence']),
+  category: z.enum(['Project', 'Team', 'Other']),
   items: z.array(ItemSchema).min(1),
 });
 
