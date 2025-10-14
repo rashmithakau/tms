@@ -37,10 +37,8 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
     periodRow.alignment = { horizontal: 'center' };
     periodRow.height = 13;
 
-    // Spacer
     this.worksheet.addRow([]);
 
-    
     const grouped = this.groupByEmployee(data);
 
     const employees = Array.from(grouped.values())
@@ -51,7 +49,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
 
       // Section header
       const sectionTitle = this.worksheet.addRow([
-        `${group.meta.employeeName} (${group.meta.employeeEmail})`
+        `${group.meta.employeeName} - ${group.meta.employeeEmail}`
       ]);
       this.worksheet.mergeCells(sectionTitle.number, 1, sectionTitle.number, totalColumns);
       sectionTitle.font = { bold: true, size: 12 };
@@ -87,24 +85,24 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       });
 
       // Per-employee Key Metrics 
-      const metricsTitle = this.worksheet.addRow(['Key Metrics']);
+      const metricsTitle = this.worksheet.addRow(['Working Hours']);
       this.worksheet.mergeCells(metricsTitle.number, 1, metricsTitle.number, totalColumns);
       metricsTitle.font = { bold: true, size: 11 };
 
       // Table header for metrics
-      const metricsHeader = this.worksheet.addRow(['Metric', '', '', 'Value', '']);
+      const metricsHeader = this.worksheet.addRow(['Day', '', '', 'Hours', '']);
       this.worksheet.mergeCells(metricsHeader.number, 1, metricsHeader.number, 3);
       this.worksheet.mergeCells(metricsHeader.number, 4, metricsHeader.number, 5);
       metricsHeader.font = { bold: true, size: 10 };
 
       const empStats = this.calculateEmployeeStats(group.rows);
       const empMetrics: Array<[string, string | number]> = [
-        ['Total Hours', empStats.grandTotal.toFixed(2) + 'h'],
-        ['Monday Hours', empStats.daily[0].toFixed(2)],
-        ['Tuesday Hours', empStats.daily[1].toFixed(2)],
-        ['Wednesday Hours', empStats.daily[2].toFixed(2)],
-        ['Thursday Hours', empStats.daily[3].toFixed(2)],
-        ['Friday Hours', empStats.daily[4].toFixed(2)]
+        ['Monday', empStats.daily[0].toFixed(2) + ' h'],
+        ['Tuesday', empStats.daily[1].toFixed(2) + ' h'],
+        ['Wednesday', empStats.daily[2].toFixed(2) + ' h'],
+        ['Thursday', empStats.daily[3].toFixed(2) + ' h'],
+        ['Friday', empStats.daily[4].toFixed(2) + ' h'],
+        ['Total', empStats.grandTotal.toFixed(2) + ' h'],
       ];
       empMetrics.forEach((entry) => {
         const row = this.worksheet.addRow([entry[0], '', '', entry[1], '']);
@@ -120,12 +118,12 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
 
     // Overall Summary & Key Metrics 
     this.worksheet.addRow([]);
-    const summaryTitle = this.worksheet.addRow(['Overall Summary & Key Metrics']);
+    const summaryTitle = this.worksheet.addRow(['Overall Summary']);
     this.worksheet.mergeCells(summaryTitle.number, 1, summaryTitle.number, totalColumns);
     summaryTitle.font = { bold: true, size: 12 };
 
     const stats = this.calculateDetailedStatistics(data);
-    const summaryHeader = this.worksheet.addRow(['Metric', '', '', 'Value', '']);
+    const summaryHeader = this.worksheet.addRow(['Category', '', '', 'Result', '']);
     this.worksheet.mergeCells(summaryHeader.number, 1, summaryHeader.number, 3);
     this.worksheet.mergeCells(summaryHeader.number, 4, summaryHeader.number, 5);
     summaryHeader.font = { bold: true, size: 10 };
@@ -134,9 +132,8 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       ['Total Employees', stats.totalEmployees],
       ['Total Teams', stats.totalTeams],
       ['Total Projects', stats.totalProjects],
-      ['Work Items', stats.totalTasks],
-      ['Other Days', stats.otherDays],
-      ['Grand Total Hours', `${stats.grandTotal}h`]
+      ['Absence Days', stats.otherDays],
+      ['Grand Total Hours', `${stats.grandTotal} h`]
     ];
     summaryMetrics.forEach((entry) => {
       const row = this.worksheet.addRow([entry[0], '', '', entry[1], '']);

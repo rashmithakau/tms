@@ -5,6 +5,7 @@ export interface DataTableColumn<T> {
   label: string;
   render: (row: T) => React.ReactNode;
   key: string;
+  width?: string | number;
 }
 
 export interface DataTableProps<T> {

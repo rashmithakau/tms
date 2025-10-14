@@ -84,7 +84,7 @@ const AdminWindow: React.FC = () => {
       userStats: {
         totalUsers: dashboardStats.userStats.totalUsers,
         activeUsers: dashboardStats.userStats.activeUsers,
-        newUsersThisMonth: Math.floor(dashboardStats.userStats.totalUsers * 0.05), // Estimate 5% as new
+        newUsersThisMonth: Math.floor(dashboardStats.userStats.totalUsers * 0.05), 
         totalAdmins: dashboardStats.userStats.totalAdmins
       },
       projectStats: {
@@ -95,7 +95,7 @@ const AdminWindow: React.FC = () => {
       timesheetStats: {
         pendingApprovals: dashboardStats.timesheetStats.pendingCount,
         approvedThisWeek: dashboardStats.timesheetStats.approvedCount,
-        totalHoursLogged: dashboardStats.timesheetStats.submittedCount * 40 // Estimate 40 hours per timesheet
+        totalHoursLogged: dashboardStats.timesheetStats.submittedCount * 40 
       },
       teamStats: {
         totalTeams: dashboardStats.teamStats.totalTeams
@@ -216,10 +216,10 @@ const AdminWindow: React.FC = () => {
 
     if (roleFilter !== 'all') {
       res = res.filter((r) => {
-        // Handle both raw role values and display text
+        
         const rowRole = r.role;
         if (typeof rowRole === 'string') {
-          // If it's display text, convert back to enum value for comparison
+        
           const roleMap: Record<string, string> = {
             'Admin': 'admin',
             'Supervisor Admin': 'supervisorAdmin', 
@@ -380,7 +380,7 @@ const AdminWindow: React.FC = () => {
         </Box>
       )}
 
-      {selectedBtn === 'Employees' && (
+      {selectedBtn === 'Accounts' && (
         <Box sx={{height:"100%"}}>
           <EmployeeSection
             error={error || undefined}

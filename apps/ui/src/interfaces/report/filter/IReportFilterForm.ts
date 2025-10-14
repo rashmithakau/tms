@@ -6,8 +6,8 @@ export interface IReportFilterForm {
   supervisedEmployees: Employee[];
   reportMetadata: ReportMetadata | null;
   onFilterChange: (filter: any) => void;
-  reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet' | '';
-  onReportTypeChange?: (type: '' | 'submission-status' | 'approval-status' | 'detailed-timesheet') => void;
+  reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'timesheet-entries' | '';
+  onReportTypeChange?: (type: '' | 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'timesheet-entries') => void;
   disabled?: boolean;
   // Optional external reset trigger; when changed, form should reset
   resetSignal?: number;

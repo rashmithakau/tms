@@ -24,6 +24,7 @@ const ReportTypeSelect: React.FC<ReportTypeSelectProps> = ({
                 | 'submission-status'
                 | 'approval-status'
                 | 'detailed-timesheet'
+                | 'timesheet-entries'
             )
           }
           MenuProps={{
@@ -40,6 +41,7 @@ const ReportTypeSelect: React.FC<ReportTypeSelectProps> = ({
           <MenuItem value="submission-status">Submission Status</MenuItem>
           <MenuItem value="approval-status">Approval Status</MenuItem>
           <MenuItem value="detailed-timesheet">Detailed Timesheet</MenuItem>
+          <MenuItem value="timesheet-entries">Timesheet Entries</MenuItem>
           
         </Select>
       </FormControl>

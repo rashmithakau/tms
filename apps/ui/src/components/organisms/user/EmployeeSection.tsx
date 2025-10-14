@@ -97,101 +97,103 @@ const EmployeeSection: React.FC<IEmployeeSectionProps> = ({
       >
         {selectedEmployees.length > 0 ? (
           <Box sx={{ p: 2 }}>
-            {selectedEmployees.map((employee) => (
-              <Paper
-                key={employee.id}
-                elevation={0}
-                sx={{
-                  p: 2,
-                  position: 'relative',
-                  backgroundColor: theme.palette.background.default,
-                  border: `2px solid ${theme.palette.secondary.main}`,
-                  borderRadius: 3,
-                  '&:hover': {
-                    borderColor: theme.palette.text.secondary,
-                    backgroundColor: theme.palette.background.paper,
-                  },
-                }}
-              >
-                <IconButton
-                  aria-label="remove"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveEmployee(employee.id);
-                  }}
-                  size="small"
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {selectedEmployees.map((employee) => (
+                <Paper
+                  key={employee.id}
+                  elevation={0}
                   sx={{
-                    position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    color: theme.palette.text.secondary,
+                    p: 2,
+                    position: 'relative',
+                    backgroundColor: theme.palette.background.default,
+                    border: `2px solid ${theme.palette.secondary.main}`,
+                    borderRadius: 3,
                     '&:hover': {
-                      backgroundColor: theme.palette.action.hover,
-                      color: theme.palette.error.main,
+                      borderColor: theme.palette.text.secondary,
+                      backgroundColor: theme.palette.background.paper,
                     },
                   }}
                 >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
+                  <IconButton
+                    aria-label="remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveEmployee(employee.id);
+                    }}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      color: theme.palette.text.secondary,
+                      '&:hover': {
+                        backgroundColor: theme.palette.action.hover,
+                        color: theme.palette.error.main,
+                      },
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
 
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        fontWeight: 600,
-                        color: theme.palette.text.primary,
-                        mb: 0.5,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {employee.name}
-                    </Typography>
-
-                    {employee.designation && (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          mb: 1,
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: theme.palette.text.secondary,
-                            fontWeight: 500,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {employee.designation}
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {employee.email && (
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography
-                        variant="caption"
+                        variant="subtitle2"
                         sx={{
-                          color: theme.palette.text.secondary,
-                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          color: theme.palette.text.primary,
+                          mb: 0.5,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {employee.email}
+                        {employee.name}
                       </Typography>
-                    )}
+
+                      {employee.designation && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            mb: 1,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {employee.designation}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {employee.email && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: theme.palette.text.secondary,
+                            fontSize: '0.7rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {employee.email}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              </Paper>
-            ))}
+                </Paper>
+              ))}
+            </Box>
           </Box>
         ) : (
           <Box

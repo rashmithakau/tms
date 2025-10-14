@@ -3,7 +3,7 @@ import { ProfessionalPDFComponents } from '../component/ProfessionalPDFComponent
 import PDFDocument from 'pdfkit';
 import { IDetailedTimesheetReport } from '../../../../interfaces';
 
-export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGenerator {
+export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
   private components: ProfessionalPDFComponents;
 
   constructor() {
@@ -92,7 +92,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     const employee = employeeData[0];
     
     // Employee section header
-    this.components.addSectionDivider(`${employee.employeeName} (${employee.employeeEmail})`);
+    this.components.addSectionDivider(`${employee.employeeName} - ${employee.employeeEmail}`);
     // Group data into separate sub-tables similar to the preview 
     type SubRow = { sortDate: Date; cells: string[] };
     type SubTable = { title: string; includeWork: boolean; rows: SubRow[] };
@@ -119,7 +119,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
           const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => sum + (parseFloat(hours?.toString()) || 0), 0);
           employeeGrandTotal += rowTotal;
 
-          // Determine sub-table title and whether to include Work column
+         
           let title = 'General';
           let includeWork = false;
           if (item.projectName) {
@@ -186,8 +186,8 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
         : ['Week Start', 'Week End', 'Status', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total'];
       const columnWidths = sub.includeWork
 
-        ? [60, 60, 50, 60, 45, 45, 45, 45, 45, 50]
-        : [80, 80, 70, 45, 45, 45, 45, 45, 50];
+        ? [65, 65, 50, 70, 45, 45, 45, 45, 45, 50]
+        : [85, 85, 70, 45, 45, 45, 45, 45, 50];
 
       const sortedRows = sub.rows
         .slice()
@@ -202,26 +202,25 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
       this.currentY += 10;
     });
 
-    // If project, team, and leave tables exist, start Key Metrics on a new page
+    
     if (hasProject && hasTeam && hasLeave) {
       this.doc.addPage();
       this.currentY = this.margin + 20;
     }
 
-    // Per-employee key metrics 
-    const metricsHeaders = ['Metric', 'Value'];
+    const metricsHeaders = ['Day', 'Hours']; 
     const metricsData: string[][] = [
-      ['Total Hours', `${employeeGrandTotal.toFixed(2)}h`],
-      ['Monday Hours', employeeDailyTotals[0].toFixed(2)],
-      ['Tuesday Hours', employeeDailyTotals[1].toFixed(2)],
-      ['Wednesday Hours', employeeDailyTotals[2].toFixed(2)],
-      ['Thursday Hours', employeeDailyTotals[3].toFixed(2)],
-      ['Friday Hours', employeeDailyTotals[4].toFixed(2)],
+      ['Monday', `${employeeDailyTotals[0].toFixed(2)} h`],
+      ['Tuesday',`${employeeDailyTotals[1].toFixed(2)} h`],
+      ['Wednesday', `${employeeDailyTotals[2].toFixed(2)} h`],
+      ['Thursday', `${employeeDailyTotals[3].toFixed(2)} h`],
+      ['Friday', `${employeeDailyTotals[4].toFixed(2)} h`],
+      ['Total', `${employeeGrandTotal.toFixed(2)} h`],
     ];
     this.doc.fontSize(11)
       .fillColor(this.colors.text.primary)
       .font('Helvetica-Bold')
-      .text('Key Metrics', this.margin, this.currentY);
+      .text('Working Hours', this.margin, this.currentY);
     this.currentY += 18;
     this.components.addProfessionalTable(metricsHeaders, metricsData, [255, 255], {
       alternateRows: true,
@@ -233,10 +232,10 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
   
   
   private addSummaryStatistics(data: IDetailedTimesheetReport[]): void {
-    // Add page break before summary if needed
+   
     this.checkPageBreak(200);
     
-    this.components.addSectionDivider('Overall Summary & Key Metrics');
+    this.components.addSectionDivider('Overall Summary');
 
     const stats = this.calculateDetailedStatistics(data);
     
@@ -257,18 +256,13 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
         type: 'info' as const
       },
       { 
-        label: 'Work Items', 
-        value: stats.totalTasks,
-        type: 'info' as const
-      },
-      { 
-        label: 'Other Days', 
+        label: 'Absence Days', 
         value: stats.otherDays,
         type: 'warning' as const
       },
       { 
         label: 'Grand Total Hours', 
-        value: `${stats.grandTotal}h`,
+        value: `${stats.grandTotal} h`,
         type: 'success' as const
       },
       
@@ -317,37 +311,6 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
       });
     });
 
-    // Create employee breakdown table
-    const headers = ['Employee', 'Email', 'Weeks', 'Total Hours', 'Avg/Week'];
-    const columnWidths = [120, 140, 50, 70, 60];
-    const employeeData: string[][] = [];
-
-    Array.from(employeeStats.values())
-      .sort((a, b) => b.totalHours - a.totalHours) 
-      .forEach(stat => {
-        const avgHours = stat.weeks > 0 ? (stat.totalHours / stat.weeks).toFixed(1) : '0';
-        employeeData.push([
-          stat.name,
-          stat.email,
-          stat.weeks.toString(),
-          stat.totalHours.toFixed(1) + 'h',
-          avgHours + 'h'
-        ]);
-      });
-
-    // Add section title
-    this.doc.fontSize(12)
-      .fillColor(this.colors.text.primary)
-      .font('Helvetica-Bold')
-      .text('Employee Performance Breakdown', this.margin, this.currentY);
-    
-    this.currentY += 25;
-
-    this.components.addProfessionalTable(headers, employeeData, columnWidths, {
-      alternateRows: true,
-      fontSize: 8,
-      rowHeight: 25
-    });
   }
 
   private addSummaryCards(summaryData: { label: string; value: number | string; type: 'success' | 'warning' | 'danger' | 'info' }[]): void {
@@ -364,8 +327,8 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
     this.doc.fontSize(11)
       .fillColor('white')
       .font('Helvetica-Bold')
-      .text('Metric', this.margin + 10, this.currentY + 10)
-      .text('Value', this.margin + tableWidth - 100, this.currentY + 10);
+      .text('Category', this.margin + 10, this.currentY + 10)
+      .text('Result', this.margin + tableWidth - 100, this.currentY + 10);
     
     this.currentY += 35;
 
@@ -395,7 +358,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
         .fillColor(this.colors.text.primary)
         .font('Helvetica-Bold')
         .text(String(item.value), this.margin + tableWidth - 90, rowY + 8, {
-          align: 'right',
+          align: 'left',
           width: 80
         });
       
@@ -418,7 +381,7 @@ export class ProfessionalDetailedTimesheetReport extends ProfessionalBasePDFGene
   private formatHoursForDisplay(hours: number | undefined | null | string): string {
     if (!hours || hours === 0 || hours === '0') return '';
     
-    // Convert to number if it's a string
+    // Convert to number 
     const numHours = typeof hours === 'string' ? parseFloat(hours) : hours;
     
     // Check if it's a valid number

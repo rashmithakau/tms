@@ -3,7 +3,7 @@ import { ProfessionalPDFComponents } from '../component/ProfessionalPDFComponent
 import { ISubmissionStatusReport } from '../../../../interfaces';
 import PDFDocument from 'pdfkit';
 
-export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGenerator {
+export class SubmissionStatusPdf extends ProfessionalBasePDFGenerator {
   private components: ProfessionalPDFComponents;
 
   constructor() {
@@ -115,7 +115,7 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
   }
 
   private addAnalyticsSection(data: ISubmissionStatusReport[]): void {
-    this.components.addSectionDivider('Analytics & Insights');
+    this.components.addSectionDivider('Analytics');
 
     // Calculate statistics
     const stats = this.calculateStatistics(data);
@@ -160,7 +160,7 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
       .fontSize(14)
       .fillColor(this.colors.text.primary)
       .font('Helvetica-Bold')
-      .text('Key Metrics', this.margin, this.currentY);
+      .text('Summary', this.margin, this.currentY);
 
     this.currentY += 25;
 
@@ -177,8 +177,8 @@ export class ProfessionalSubmissionStatusReport extends ProfessionalBasePDFGener
       .fontSize(11)
       .fillColor('white')
       .font('Helvetica-Bold')
-      .text('Metric', this.margin + 10, this.currentY + 10)
-      .text('Value', this.margin + tableWidth - 100, this.currentY + 10);
+      .text('Category', this.margin + 10, this.currentY + 10)
+      .text('Result', this.margin + tableWidth - 100, this.currentY + 10);
 
     this.currentY += 35;
 

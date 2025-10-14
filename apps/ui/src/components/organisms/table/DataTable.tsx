@@ -11,12 +11,12 @@ import {  DataTableProps } from '../../../interfaces';
 
 function DataTable<T>({ columns, rows, getRowKey }: DataTableProps<T>) {
   return (
-    <TableContainer sx={{ maxHeight: '70vh' }}>
+    <TableContainer>
       <Table size="small" stickyHeader>
         <TableHead>
           <TableRow>
             {columns.map((col) => (
-              <TableCell key={col.key}>{col.label}</TableCell>
+              <TableCell key={col.key} sx={{ width: col.width || 'auto' }}>{col.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -28,7 +28,7 @@ function DataTable<T>({ columns, rows, getRowKey }: DataTableProps<T>) {
             return (
               <TableRow key={rowKeyString} hover>
                 {columns.map((col) => (
-                  <TableCell key={`${col.key}-${rowKeyString}`}>{col.render(row)}</TableCell>
+                  <TableCell key={`${col.key}-${rowKeyString}`} sx={{ width: col.width || 'auto' }}>{col.render(row)}</TableCell>
                 ))}
               </TableRow>
             );

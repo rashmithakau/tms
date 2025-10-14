@@ -44,6 +44,18 @@ export const generateDetailedTimesheetReport = async (
   return response.data;
 };
 
+export const generateTimesheetEntriesReport = async (
+  filter: ReportFilter,
+  format: 'pdf' | 'excel' = 'pdf'
+): Promise<Blob> => {
+  const params = buildQueryParams(filter);
+  params.set('format', format);
+  const response = await API.get(`/api/reports/timesheet-entries?${params.toString()}`, {
+    responseType: 'blob'
+  });
+  return response.data;
+};
+
 
 export const previewSubmissionStatus = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
@@ -66,6 +78,14 @@ export const previewDetailedTimesheet = async (filter: ReportFilter) => {
   params.set('format', 'json');
   const res = await API.get<{ data: any[] }>(`/api/reports/detailed-timesheet?${params.toString()}`);
   return transformDetailedTimesheetData(res.data.data);
+};
+
+// Raw preview (untransformed) to preserve per-day descriptions for entry-level views
+export const previewDetailedTimesheetRaw = async (filter: ReportFilter) => {
+  const params = buildQueryParams(filter);
+  params.set('format', 'json');
+  const res = await API.get<{ data: any[] }>(`/api/reports/detailed-timesheet?${params.toString()}`);
+  return res.data.data;
 };
 
 

@@ -10,7 +10,6 @@ import {
   ITimesheetReportData, 
   ISubmissionStatusReport, 
   IApprovalStatusReport,
-  IDetailedTimesheetReport,
   ReportType,
   ReportFormat
 } from '../interfaces/report';

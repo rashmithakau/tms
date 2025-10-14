@@ -21,8 +21,7 @@ const ViewProjectTeam: React.FC<ViewProjectTeamProps> = ({
   return (
     <PopupLayout
       open={open}
-      title="Project Team"
-      subtitle={`Project Name - ${project.projectName}`}
+      title={`${project.projectName}`}
       onClose={onClose}
       actions={
         <Box

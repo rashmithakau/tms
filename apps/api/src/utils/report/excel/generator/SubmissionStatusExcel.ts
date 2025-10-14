@@ -68,16 +68,16 @@ export class SubmissionStatusExcel extends BaseExcelGenerator {
     //Analytics & Insights 
     this.worksheet.addRow([]); 
 
-    const analyticsTitle = this.worksheet.addRow(['Analytics & Insights']);
+    const analyticsTitle = this.worksheet.addRow(['Analytics']);
     this.worksheet.mergeCells(analyticsTitle.number, 1, analyticsTitle.number, totalColumns);
     analyticsTitle.font = { bold: true, size: 12 };
 
-    const keyMetricsTitle = this.worksheet.addRow(['Key Metrics']);
+    const keyMetricsTitle = this.worksheet.addRow(['Summary']);
     this.worksheet.mergeCells(keyMetricsTitle.number, 1, keyMetricsTitle.number, totalColumns);
     keyMetricsTitle.font = { bold: true, size: 11 };
 
     // Table header for metrics
-    const metricsHeader = this.worksheet.addRow(['Metric', '', '', 'Value', '']);
+    const metricsHeader = this.worksheet.addRow(['Category', '', '', 'Result', '']);
     this.worksheet.mergeCells(metricsHeader.number, 1, metricsHeader.number, 3);
     this.worksheet.mergeCells(metricsHeader.number, 4, metricsHeader.number, 5);
     metricsHeader.font = { bold: true, size: 10 };

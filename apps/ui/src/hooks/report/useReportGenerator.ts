@@ -4,6 +4,7 @@ import {
   generateSubmissionStatusReport,
   generateApprovalStatusReport,
   generateDetailedTimesheetReport,
+  generateTimesheetEntriesReport,
   getSupervisedEmployees,
   getReportMetadata
 } from '../../api/report';
@@ -69,7 +70,7 @@ export const useReportGenerator = (options: UseReportGeneratorOptions = {}): Use
 
   const generateReport = async (
     reportGenerator: (filter: ReportFilter, format: 'pdf' | 'excel') => Promise<Blob>,
-    reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet',
+    reportType: 'submission-status' | 'approval-status' | 'detailed-timesheet' | 'timesheet-entries',
     filter: ReportFilter,
     format: 'pdf' | 'excel'
   ) => {
@@ -78,7 +79,7 @@ export const useReportGenerator = (options: UseReportGeneratorOptions = {}): Use
     
     try {
       const blob = await reportGenerator(filter, format);
-      const filename = generateReportFilename(reportType, format);
+      const filename = generateReportFilename(reportType as any, format);
       
       downloadBlobAsFile(blob, filename);
       
@@ -121,6 +122,15 @@ export const useReportGenerator = (options: UseReportGeneratorOptions = {}): Use
     );
   };
 
+  const generateTimesheetEntries = async (filter: ReportFilter, format: 'pdf' | 'excel') => {
+    await generateReport(
+      generateTimesheetEntriesReport,
+      'timesheet-entries',
+      filter,
+      format
+    );
+  };
+
   const refreshEmployees = async () => {
     await loadSupervisedEmployees();
   };
@@ -143,6 +153,7 @@ export const useReportGenerator = (options: UseReportGeneratorOptions = {}): Use
     generateSubmissionReport,
     generateApprovalReport,
     generateDetailedReport,
+    generateTimesheetEntries,
     refreshEmployees,
     refreshMetadata,
     clearError

@@ -56,19 +56,32 @@ export const getPasswordResetTemplate = (url: string) => ({
   ),
 });
 
-export const getWelcomeTmsTemplate = (url: string, username: string, password: string) => ({
+// Simple HTML escaping for dynamic text nodes
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+export const getWelcomeTmsTemplate = (url: string, username: string, password: string) => {
+  const safeUsername = escapeHtml(username);
+  const safePassword = escapeHtml(password);
+  return ({
     subject: "Welcome to TMS",
     text: `Welcome to TMS! Use the following credentials for your first login:\nUsername: ${username}\nPassword: ${password}\nClick on the link to set your new password: ${url}`,
     html: generateEmailTemplate(
       "Welcome to TMS",
       `Use the following credentials for your first login:<br><br>
-      <strong>Username:</strong> ${username}<br>
-      <strong>Password:</strong> ${password}<br><br>
+      <strong>Username:</strong> ${safeUsername}<br>
+      <strong>Password:</strong> ${safePassword}<br><br>
       Click on the following link to go to the login page`,
       "Login to TMS",
       url
     ),
   });
+};
 
 
    export const getEmailVerificationTemplate = (url: string) => ({

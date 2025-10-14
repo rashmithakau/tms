@@ -3,7 +3,7 @@ import { ProfessionalPDFComponents } from '../component/ProfessionalPDFComponent
 import { IApprovalStatusReport } from '../../../../interfaces';
 import PDFDocument from 'pdfkit';
 
-export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerator {
+export class ApprovalStatusPdf extends ProfessionalBasePDFGenerator {
   private components: ProfessionalPDFComponents;
 
   constructor() {
@@ -78,7 +78,7 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
   }
 
   private addAnalyticsSection(data: IApprovalStatusReport[]): void {
-    this.components.addSectionDivider('Key Metrics');
+    this.components.addSectionDivider('Analytics');
 
     // Calculate statistics
     const stats = this.calculateApprovalStatistics(data);
@@ -146,21 +146,32 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
   private addSummaryCards(summaryData: { label: string; value: number | string; type: 'success' | 'warning' | 'danger' | 'info' }[]): void {
     this.checkPageBreak(150);
     
+    // Add title
+    this.doc
+      .fontSize(14)
+      .fillColor(this.colors.text.primary)
+      .font('Helvetica-Bold')
+      .text('Summary', this.margin, this.currentY);
+
+    this.currentY += 25;
+    
     // Create a metrics table format
     const tableWidth = this.pageWidth - (this.margin * 2);
     const rowHeight = 25;
+    const headerHeight = 30;
     
     // Table header
-    this.doc.rect(this.margin, this.currentY, tableWidth, 30)
-      .fill(this.colors.primary);
+    this.doc.rect(this.margin, this.currentY, tableWidth, headerHeight)
+      .fill(this.colors.primary)
+      .stroke(this.colors.border);
     
     this.doc.fontSize(11)
       .fillColor('white')
       .font('Helvetica-Bold')
-      .text('Metric', this.margin + 10, this.currentY + 10)
-      .text('Value', this.margin + tableWidth - 100, this.currentY + 10);
+      .text('Category', this.margin + 10, this.currentY + 10)
+      .text('Result', this.margin + tableWidth - 100, this.currentY + 10);
     
-    this.currentY += 35;
+    this.currentY += headerHeight;
 
     // Add metrics rows
     summaryData.forEach((item, index) => {
@@ -194,6 +205,11 @@ export class ProfessionalApprovalStatusReport extends ProfessionalBasePDFGenerat
       
       this.currentY += rowHeight;
     });
+    
+    // Add bottom border to close the table
+    this.doc.moveTo(this.margin, this.currentY)
+      .lineTo(this.margin + tableWidth, this.currentY)
+      .stroke(this.colors.border);
     
     this.currentY += 15;
   }

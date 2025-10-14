@@ -18,6 +18,7 @@ export interface UseReportGeneratorReturn {
   generateSubmissionReport: (filter: ReportFilter, format: 'pdf' | 'excel') => Promise<void>;
   generateApprovalReport: (filter: ReportFilter, format: 'pdf' | 'excel') => Promise<void>;
   generateDetailedReport: (filter: ReportFilter, format: 'pdf' | 'excel') => Promise<void>;
+  generateTimesheetEntries: (filter: ReportFilter, format: 'pdf' | 'excel') => Promise<void>;
   refreshEmployees: () => Promise<void>;
   refreshMetadata: () => Promise<void>;
   clearError: () => void;
