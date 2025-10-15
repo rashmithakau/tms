@@ -5,8 +5,8 @@ import { useTheme } from '@mui/material/styles';
 import ReportLayout from '../../../templates/report/ReportLayout';
 import {
   ReportPreviewTableProps,
-  DataTableColumn,
 } from '../../../../interfaces/report/reportpreview/IReportPreview';
+import { DataTableColumn } from '../../../../interfaces/component';
 
 const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
   columns,
@@ -17,7 +17,7 @@ const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
   getRowKey,
 }: ReportPreviewTableProps<T>) => {
   type RowWithEnd = T & { weekEndDate?: string };
-  // Helper to calculate week end date
+  
   const getWeekEndDate = (weekStartDate: string) => {
     try {
       const start = new Date(weekStartDate);
@@ -29,7 +29,6 @@ const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
     }
   };
 
-  // Add week end date to rows that have weekStartDate
   const enrichedRows: RowWithEnd[] = useMemo(
     () =>
       rows.map((row) => ({
@@ -93,7 +92,7 @@ const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
   );
   const theme = useTheme();
   
-  // For detailed timesheet sub-tables, use a simpler layout without the full ReportLayout
+  // For detailed timesheet sub-tables
   if (title && (title.startsWith('Project:') || title.startsWith('Team:') || title === 'Leave')) {
     return (
       <Box sx={{ mb: 2 }}>

@@ -71,7 +71,7 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
       // Per-employee summary metrics
       const empStats = this.calculateEmployeeStats(emp.tables);
       
-      // Add Working Hours Summary as a table 
+    
       
       // Check if we have enough space for the summary table
       this.checkPageBreak(150);

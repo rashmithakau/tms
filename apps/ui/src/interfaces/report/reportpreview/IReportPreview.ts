@@ -1,6 +1,6 @@
 import React from 'react';
 
-export interface DataTableColumn<T> {
+export interface ReportDataTableColumn<T> {
   key: string;
   label: string;
   render: (row: T) => React.ReactNode;
@@ -8,7 +8,7 @@ export interface DataTableColumn<T> {
 }
 
 type InputColumn<T> =
-  | DataTableColumn<T>
+  | ReportDataTableColumn<T>
   | {
       key: string;
       header: string;

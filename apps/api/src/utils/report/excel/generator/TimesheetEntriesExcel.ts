@@ -212,7 +212,7 @@ export class TimesheetEntriesExcel extends BaseExcelGenerator {
     let teamEntries = 0;
     let leaveEntries = 0;
 
-    // Aggregate leave hours per employee per date to compute leave days (hours/8 capped at 1)
+    
     const leaveHoursByEmployeeDate = new Map<string, number>();
 
     data.forEach((employee, empIdx) => {
