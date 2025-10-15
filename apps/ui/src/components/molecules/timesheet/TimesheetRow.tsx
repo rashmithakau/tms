@@ -92,7 +92,7 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
       );
     })}
     <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '100px', minWidth: '100px' }}>
-      {row.hours.reduce((sum: number, h: string) => sum + parseFloat(h || '0'), 0).toFixed(2)}
+      {row.hours.reduce((sum: number, h: string) => sum + parseFloat(h || '0'), 0).toFixed(2).padStart(5, '0')}
     </TableCell>
   </TableRow>
 );

@@ -8,16 +8,17 @@ export const useWeekDays = () => {
   
   const selectedWeekStart = useMemo(() => 
     selectedWeekStartIso 
-      ? new Date(selectedWeekStartIso) 
+      ? new Date(selectedWeekStartIso + 'T00:00:00Z') 
       : startOfWeek(new Date(), { weekStartsOn: 1 }), 
     [selectedWeekStartIso]
   );
 
   const days = useMemo((): DayInfo[] => {
-    const start = startOfWeek(selectedWeekStart, { weekStartsOn: 1 });
+    // Don't recalculate week start - the Redux state already contains the correct Monday date
+    // Just use it directly to generate the 7 days
     return Array.from({ length: 7 }).map((_, i) => ({
-      day: format(addDays(start, i), 'EEE dd'),
-      date: addDays(start, i),
+      day: format(addDays(selectedWeekStart, i), 'EEE dd'),
+      date: addDays(selectedWeekStart, i),
     }));
   }, [selectedWeekStart]);
 

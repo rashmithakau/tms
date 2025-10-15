@@ -8,6 +8,7 @@ export interface IEmployeeTimesheetCalendarProps {
   supervisedProjectIds?: string[];
   supervisedTeamIds?: string[];
   supervisedUserIds?: string[];
+  currentSupervisorId?: string;
   onDaySelectionChange?: (selections: DaySelection[]) => void;
   selectedDays?: DaySelection[];
   isSelectionMode?: boolean;

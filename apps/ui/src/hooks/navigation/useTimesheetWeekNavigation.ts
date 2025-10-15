@@ -66,24 +66,28 @@ export const useTimesheetWeekNavigation = () => {
 
 
   const getFormattedWeekRange = () => {
-    const startDate = timesheetData.weekStartDate
-      ? new Date(timesheetData.weekStartDate + 'T00:00:00Z').toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: '2-digit',
-          timeZone: 'UTC',
-        })
-      : 'Loading...';
+    if (!timesheetData.weekStartDate || !timesheetData.weekEndDate) {
+      return { startDate: 'Loading...', endDate: 'Loading...' };
+    }
 
-    const endDate = timesheetData.weekEndDate
-      ? new Date(timesheetData.weekEndDate + 'T00:00:00Z').toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: '2-digit',
-          year: 'numeric',
-          timeZone: 'UTC',
-        })
-      : 'Loading...';
+    // Parse dates correctly - the stored dates are already Monday-Sunday
+    const weekStartDate = new Date(timesheetData.weekStartDate + 'T00:00:00Z');
+    const weekEndDate = new Date(timesheetData.weekEndDate + 'T00:00:00Z');
+
+    const startDate = weekStartDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
+      timeZone: 'UTC',
+    });
+
+    const endDate = weekEndDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
 
     return { startDate, endDate };
   };
@@ -91,11 +95,14 @@ export const useTimesheetWeekNavigation = () => {
 
   useEffect(() => {
     initializeWeek();
+  }, []);
+
+  useEffect(() => {
     const load = async () => {
       await loadTimesheetForWeek();
     };
     load();
-  }, [dispatch, timesheetData.weekStartDate]);
+  }, [timesheetData.weekStartDate]);
 
   return {
     timesheetData,

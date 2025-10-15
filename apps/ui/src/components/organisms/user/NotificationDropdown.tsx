@@ -94,27 +94,39 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
   };
 
   const getWeekStartFromDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(date.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
+    // Parse date in UTC to avoid timezone issues
+    const date = new Date(dateString + 'T00:00:00Z');
+    const utcDay = date.getUTCDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    // Calculate days to subtract to get to Monday
+    const diffToMonday = (utcDay + 6) % 7; // Sunday: 6, Monday: 0, Tuesday: 1, etc.
+    const monday = new Date(Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate() - diffToMonday,
+      0, 0, 0, 0
+    ));
     return monday.toISOString().slice(0, 10);
   };
 
   const handleNotificationItemClick = (notification: any) => {
     handleClose();
 
+    console.log('🔔 Notification clicked:', notification.type);
+    console.log('📅 Notification data:', notification);
+
     let weekStart: string | null = null;
     
     if (notification.weekStartDate) {
       weekStart = notification.weekStartDate;
+      console.log('✅ Found weekStartDate in notification:', weekStart);
     } 
     else if (notification.rejectedDates && notification.rejectedDates.length > 0) {
       const firstRejectedDate = notification.rejectedDates[0];
       weekStart = getWeekStartFromDate(firstRejectedDate);
+      console.log('✅ Calculated weekStart from rejectedDates:', weekStart);
     }
-    else if (notification.message && notification.type === NotificationType.TimesheetSubmitted) {
+    else if (notification.message) {
+      // Try to parse date from message for various notification types
       const dateMatch = notification.message.match(/week of (\w{3} \w{3} \d{1,2} \d{4})/);
       if (dateMatch && dateMatch[1]) {
         const parsedDate = new Date(dateMatch[1]);
@@ -123,6 +135,7 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
           const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
           const day = String(parsedDate.getDate()).padStart(2, '0');
           weekStart = `${year}-${month}-${day}`;
+          console.log('✅ Parsed weekStart from message:', weekStart);
         }
       }
     }
@@ -133,8 +146,11 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
       endDate.setDate(startDate.getDate() + 6);
       const weekEnd = endDate.toISOString().slice(0, 10);
 
+      console.log('📆 Dispatching week range:', weekStart, 'to', weekEnd);
       dispatch(setWeekStartDate(weekStart));
       dispatch(setWeekEndDate(weekEnd));
+    } else {
+      console.warn('⚠️ No weekStart found for notification');
     }
 
     switch (notification.type) {
@@ -144,7 +160,11 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
       case NotificationType.TimesheetEditApproved:
       case NotificationType.TimesheetEditRejected:
         dispatch(select_btn('My Timesheets'));
-        navigate('/employee');
+        // Navigate with state to force re-render even if already on page
+        navigate('/employee', { 
+          replace: window.location.pathname === '/employee',
+          state: { timestamp: Date.now() }
+        });
         break;
       
       case NotificationType.TimesheetSubmitted:

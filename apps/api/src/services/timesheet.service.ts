@@ -821,6 +821,22 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
     .populate('userId', 'firstName lastName email contactNumber designation employee_id')
     .sort({ weekStartDate: -1 });
 
+  // Fetch edit requests for EditRequested timesheets
+  const editRequestedTimesheetIds = timesheets
+    .filter(ts => ts.status === TimesheetStatus.EditRequested)
+    .map(ts => ts._id);
+  
+  const editRequests = editRequestedTimesheetIds.length > 0
+    ? await TimesheetEditRequestModel.find({
+        timesheetId: { $in: editRequestedTimesheetIds },
+        status: 'Pending'
+      })
+    : [];
+  
+  const editRequestMap = new Map(
+    editRequests.map(req => [req.timesheetId.toString(), req])
+  );
+
   const projectIds = new Set<string>();
   const teamIds = new Set<string>();
 
@@ -847,7 +863,7 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
   );
   const teamMap = new Map(teams.map((t) => [t._id.toString(), t.teamName]));
 
-  timesheets.forEach((ts) => {
+  const enrichedTimesheets = timesheets.map((ts) => {
     ts.data?.forEach((category) => {
       category.items?.forEach((item) => {
         if (item.projectId && projectMap.has(item.projectId)) {
@@ -858,9 +874,25 @@ export const getSupervisedTimesheets = async (supervisorId: string) => {
         }
       });
     });
+
+    // Attach edit request info if this timesheet has an active edit request
+    const editRequest = editRequestMap.get(ts._id.toString());
+    if (editRequest) {
+      return {
+        ...ts.toObject(),
+        editRequest: {
+          _id: editRequest._id,
+          requiredApprovals: editRequest.requiredApprovals,
+          approvedBy: editRequest.approvedBy,
+          status: editRequest.status
+        }
+      };
+    }
+    
+    return ts;
   });
 
-  return timesheets;
+  return enrichedTimesheets;
 };
 
 export const updateSupervisedTimesheetsStatus = async (
