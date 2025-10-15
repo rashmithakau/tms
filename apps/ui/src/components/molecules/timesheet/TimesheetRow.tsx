@@ -46,12 +46,12 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
           tooltipMessage = 'You do not supervise this project';
         }
       } else if (row.teamId) {
-        // Team-based entry: can approve if supervises the team
+        // Team-based entry: can approve if supervises the team (department) OR the employee (non-department team)
         const supervisesTeam = supervisedTeamIds.includes(row.teamId);
-        canApprove = supervisesTeam;
+        canApprove = supervisesTeam || supervisesEmployee;
         
-        if (!supervisesTeam) {
-          tooltipMessage = 'You do not supervise this team';
+        if (!supervisesTeam && !supervisesEmployee) {
+          tooltipMessage = 'You do not supervise this team or employee';
         }
       } else {
         // Other entries: can approve if supervises the employee
