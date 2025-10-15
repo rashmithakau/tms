@@ -107,7 +107,7 @@ const ReportDashboard: React.FC = () => {
     filter: ReportFilter
   ) => {
     try {
-      // Clear grouped data for non-grouped reports
+      
       if (type !== 'detailed-timesheet' && type !== 'timesheet-entries') {
         setGroupedPreviewData({});
       }
@@ -274,7 +274,7 @@ const ReportDashboard: React.FC = () => {
           return tbl;
         };
 
-        // rawWeekly structure: array of weekly timesheets with categories and items (with hours, descriptions)
+        // rawWeekly structure: array of weekly timesheets with categories and items 
         (rawWeekly || []).forEach((t: any) => {
           const employeeName = t.employeeName;
           const employeeEmail = t.employeeEmail;
@@ -286,8 +286,8 @@ const ReportDashboard: React.FC = () => {
             (c.items || []).forEach((it: any) => {
               const isProject = c.category === 'Project';
               const isTeam = c.category === 'Team';
-              const isAbsence = c.category === 'Absence';
-              const title = isProject ? `Project: ${it.work || it.projectName || 'Project'}` : isTeam ? `Team: ${it.work || it.teamName || 'Team'}` : isAbsence ? 'Leave' : 'General';
+              const isOther = c.category === 'Other';
+              const title = isProject ? `Project: ${it.work || it.projectName || 'Project'}` : isTeam ? `Team: ${it.work || it.teamName || 'Team'}` : isOther ? 'Leave' : c.category;
               const tbl = ensureTable(emp, title);
 
               const hours: any[] = it.dailyHours || it.hours || [];

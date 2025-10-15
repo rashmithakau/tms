@@ -7,32 +7,50 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
   }
 
   build(data: ITimesheetReportData[], _filters?: Record<string, any>) {
-    const totalColumns = 10; 
-    
+    const totalColumns = 10;
+
     const titleRow = this.worksheet.addRow(['Detailed Timesheet Report']);
-    this.worksheet.mergeCells(titleRow.number, 1, titleRow.number, totalColumns);
+    this.worksheet.mergeCells(
+      titleRow.number,
+      1,
+      titleRow.number,
+      totalColumns
+    );
     titleRow.font = { bold: true, size: 14 };
     titleRow.alignment = { horizontal: 'center' };
     titleRow.height = 17;
 
     const subtitleRow = this.worksheet.addRow([
-      'Comprehensive breakdown of employee work hours and project allocations'
+      'Comprehensive breakdown of employee work hours and project allocations',
     ]);
-    this.worksheet.mergeCells(subtitleRow.number, 1, subtitleRow.number, totalColumns);
+    this.worksheet.mergeCells(
+      subtitleRow.number,
+      1,
+      subtitleRow.number,
+      totalColumns
+    );
     subtitleRow.font = { size: 9 };
     subtitleRow.alignment = { horizontal: 'center' };
     subtitleRow.height = 14;
 
-    const start = _filters?.startDate ? new Date(_filters.startDate) : undefined;
+    const start = _filters?.startDate
+      ? new Date(_filters.startDate)
+      : undefined;
     const end = _filters?.endDate ? new Date(_filters.endDate) : undefined;
     const startStr = start ? start.toISOString().slice(0, 10) : undefined;
     const endStr = end ? end.toISOString().slice(0, 10) : undefined;
-    const periodText = startStr || endStr
-      ? `Period: ${startStr ?? '...'} to ${endStr ?? '...'}`
-      : 'Period: All time';
+    const periodText =
+      startStr || endStr
+        ? `Period: ${startStr ?? '...'} to ${endStr ?? '...'}`
+        : 'Period: All time';
 
     const periodRow = this.worksheet.addRow([periodText]);
-    this.worksheet.mergeCells(periodRow.number, 1, periodRow.number, totalColumns);
+    this.worksheet.mergeCells(
+      periodRow.number,
+      1,
+      periodRow.number,
+      totalColumns
+    );
     periodRow.font = { size: 8, italic: true };
     periodRow.alignment = { horizontal: 'center' };
     periodRow.height = 13;
@@ -41,17 +59,23 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
 
     const grouped = this.groupByEmployee(data);
 
-    const employees = Array.from(grouped.values())
-      .sort((a, b) => a.meta.employeeName.localeCompare(b.meta.employeeName));
+    const employees = Array.from(grouped.values()).sort((a, b) =>
+      a.meta.employeeName.localeCompare(b.meta.employeeName)
+    );
 
     employees.forEach((group, idx) => {
       if (idx > 0) this.worksheet.addRow([]);
 
       // Section header
       const sectionTitle = this.worksheet.addRow([
-        `${group.meta.employeeName} - ${group.meta.employeeEmail}`
+        `${group.meta.employeeName} - ${group.meta.employeeEmail}`,
       ]);
-      this.worksheet.mergeCells(sectionTitle.number, 1, sectionTitle.number, totalColumns);
+      this.worksheet.mergeCells(
+        sectionTitle.number,
+        1,
+        sectionTitle.number,
+        totalColumns
+      );
       sectionTitle.font = { bold: true, size: 12 };
 
       // Build sub-tables
@@ -60,13 +84,39 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       subTables.forEach((sub) => {
         // Sub-table title
         const subTitle = this.worksheet.addRow([sub.title]);
-        this.worksheet.mergeCells(subTitle.number, 1, subTitle.number, totalColumns);
+        this.worksheet.mergeCells(
+          subTitle.number,
+          1,
+          subTitle.number,
+          totalColumns
+        );
         subTitle.font = { bold: true, size: 11 };
 
         // Headers aligned to PDF
         const headers = sub.includeWork
-          ? ['Week Start', 'Week End', 'Status', 'Work', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total']
-          : ['Week Start', 'Week End', 'Status', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total'];
+          ? [
+              'Week Start',
+              'Week End',
+              'Status',
+              'Work',
+              'Mon',
+              'Tue',
+              'Wed',
+              'Thu',
+              'Fri',
+              'Total',
+            ]
+          : [
+              'Week Start',
+              'Week End',
+              'Status',
+              'Mon',
+              'Tue',
+              'Wed',
+              'Thu',
+              'Fri',
+              'Total',
+            ];
         this.addHeaderRow(headers);
         const hdr = this.worksheet.lastRow;
         if (hdr) {
@@ -84,15 +134,30 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
         this.worksheet.addRow([]);
       });
 
-      // Per-employee Key Metrics 
+      // Per-employee Key Metrics
       const metricsTitle = this.worksheet.addRow(['Working Hours']);
-      this.worksheet.mergeCells(metricsTitle.number, 1, metricsTitle.number, totalColumns);
+      this.worksheet.mergeCells(
+        metricsTitle.number,
+        1,
+        metricsTitle.number,
+        totalColumns
+      );
       metricsTitle.font = { bold: true, size: 11 };
 
       // Table header for metrics
       const metricsHeader = this.worksheet.addRow(['Day', '', '', 'Hours', '']);
-      this.worksheet.mergeCells(metricsHeader.number, 1, metricsHeader.number, 3);
-      this.worksheet.mergeCells(metricsHeader.number, 4, metricsHeader.number, 5);
+      this.worksheet.mergeCells(
+        metricsHeader.number,
+        1,
+        metricsHeader.number,
+        3
+      );
+      this.worksheet.mergeCells(
+        metricsHeader.number,
+        4,
+        metricsHeader.number,
+        5
+      );
       metricsHeader.font = { bold: true, size: 10 };
 
       const empStats = this.calculateEmployeeStats(group.rows);
@@ -116,14 +181,25 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       });
     });
 
-    // Overall Summary & Key Metrics 
+    // Overall Summary & Key Metrics
     this.worksheet.addRow([]);
     const summaryTitle = this.worksheet.addRow(['Overall Summary']);
-    this.worksheet.mergeCells(summaryTitle.number, 1, summaryTitle.number, totalColumns);
+    this.worksheet.mergeCells(
+      summaryTitle.number,
+      1,
+      summaryTitle.number,
+      totalColumns
+    );
     summaryTitle.font = { bold: true, size: 12 };
 
     const stats = this.calculateDetailedStatistics(data);
-    const summaryHeader = this.worksheet.addRow(['Category', '', '', 'Result', '']);
+    const summaryHeader = this.worksheet.addRow([
+      'Category',
+      '',
+      '',
+      'Result',
+      '',
+    ]);
     this.worksheet.mergeCells(summaryHeader.number, 1, summaryHeader.number, 3);
     this.worksheet.mergeCells(summaryHeader.number, 4, summaryHeader.number, 5);
     summaryHeader.font = { bold: true, size: 10 };
@@ -133,7 +209,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       ['Total Teams', stats.totalTeams],
       ['Total Projects', stats.totalProjects],
       ['Absence Days', stats.otherDays],
-      ['Grand Total Hours', `${stats.grandTotal} h`]
+      ['Grand Total Hours', `${stats.grandTotal} h`],
     ];
     summaryMetrics.forEach((entry) => {
       const row = this.worksheet.addRow([entry[0], '', '', entry[1], '']);
@@ -148,11 +224,28 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
   }
 
   private groupByEmployee(data: ITimesheetReportData[]) {
-    const map = new Map<string, { meta: { employeeId: string; employeeName: string; employeeEmail: string }, rows: ITimesheetReportData[] }>();
+    const map = new Map<
+      string,
+      {
+        meta: {
+          employeeId: string;
+          employeeName: string;
+          employeeEmail: string;
+        };
+        rows: ITimesheetReportData[];
+      }
+    >();
     data.forEach((d) => {
       const key = `${d.employeeId}-${d.employeeName}`;
       if (!map.has(key)) {
-        map.set(key, { meta: { employeeId: d.employeeId, employeeName: d.employeeName, employeeEmail: d.employeeEmail }, rows: [] });
+        map.set(key, {
+          meta: {
+            employeeId: d.employeeId,
+            employeeName: d.employeeName,
+            employeeEmail: d.employeeEmail,
+          },
+          rows: [],
+        });
       }
       map.get(key)!.rows.push(d);
     });
@@ -167,19 +260,24 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
     employeeWeeks.forEach((timesheetWeek) => {
       timesheetWeek.categories.forEach((category) => {
         category.items.forEach((item) => {
-          const dailyHours = Array.isArray(item.dailyHours) ? item.dailyHours : [];
+          const dailyHours = Array.isArray(item.dailyHours)
+            ? item.dailyHours
+            : [];
 
-          // Determine sub-table
-          let title = 'General';
+          let title: string | null = null;
           let includeWork = false;
-          if (item.projectName) {
+
+          if (category.category === 'Other') {
+            title = 'Leave';
+            includeWork = true;
+          } else if (item.projectName) {
             title = `Project: ${item.projectName}`;
           } else if (item.teamName) {
             title = `Team: ${item.teamName}`;
-          } else if (category.category === 'Other') {
-            title = 'Leave';
-            includeWork = true;
           }
+
+          // Skip items that don't belong to any specific category
+          if (!title) return;
 
           if (!tablesByTitle.has(title)) {
             tablesByTitle.set(title, { title, includeWork, rows: [] });
@@ -190,34 +288,49 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
           const weekEndRaw = new Date(weekStartRaw);
           weekEndRaw.setDate(weekStartRaw.getDate() + 6);
 
-          const rowTotal = dailyHours.slice(0, 5).reduce((sum: number, hours) => {
-            const n = typeof hours === 'string' ? parseFloat(hours) : (hours || 0);
-            return sum + (isNaN(n) ? 0 : n);
-          }, 0);
+          const rowTotal = dailyHours
+            .slice(0, 5)
+            .reduce((sum: number, hours) => {
+              const n =
+                typeof hours === 'string' ? parseFloat(hours) : hours || 0;
+              return sum + (isNaN(n) ? 0 : n);
+            }, 0);
 
           const baseCells: (string | number)[] = [
             this.formatDate(weekStartRaw),
             this.formatDate(weekEndRaw),
-            timesheetWeek.status
+            timesheetWeek.status,
           ];
-          const workCells: (string | number)[] = includeWork ? [item.work || ''] : [];
+          const workCells: (string | number)[] = includeWork
+            ? [item.work || '']
+            : [];
           const dayCells: (string | number)[] = [
             this.formatHoursForDisplay(dailyHours[0]),
             this.formatHoursForDisplay(dailyHours[1]),
             this.formatHoursForDisplay(dailyHours[2]),
             this.formatHoursForDisplay(dailyHours[3]),
             this.formatHoursForDisplay(dailyHours[4]),
-            this.formatHoursForDisplay(rowTotal)
+            this.formatHoursForDisplay(rowTotal),
           ];
 
-          table.rows.push({ sortDate: weekStartRaw, cells: [...baseCells, ...workCells, ...dayCells] });
+          table.rows.push({
+            sortDate: weekStartRaw,
+            cells: [...baseCells, ...workCells, ...dayCells],
+          });
         });
       });
     });
 
     // Sort table order
     const ordered = Array.from(tablesByTitle.values()).sort((a, b) => {
-      const rank = (t: string) => (t.startsWith('Project:') ? 0 : t.startsWith('Team:') ? 1 : t === 'Leave' ? 2 : 3);
+      const rank = (t: string) =>
+        t.startsWith('Project:')
+          ? 0
+          : t.startsWith('Team:')
+          ? 1
+          : t === 'Leave'
+          ? 2
+          : 3;
       const rA = rank(a.title);
       const rB = rank(b.title);
       if (rA !== rB) return rA - rB;
@@ -234,11 +347,21 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
         cat.items.forEach((item) => {
           const hours = Array.isArray(item.dailyHours) ? item.dailyHours : [];
           hours.slice(0, 5).forEach((h, i) => {
-            const nNum = typeof h === 'string' ? parseFloat(h) : (typeof h === 'number' ? h : 0);
+            const nNum =
+              typeof h === 'string'
+                ? parseFloat(h)
+                : typeof h === 'number'
+                ? h
+                : 0;
             if (!isNaN(nNum)) daily[i] += nNum;
           });
           const rowTotal: number = hours.slice(0, 5).reduce<number>((s, h) => {
-            const nNum = typeof h === 'string' ? parseFloat(h) : (typeof h === 'number' ? h : 0);
+            const nNum =
+              typeof h === 'string'
+                ? parseFloat(h)
+                : typeof h === 'number'
+                ? h
+                : 0;
             return s + (isNaN(nNum) ? 0 : nNum);
           }, 0);
           grandTotal += rowTotal;
@@ -249,33 +372,47 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
   }
 
   private calculateDetailedStatistics(data: ITimesheetReportData[]) {
-    const totalEmployees = new Set(data.map(d => d.employeeId)).size;
+    const totalEmployees = new Set(data.map((d) => d.employeeId)).size;
     let grandTotal = 0;
     let otherDays = 0;
     const allProjects = new Set<string>();
     const allTeams = new Set<string>();
     let totalTasks = 0;
 
-    data.forEach(d => {
+    data.forEach((d) => {
       // Track per-week leave hours aggregated across all other items
       const weeklyLeaveHours: number[] = [0, 0, 0, 0, 0];
 
-      d.categories.forEach(cat => {
-        cat.items.forEach(item => {
+      d.categories.forEach((cat) => {
+        cat.items.forEach((item) => {
           if (item.projectName) allProjects.add(item.projectName);
           if (item.teamName) allTeams.add(item.teamName);
           totalTasks++;
-          const dailyHours = Array.isArray(item.dailyHours) ? item.dailyHours : [];
-          const rowTotal: number = dailyHours.slice(0, 5).reduce<number>((sum, hours) => {
-            const nNum = typeof hours === 'string' ? parseFloat(hours) : (typeof hours === 'number' ? hours : 0);
-            return sum + (isNaN(nNum) ? 0 : nNum);
-          }, 0);
+          const dailyHours = Array.isArray(item.dailyHours)
+            ? item.dailyHours
+            : [];
+          const rowTotal: number = dailyHours
+            .slice(0, 5)
+            .reduce<number>((sum, hours) => {
+              const nNum =
+                typeof hours === 'string'
+                  ? parseFloat(hours)
+                  : typeof hours === 'number'
+                  ? hours
+                  : 0;
+              return sum + (isNaN(nNum) ? 0 : nNum);
+            }, 0);
           grandTotal += rowTotal;
 
           if (cat.category === 'Other') {
             for (let i = 0; i < 5; i++) {
               const h = dailyHours[i];
-              const n = typeof h === 'string' ? parseFloat(h) : (typeof h === 'number' ? h : 0);
+              const n =
+                typeof h === 'string'
+                  ? parseFloat(h)
+                  : typeof h === 'number'
+                  ? h
+                  : 0;
               if (!isNaN(n) && n > 0) weeklyLeaveHours[i] += n;
             }
           }
@@ -295,7 +432,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       totalTeams: allTeams.size,
       totalTasks,
       otherDays: Math.round(otherDays * 100) / 100,
-      grandTotal: Math.round(grandTotal * 100) / 100
+      grandTotal: Math.round(grandTotal * 100) / 100,
     };
   }
 
@@ -303,7 +440,9 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
     return d.toISOString().slice(0, 10);
   }
 
-  private formatHoursForDisplay(hours: number | undefined | null | string): string {
+  private formatHoursForDisplay(
+    hours: number | undefined | null | string
+  ): string {
     if (!hours || hours === 0 || hours === '0') return '';
     const num = typeof hours === 'string' ? parseFloat(hours) : hours;
     if (isNaN(num)) return '' as any;
@@ -311,9 +450,8 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
   }
 
   async write(res: any, filename: string): Promise<void> {
-   
     this.autoSizeColumns();
-  
+
     const columnMaxWidths = [14, 14, 12, 8, 8, 8, 8, 8, 8, 10];
     this.worksheet.columns.forEach((col, idx) => {
       const current = col.width ?? 10;
@@ -322,13 +460,15 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
       col.width = Math.max(Math.min(current, max), min);
     });
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}.xlsx`);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${filename}.xlsx`
+    );
     await (this as any).workbook.xlsx.write(res);
     res.end();
   }
 }
-
-
-
-

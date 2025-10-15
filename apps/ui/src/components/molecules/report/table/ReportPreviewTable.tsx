@@ -93,7 +93,7 @@ const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
   );
   const theme = useTheme();
   
-  // For detailed timesheet sub-tables, use a simpler layout without the full ReportLayout
+  // For detailed timesheet sub-tables
   if (title && (title.startsWith('Project:') || title.startsWith('Team:') || title === 'Leave')) {
     return (
       <Box sx={{ mb: 2 }}>

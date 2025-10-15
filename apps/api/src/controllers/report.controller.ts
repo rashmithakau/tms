@@ -610,7 +610,7 @@ export const generateTimesheetEntriesReportHandler: RequestHandler = async (req,
     const endBound = endDate ? new Date(endDate as any) : null;
     (t.data || []).forEach((cat: any) => {
       (cat.items || []).forEach((it: any) => {
-        const title = cat.category === 'Project' ? `Project: ${it.work || it.projectName || 'Project'}` : cat.category === 'Team' ? `Team: ${it.work || it.teamName || 'Team'}` : 'Leave';
+        const title = cat.category === 'Project' ? `Project: ${it.work || it.projectName || 'Project'}` : cat.category === 'Team' ? `Team: ${it.work || it.teamName || 'Team'}` : cat.category === 'Other' ? 'Leave' : cat.category;
         let table = dataByEmployee[employeeKey].tables.find((tb) => tb.title === title);
         if (!table) {
           table = { title, rows: [] };

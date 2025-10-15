@@ -120,7 +120,7 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
           employeeGrandTotal += rowTotal;
 
          
-          let title = 'General';
+          let title: string | null = null;
           let includeWork = false;
           if (item.projectName) {
             title = `Project: ${item.projectName}`;
@@ -133,6 +133,9 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
             includeWork = true;
             hasLeave = true;
           }
+
+          // Skip items that don't belong to any specific category
+          if (!title) return;
 
           // Ensure table container
           if (!tablesByTitle.has(title)) {
