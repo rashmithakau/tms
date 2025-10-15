@@ -245,6 +245,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
                         supervisedProjectIds={supervisedProjectIds}
                         supervisedTeamIds={supervisedTeamIds}
                         supervisedUserIds={supervisedUserIds}
+                        currentSupervisorId={currentUserId}
                         onDaySelectionChange={handleDaySelectionChange}
                         selectedDays={selectedDays}
                         isSelectionMode={isSelectionMode}

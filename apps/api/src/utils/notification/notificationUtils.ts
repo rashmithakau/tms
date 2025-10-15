@@ -136,6 +136,7 @@ export const createTimesheetEditApprovedNotification = async (
     type: NotificationType.TimesheetEditApproved,
     title: 'Edit Request Approved',
     message: `Your edit request for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()} has been approved. You can now edit your timesheet.`,
+    weekStartDate: weekStartDate.toISOString().slice(0, 10),
   });
 };
 
@@ -149,6 +150,7 @@ export const createTimesheetEditRejectedNotification = async (
     type: NotificationType.TimesheetEditRejected,
     title: 'Edit Request Rejected',
     message: `Your edit request for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()} has been rejected.`,
+    weekStartDate: weekStartDate.toISOString().slice(0, 10),
   });
 };
 

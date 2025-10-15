@@ -31,26 +31,35 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
       let tooltipMessage = '';
       
       // Check if the supervisor can approve based on:
-      // 1. They supervise the employee (through any team - department or not)
-      // 2. AND either:
-      //    a. It's a project entry and they supervise the project, OR
-      //    b. It's a team entry and they supervise that specific team (must be a department), OR
-      //    c. It's another type of entry and they have any supervision permissions
+      // For projects: can approve if they supervise the project
+      // For teams: can approve if they supervise the team
+      // For other entries: can approve if they supervise the employee
       
       const supervisesEmployee = employeeId ? supervisedUserIds.includes(employeeId) : false;
       
       if (row.projectId) {
-        // Project-based entry: can approve if supervises the project AND supervises the employee
-        canApprove = supervisedProjectIds.includes(row.projectId) || supervisesEmployee;
-        tooltipMessage = 'You can only approve if you supervise the project or the employee';
+        // Project-based entry: can approve if supervises the project
+        const supervisesProject = supervisedProjectIds.includes(row.projectId);
+        canApprove = supervisesProject;
+        
+        if (!supervisesProject) {
+          tooltipMessage = 'You do not supervise this project';
+        }
       } else if (row.teamId) {
-        // Team-based entry: can approve if supervises that specific department team AND supervises the employee
-        canApprove = supervisedTeamIds.includes(row.teamId) || supervisesEmployee;
-        tooltipMessage = 'You can only approve if you supervise this department or the employee';
+        // Team-based entry: can approve if supervises the team (department) OR the employee (non-department team)
+        const supervisesTeam = supervisedTeamIds.includes(row.teamId);
+        canApprove = supervisesTeam || supervisesEmployee;
+        
+        if (!supervisesTeam && !supervisesEmployee) {
+          tooltipMessage = 'You do not supervise this team or employee';
+        }
       } else {
         // Other entries: can approve if supervises the employee
-        canApprove = supervisesEmployee || supervisedProjectIds.length > 0 || supervisedTeamIds.length > 0;
-        tooltipMessage = 'You need supervision permissions to approve this item';
+        canApprove = supervisesEmployee;
+        
+        if (!supervisesEmployee) {
+          tooltipMessage = 'You do not supervise this employee';
+        }
       }
       
       const isCheckboxDisabled = isDisabled || !canApprove;
@@ -83,7 +92,7 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
       );
     })}
     <TableCell align="left" sx={{ fontWeight: 'bold', textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '100px', minWidth: '100px' }}>
-      {row.hours.reduce((sum: number, h: string) => sum + parseFloat(h || '0'), 0).toFixed(2)}
+      {row.hours.reduce((sum: number, h: string) => sum + parseFloat(h || '0'), 0).toFixed(2).padStart(5, '0')}
     </TableCell>
   </TableRow>
 );

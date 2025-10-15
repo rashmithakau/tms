@@ -23,6 +23,7 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
   supervisedProjectIds = [],
   supervisedTeamIds = [],
   supervisedUserIds = [],
+  currentSupervisorId,
   onDaySelectionChange,
   selectedDays = [],
   isSelectionMode = false,
@@ -174,44 +175,61 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
         </Box>
       </Box>
 
-      {/* Show Approve/Reject Edit Request buttons if timesheet is EditRequested */}
-      {weekOriginalTimesheet?.status === TimesheetStatus.EditRequested && (onApproveEditRequest || onRejectEditRequest) && (
-        <Box sx={{ mb: 2, p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
-              Employee has requested permission to edit this timesheet
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {onApproveEditRequest && (
-                <Button
-                  variant="text"
-                  startIcon={<ThumbUpAltOutlinedIcon />}
-                  onClick={() => onApproveEditRequest(weekOriginalTimesheet._id)}
-                  disabled={isApprovingEditRequest || isRejectingEditRequest}
-                  sx={{ 
-                    textTransform: 'none',
-                  }}
-                >
-                  {isApprovingEditRequest ? 'Approving...' : 'Approve'}
-                </Button>
-              )}
-              {onRejectEditRequest && (
-                <Button
-                  variant="text"
-                  startIcon={<ThumbDownAltOutlinedIcon />}
-                  onClick={() => onRejectEditRequest(weekOriginalTimesheet._id)}
-                  disabled={isApprovingEditRequest || isRejectingEditRequest}
-                  sx={{ 
-                    textTransform: 'none',
-                  }}
-                >
-                  {isRejectingEditRequest ? 'Rejecting...' : 'Reject'}
-                </Button>
-              )}
+      {/* Show Approve/Reject Edit Request buttons if timesheet is EditRequested and supervisor hasn't approved yet */}
+      {(() => {
+        if (weekOriginalTimesheet?.status !== TimesheetStatus.EditRequested || (!onApproveEditRequest && !onRejectEditRequest)) {
+          return null;
+        }
+
+        // Check if current supervisor has already approved
+        const editRequest = weekOriginalTimesheet.editRequest;
+        if (editRequest && currentSupervisorId) {
+          // Check if this supervisor has already approved
+          const hasApproved = editRequest.approvedBy?.some((id: string) => id === currentSupervisorId);
+          
+          if (hasApproved) {
+            return null; // Don't show buttons if already approved
+          }
+        }
+
+        return (
+          <Box sx={{ mb: 2, p: 2, backgroundColor: theme.palette.background.default, borderRadius: 1, border: `1px solid ${theme.palette.divider}` }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
+                Employee has requested permission to edit this timesheet
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {onApproveEditRequest && (
+                  <Button
+                    variant="text"
+                    startIcon={<ThumbUpAltOutlinedIcon />}
+                    onClick={() => onApproveEditRequest(weekOriginalTimesheet._id)}
+                    disabled={isApprovingEditRequest || isRejectingEditRequest}
+                    sx={{ 
+                      textTransform: 'none',
+                    }}
+                  >
+                    {isApprovingEditRequest ? 'Approving...' : 'Approve'}
+                  </Button>
+                )}
+                {onRejectEditRequest && (
+                  <Button
+                    variant="text"
+                    startIcon={<ThumbDownAltOutlinedIcon />}
+                    onClick={() => onRejectEditRequest(weekOriginalTimesheet._id)}
+                    disabled={isApprovingEditRequest || isRejectingEditRequest}
+                    sx={{ 
+                      textTransform: 'none',
+                    }}
+                  >
+                    {isRejectingEditRequest ? 'Rejecting...' : 'Reject'}
+                  </Button>
+                )}
+              </Box>
             </Box>
           </Box>
-        </Box>
-      )}
+        );
+      })()}
 
       {isLoading ? (
         <PageLoading variant="inline" message="Loading timesheet..." />

@@ -51,8 +51,9 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
   }, [data, dispatch]);
 
   // Sync Redux timesheet data back to local state when updated externally
+  // Skip sync when we're loading fresh data (data is empty array after clearing)
   useEffect(() => {
-    if (!isUpdatingFromLocal.current && reduxTimesheetData && reduxTimesheetData.length > 0) {
+    if (!isUpdatingFromLocal.current && reduxTimesheetData && reduxTimesheetData.length > 0 && data.length > 0) {
       const reduxDataString = JSON.stringify(reduxTimesheetData);
       const localDataString = JSON.stringify(data);
       
@@ -80,6 +81,8 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
       try {
         setIsLoading(true);
         setError(null);
+        // Clear existing data when week changes to prevent showing stale data
+        setData([]);
      
         const [projectsResponse, teamsResponse] = await Promise.all([
           listMyProjects(),
