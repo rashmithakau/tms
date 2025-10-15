@@ -1,4 +1,4 @@
-export interface Employee {
+export interface ReportEmployee {
   _id: string;
   firstName: string;
   lastName: string;
@@ -6,7 +6,7 @@ export interface Employee {
 }
 
 export interface EmployeeSelectProps {
-  employees: Employee[];
+  employees: ReportEmployee[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   disabled?: boolean;

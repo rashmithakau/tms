@@ -25,51 +25,59 @@ const ReportFilterForm: React.FC<IReportFilterForm> = ({
   onResetFilters,
 }) => {
   const {
-    filter,
+    currentFilter,
     isFilterValid,
-    setStartDate,
-    setEndDate,
-    setEmployeeIds,
-    resetFilter,
-    getFilterErrors,
+    handleFilterChange: updateFilter,
+    resetFilters,
   } = useReportFilters();
 
   React.useEffect(() => {
-    onFilterChange(filter);
-  }, [filter, onFilterChange]);
+    onFilterChange(currentFilter);
+  }, [currentFilter, onFilterChange]);
 
   const handleStartDateChange = (date: Dayjs | null) => {
-    setStartDate(date ? date.format('YYYY-MM-DD') : undefined);
+    updateFilter({
+      ...currentFilter,
+      startDate: date ? date.format('YYYY-MM-DD') : undefined,
+    });
   };
+  
   const handleEndDateChange = (date: Dayjs | null) => {
-    setEndDate(date ? date.format('YYYY-MM-DD') : undefined);
+    updateFilter({
+      ...currentFilter,
+      endDate: date ? date.format('YYYY-MM-DD') : undefined,
+    });
   };
+  
   const handleEmployeeChange = (ids: string[]) => {
-    setEmployeeIds(ids);
+    updateFilter({
+      ...currentFilter,
+      employeeIds: ids,
+    });
   };
-
-  const filterErrors = getFilterErrors();
 
   React.useEffect(() => {
     if (resetSignal !== undefined) {
-      resetFilter();
-      // Cast to maintain compatibility with older narrower callback types
+      resetFilters();
+     
       onReportTypeChange?.('' as any);
     }
   }, [resetSignal]);
   const theme = useTheme();
   const updateDateRange = (start: Dayjs, end: Dayjs) => {
-    setStartDate(start.format('YYYY-MM-DD'));
-    setEndDate(end.format('YYYY-MM-DD'));
+    updateFilter({
+      ...currentFilter,
+      startDate: start.format('YYYY-MM-DD'),
+      endDate: end.format('YYYY-MM-DD'),
+    });
   };
 
   const handleResetClick = () => {
-   
     onReportTypeChange?.('' as any);
     if (onResetFilters) {
       onResetFilters();
     } else {
-      resetFilter();
+      resetFilters();
     }
   };
 
@@ -132,8 +140,8 @@ const ReportFilterForm: React.FC<IReportFilterForm> = ({
       <Box display="flex" flexDirection="column" gap={2}>
         <Box>
           <DateRangePicker
-            startDate={filter.startDate}
-            endDate={filter.endDate}
+            startDate={currentFilter.startDate}
+            endDate={currentFilter.endDate}
             onStartDateChange={handleStartDateChange}
             onEndDateChange={handleEndDateChange}
             disabled={disabled}
@@ -143,11 +151,11 @@ const ReportFilterForm: React.FC<IReportFilterForm> = ({
           <Box sx={{ flex: 1 }}>
             <EmployeeSelect
               employees={supervisedEmployees}
-              selectedIds={filter.employeeIds || []}
+              selectedIds={currentFilter.employeeIds || []}
               onChange={handleEmployeeChange}
               disabled={disabled}
             />
-            {(!filter.employeeIds || filter.employeeIds.length === 0) && (
+            {(!currentFilter.employeeIds || currentFilter.employeeIds.length === 0) && (
               <Typography
                 variant="caption"
                 sx={{ color: theme.palette.text.secondary }}
