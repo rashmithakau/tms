@@ -156,7 +156,6 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
     switch (notification.type) {
       case NotificationType.TimesheetRejected:
       case NotificationType.TimesheetReminder:
-      case NotificationType.TimesheetEditRequest:
       case NotificationType.TimesheetEditApproved:
       case NotificationType.TimesheetEditRejected:
         dispatch(select_btn('My Timesheets'));
@@ -165,6 +164,31 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
           replace: window.location.pathname === '/employee',
           state: { timestamp: Date.now() }
         });
+        break;
+      
+      case NotificationType.TimesheetEditRequest:
+        // Navigate to Review Timesheets for supervisor to review the edit request
+        console.log('👤 Review employee ID from notification:', notification.relatedUserId);
+        console.log('📅 Review week start:', weekStart);
+        
+        // Set the employee ID and week for auto-opening the drawer
+        if (notification.relatedUserId) {
+          dispatch(setReviewEmployeeId(notification.relatedUserId));
+          if (weekStart) {
+            dispatch(setReviewWeekStartDate(weekStart));
+          }
+          dispatch(select_btn('Review Timesheets'));
+          navigate(`/employee?openEmployeeId=${notification.relatedUserId}`);
+        } else {
+          // For old notifications without relatedUserId, still set the week so the UI can filter
+          console.warn('⚠️ Old notification without employee ID. Setting week filter to help find the request.');
+          if (weekStart) {
+            dispatch(setReviewWeekStartDate(weekStart));
+          }
+          dispatch(select_btn('Review Timesheets'));
+          // Navigate without employee ID - user will need to manually find the employee
+          navigate('/employee');
+        }
         break;
       
       case NotificationType.TimesheetSubmitted:

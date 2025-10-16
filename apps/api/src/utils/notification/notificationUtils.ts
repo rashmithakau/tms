@@ -115,7 +115,8 @@ export const createTimesheetEditRequestNotification = async (
   employeeName: string,
   weekStartDate: Date,
   weekEndDate: Date,
-  timesheetId: string
+  timesheetId: string,
+  employeeId?: string
 ) => {
   return createAndEmitNotification({
     userId: supervisorId,
@@ -123,6 +124,8 @@ export const createTimesheetEditRequestNotification = async (
     title: 'Timesheet Edit Request',
     message: `${employeeName} has requested permission to edit their timesheet for the week of ${weekStartDate.toDateString()} - ${weekEndDate.toDateString()}`,
     projectId: timesheetId, // Using projectId field to store timesheetId for easy access
+    relatedUserId: employeeId,
+    weekStartDate: weekStartDate.toISOString().slice(0, 10),
   });
 };
 

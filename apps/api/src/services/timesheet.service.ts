@@ -1075,7 +1075,8 @@ export const requestTimesheetEdit = async (userId: string, timesheetId: string) 
         employeeName,
         weekStartDate,
         weekEndDate,
-        timesheetId
+        timesheetId,
+        userId // Pass employeeId for navigation
       );
     } catch (error) {
       console.error('Error sending edit request notification to supervisor:', supervisorId, error);
