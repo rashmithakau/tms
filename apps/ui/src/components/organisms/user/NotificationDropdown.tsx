@@ -20,7 +20,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setWeekStartDate, setWeekEndDate, setReviewEmployeeId, setReviewWeekStartDate } from '../../../store/slices/timesheetSlice';
 import { select_btn } from '../../../store/slices/dashboardNavSlice';
-import { NotificationType } from '@tms/shared';
+import { NotificationType, UserRole } from '@tms/shared';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
   iconButtonSx = {},
@@ -34,6 +35,8 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
     markAllRead, 
     setNotificationsFromServer 
   } = useSocket();
+  const { authState } = useAuth();
+  const { user } = authState;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -108,6 +111,15 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
     return monday.toISOString().slice(0, 10);
   };
 
+  // Helper function to determine the correct navigation path based on user role
+  const getNavigationPath = () => {
+    const userRole = user?.role;
+    if (userRole === UserRole.Admin || userRole === UserRole.SupervisorAdmin) {
+      return '/admin';
+    }
+    return '/employee';
+  };
+
   const handleNotificationItemClick = (notification: any) => {
     handleClose();
 
@@ -160,8 +172,9 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
       case NotificationType.TimesheetEditRejected:
         dispatch(select_btn('My Timesheets'));
         // Navigate with state to force re-render even if already on page
-        navigate('/employee', { 
-          replace: window.location.pathname === '/employee',
+        const navPath = getNavigationPath();
+        navigate(navPath, { 
+          replace: window.location.pathname === navPath,
           state: { timestamp: Date.now() }
         });
         break;
@@ -178,7 +191,8 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
             dispatch(setReviewWeekStartDate(weekStart));
           }
           dispatch(select_btn('Review Timesheets'));
-          navigate(`/employee?openEmployeeId=${notification.relatedUserId}`);
+          const navPath = getNavigationPath();
+          navigate(`${navPath}?openEmployeeId=${notification.relatedUserId}`);
         } else {
           // For old notifications without relatedUserId, still set the week so the UI can filter
           console.warn('⚠️ Old notification without employee ID. Setting week filter to help find the request.');
@@ -187,7 +201,8 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
           }
           dispatch(select_btn('Review Timesheets'));
           // Navigate without employee ID - user will need to manually find the employee
-          navigate('/employee');
+          const navPath = getNavigationPath();
+          navigate(navPath);
         }
         break;
       
@@ -210,24 +225,26 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
             dispatch(setReviewWeekStartDate(weekStart));
           }
           dispatch(select_btn('Review Timesheets'));
-          navigate(`/employee?openEmployeeId=${notification.relatedUserId}`);
+          const navPath = getNavigationPath();
+          navigate(`${navPath}?openEmployeeId=${notification.relatedUserId}`);
         } else {
           if (weekStart) {
             dispatch(setReviewWeekStartDate(weekStart));
           }
           dispatch(select_btn('Review Timesheets'));
-          navigate('/employee');
+          const navPath = getNavigationPath();
+          navigate(navPath);
         }
         break;
       
       case NotificationType.ProjectAssignment:
       case NotificationType.TeamAssignment:
         dispatch(select_btn('My Timesheets'));
-        navigate('/employee');
+        navigate(getNavigationPath());
         break;
       
       default:
-        navigate('/employee');
+        navigate(getNavigationPath());
         break;
     }
   };
