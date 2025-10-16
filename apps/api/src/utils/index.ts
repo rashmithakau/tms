@@ -13,5 +13,8 @@ export * from './error';
 // Notification utilities
 export * from './notification';
 
+// User utilities
+export * from './user';
+
 // Validation utilities
 export * from './validation';

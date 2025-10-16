@@ -1,5 +1,6 @@
 import mongoose, { Model } from 'mongoose';
 import { hashValue, compareValue } from '../utils/auth';
+import { generateNextEmployeeId } from '../utils/user';
 import { UserRole } from '@tms/shared';
 import { IUserDocument, IUserModel } from '../interfaces';
 
@@ -23,31 +24,12 @@ const userSchema = new mongoose.Schema<IUserDocument>(
   }
 );
 
-// Middleware to generate employee_id before saving
 userSchema.pre('save', async function (next) {
-  // Generate employee_id only for new documents and only for employee roles
-  // SuperAdmin and Admin don't get employee IDs
   if (this.isNew && !this.employee_id && 
       this.role !== UserRole.SuperAdmin && 
       this.role !== UserRole.Admin) {
     try {
-      // Find the last user with an employee_id
-      const lastUser = await mongoose.model('User').findOne(
-        { employee_id: { $exists: true, $ne: null } },
-        { employee_id: 1 }
-      ).sort({ employee_id: -1 }).lean() as { employee_id?: string } | null;
-
-      let nextNumber = 1;
-      if (lastUser?.employee_id) {
-        // Extract the number from the last employee_id (e.g., "EMP/0001" -> 1)
-        const match = lastUser.employee_id.match(/EMP\/(\d+)/);
-        if (match) {
-          nextNumber = parseInt(match[1], 10) + 1;
-        }
-      }
-
-      // Format the new employee_id with leading zeros (e.g., EMP/0001, EMP/0002, etc.)
-      this.employee_id = `EMP/${nextNumber.toString().padStart(4, '0')}`;
+      this.employee_id = await generateNextEmployeeId();
     } catch (error) {
       return next(error as Error);
     }
@@ -56,7 +38,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Middleware to hash the password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();

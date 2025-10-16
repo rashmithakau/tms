@@ -59,7 +59,8 @@ TimesheetEditRequestSchema.index({ requiredApprovals: 1, status: 1 });
 
 const TimesheetEditRequestModel = mongoose.model<ITimesheetEditRequestDocument>(
   'TimesheetEditRequest',
-  TimesheetEditRequestSchema
+  TimesheetEditRequestSchema,
+  'timesheet_edit_requests'
 );
 
 export default TimesheetEditRequestModel;
