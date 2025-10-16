@@ -66,22 +66,19 @@ export const createTimesheetWithBusinessLogic = async (
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
   const results = [];
 
-  // Get employee information for notifications
   const employee = await UserModel.findById(userId).select('firstName lastName');
   const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'An employee';
 
-  // Get all supervisors for this employee
   const employeeProjects = await ProjectModel.find({ employees: userId }).populate('supervisor', '_id firstName lastName');
   const employeeTeams = await TeamModel.find({ members: userId }).populate('supervisor', '_id firstName lastName');
 
   const supervisorIds = new Set<string>();
-  
-  // Add supervisors from projects
+
   employeeProjects.forEach(project => {
     if (project.supervisor?._id) {
       const supervisor = project.supervisor as any;
       const supervisorIdStr = supervisor._id.toString();
-      // Don't send notification to the employee themselves
+
       if (supervisorIdStr !== userId) {
         supervisorIds.add(supervisorIdStr);
         console.log('Added project supervisor:', supervisor.firstName, supervisor.lastName, supervisorIdStr);
@@ -94,7 +91,7 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
     if (team.supervisor?._id) {
       const supervisor = team.supervisor as any;
       const supervisorIdStr = supervisor._id.toString();
-      // Don't send notification to the employee themselves
+
       if (supervisorIdStr !== userId) {
         supervisorIds.add(supervisorIdStr);
         console.log('Added team supervisor:', supervisor.firstName, supervisor.lastName, supervisorIdStr);
