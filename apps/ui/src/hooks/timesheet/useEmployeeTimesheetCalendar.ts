@@ -21,8 +21,6 @@ export function useEmployeeTimesheetCalendar({
   
   const [data, setData] = useState<ITimesheetData[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
-    // Check if there's a review week start date (for Review Timesheets page)
-    // or week start date (for My Timesheets page) from Redux
     const targetDate = reviewWeekStartDate || weekStartDate;
     
     if (targetDate) {

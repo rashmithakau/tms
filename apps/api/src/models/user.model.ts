@@ -25,9 +25,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 );
 
 userSchema.pre('save', async function (next) {
-  if (this.isNew && !this.employee_id && 
-      this.role !== UserRole.SuperAdmin && 
-      this.role !== UserRole.Admin) {
+  if (this.isNew && !this.employee_id) {
     try {
       this.employee_id = await generateNextEmployeeId();
     } catch (error) {

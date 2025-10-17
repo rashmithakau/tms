@@ -29,11 +29,7 @@ export const transformDetailedTimesheetData = (data: any[]): DetailedTimesheetPr
           return sum + numHours;
         }, 0);
         
-        // Determine item status for the week based on weekday (Mon-Fri) statuses where hours exist
-        // Rules:
-        // - Approved: all weekdays with hours > 0 are Approved
-        // - Rejected: all weekdays with hours > 0 are Rejected
-        // - Pending: otherwise
+
         const weekdayIndices = [0, 1, 2, 3, 4];
         const consideredDays = weekdayIndices.filter((idx) => {
           const h = dailyHours?.[idx];

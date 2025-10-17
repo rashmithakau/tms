@@ -129,6 +129,23 @@ export const createTimesheetEditRequestNotification = async (
   });
 };
 
+export const createTimesheetApprovedNotification = async (
+  employeeId: string,
+  weekStartDate: Date,
+  weekEndDate: Date
+) => {
+  const weekStart = weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const weekEnd = weekEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  
+  return createAndEmitNotification({
+    userId: employeeId,
+    type: NotificationType.TimesheetApproved,
+    title: 'Timesheet Approved ✓',
+    message: `Your timesheet for the week ${weekStart} - ${weekEnd} has been approved.`,
+    weekStartDate: weekStartDate.toISOString().slice(0, 10),
+  });
+};
+
 export const createTimesheetEditApprovedNotification = async (
   employeeId: string,
   weekStartDate: Date,
