@@ -14,6 +14,8 @@ import { select_btn } from '../../../store/slices/dashboardNavSlice';
 import { useUsers, useUsersByRoles } from '../../../hooks/api/useUsers';
 import AdminDashboardWindow from '../admin/AdminDashboardWindow';
 import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
+import EditAccountPopup from '../auth/popup/EditAccountPopup';
+import ProfilePopup from '../popup/ProfilePopup';
 
 const SuperAdminWindow: React.FC = () => {
   const theme = useTheme();
@@ -43,6 +45,10 @@ const SuperAdminWindow: React.FC = () => {
   const { users, isLoading: usersLoading, error: usersError, refreshUsers } = useUsersByRoles([UserRole.Admin, UserRole.SupervisorAdmin]);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<EmployeeRow | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState<EmployeeRow | null>(null);
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'supervisorAdmin'>('all');
 
   // Transform dashboard stats for the component
@@ -119,6 +125,7 @@ const SuperAdminWindow: React.FC = () => {
       email: user.email || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
+      designation: (user as any).designation || '',
       team: undefined,
       role: getRoleDisplayText(user.role),
       status:
@@ -172,6 +179,12 @@ const SuperAdminWindow: React.FC = () => {
           role={UserRole.Admin}
           onSuccess={handleAccountCreated}
         />
+        <EditAccountPopup
+          open={isEditOpen}
+          onClose={() => { setIsEditOpen(false); setEditingUser(null); }}
+          user={editingUser}
+          onSuccess={async () => { await refreshUsers(); }}
+        />
         </>
     );
   }
@@ -216,7 +229,12 @@ const SuperAdminWindow: React.FC = () => {
               </Box>,
             ]}
             filter={null}
-            table={<EmpTable rows={rows} onRefresh={refreshUsers} roleFilter={roleFilter} />}
+            table={<EmpTable 
+              rows={rows} 
+              onRefresh={refreshUsers} 
+              roleFilter={roleFilter}
+              onEditRow={(row) => { setProfileUser(row); setIsProfileOpen(true); }}
+            />}
           />
         )}
 
@@ -225,6 +243,17 @@ const SuperAdminWindow: React.FC = () => {
           onClose={handleClosePopup}
           role={UserRole.Admin}
           onSuccess={handleAccountCreated}
+        />
+        <EditAccountPopup
+          open={isEditOpen}
+          onClose={() => { setIsEditOpen(false); setEditingUser(null); }}
+          user={editingUser}
+          onSuccess={async () => { await refreshUsers(); }}
+        />
+        <ProfilePopup
+          open={isProfileOpen}
+          onClose={() => { setIsProfileOpen(false); setProfileUser(null); }}
+          user={profileUser}
         />
 </>
     );

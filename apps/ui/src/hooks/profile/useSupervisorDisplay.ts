@@ -8,6 +8,7 @@ import { UseSupervisorDisplayProps } from '../../interfaces/profile/hook';
 export const useSupervisorDisplay = ({ user, open }: UseSupervisorDisplayProps) => {
   const [supervisors, setSupervisors] = useState<string[]>([]);
   const [supervisorEmails, setSupervisorEmails] = useState<string[]>([]);
+  const targetUserId = (user as any)?._id || (user as any)?.id;
 
   useEffect(() => {
     let isMounted = true;
@@ -29,13 +30,13 @@ export const useSupervisorDisplay = ({ user, open }: UseSupervisorDisplayProps) 
             : [];
 
         const myTeamSupervisors = teams
-          .filter((t: any) => t.members?.some((m: any) => m._id === user?._id))
+          .filter((t: any) => t.members?.some((m: any) => (m._id || m.id) === targetUserId))
           .map((t: any) => t.supervisor)
           .filter(Boolean);
 
         const myProjectSupervisors = projects
           .filter((p: any) =>
-            p.employees?.some((e: any) => e._id === user?._id)
+            p.employees?.some((e: any) => (e._id || e.id) === targetUserId)
           )
           .map((p: any) => p.supervisor)
           .filter(Boolean);
@@ -69,16 +70,18 @@ export const useSupervisorDisplay = ({ user, open }: UseSupervisorDisplayProps) 
       }
     };
 
-    if (open && user?._id) fetchSupervisors();
+    if (open && targetUserId) fetchSupervisors();
     
     return () => {
       isMounted = false;
     };
-  }, [open, user?._id]);
+  }, [open, targetUserId]);
 
   const supervisorDisplay = useMemo(() => {
-    const userRole = user?.role;
-    const isCurrentUserSupervisor = userRole === UserRole.Supervisor || userRole === UserRole.SupervisorAdmin;
+    const userRole = (user as any)?.role;
+    const isSupervisorEnum = userRole === UserRole.Supervisor || userRole === UserRole.SupervisorAdmin;
+    const isSupervisorString = userRole === 'Supervisor' || userRole === 'Supervisor Admin';
+    const isCurrentUserSupervisor = isSupervisorEnum || isSupervisorString;
 
     const filteredSupervisors = supervisors.filter((name) => {
       if (isCurrentUserSupervisor) {

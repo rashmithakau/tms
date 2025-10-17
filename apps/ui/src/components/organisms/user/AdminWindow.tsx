@@ -7,6 +7,7 @@ import { listProjects } from '../../../api/project';
 import { ProjectListItem } from '../../../interfaces';
 import { select_btn } from '../../../store/slices/dashboardNavSlice';
 import EmployeeSection from '../../molecules/employee/EmployeeSection';
+import ProfilePopup from '../popup/ProfilePopup';
 import ProjectsSection from '../../molecules/project/ProjectsSection';
 import TeamsSection from '../../molecules/team/TeamsSection';
 import CreateAccountPopup from '../auth/popup/CreateAccountPopup';
@@ -38,6 +39,8 @@ const AdminWindow: React.FC = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<EmployeeRow | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState<EmployeeRow | null>(null);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [teams, setTeams] = useState<TeamListItem[]>([]);
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
@@ -373,6 +376,11 @@ const AdminWindow: React.FC = () => {
             user={editingUser}
             onSuccess={async () => { await refreshUsers(); }}
           />
+          <ProfilePopup
+            open={isProfileOpen}
+            onClose={() => { setIsProfileOpen(false); setProfileUser(null); }}
+            user={profileUser}
+          />
           <CreateProjectPopUp
             open={isProjectPopupOpen}
             onClose={handleProjectClose}
@@ -394,7 +402,7 @@ const AdminWindow: React.FC = () => {
             roleFilter={roleFilter}
             onRoleFilterChange={setRoleFilter}
             onAddEmployee={handleOpenPopup}
-            onEditEmployee={(row) => { setEditingUser(row); setIsEditOpen(true); }}
+            onEditEmployee={(row) => { setProfileUser(row); setIsProfileOpen(true); }}
             onRefresh={refreshUsers}
           />
           
@@ -409,6 +417,11 @@ const AdminWindow: React.FC = () => {
             onClose={() => { setIsEditOpen(false); setEditingUser(null); }}
             user={editingUser}
             onSuccess={async () => { await refreshUsers(); }}
+          />
+          <ProfilePopup
+            open={isProfileOpen}
+            onClose={() => { setIsProfileOpen(false); setProfileUser(null); }}
+            user={profileUser}
           />
         </Box>
       )}

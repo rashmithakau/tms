@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { TableWindowLayout } from '../layout';
-import { ReportDivider } from '../../atoms/report';
 import { ReportDashboardLayoutProps } from '../../../interfaces/report/reportpreview';
 
 const ReportDashboardLayout: React.FC<ReportDashboardLayoutProps> = ({
