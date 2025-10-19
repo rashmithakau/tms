@@ -36,10 +36,8 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const reviewWeekStartDate = useSelector((state: any) => state.timesheet.reviewWeekStartDate);
   const currentUserId = authState.user?._id;
   
-  // Get employee ID from URL params
   const openEmployeeIdFromUrl = searchParams.get('openEmployeeId');
   
-  // Create a map of employee timesheets with weekStartDate for quick lookup
   const employeeTimesheetMap = timesheets.reduce((map: any, timesheet: any) => {
     const userId = timesheet.userId?._id;
     if (!userId || userId === currentUserId) return map;
@@ -66,7 +64,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
 
     if (!row.employee) return groups;
     
-    // Exclude the current user's timesheets
     if (currentUserId && row.employee._id === currentUserId) {
       return groups;
     }
@@ -120,12 +117,47 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const [openRow, setOpenRow] = useState<number | null>(null);
   const [approvingEditRequest, setApprovingEditRequest] = useState(false);
   const [rejectingEditRequest, setRejectingEditRequest] = useState(false);
+  const [isRefreshingForNotification, setIsRefreshingForNotification] = useState(false);
   const hasProcessedReviewRef = useRef<string | null>(null);
+  const lastRefreshedTargetRef = useRef<string | null>(null);
   const retryCountRef = useRef(0);
 
   useEffect(() => {
     const targetEmployeeId = openEmployeeIdFromUrl || reviewEmployeeId;
     const targetWeekStart = reviewWeekStartDate;
+    
+    const targetKey = targetEmployeeId || targetWeekStart || null;
+    
+    if (targetKey && targetKey !== lastRefreshedTargetRef.current && !isRefreshingForNotification && !isLoading) {
+      console.log('🔄 Refreshing supervised timesheets data due to notification navigation');
+      setIsRefreshingForNotification(true);
+      lastRefreshedTargetRef.current = targetKey;
+      hasProcessedReviewRef.current = null; 
+      retryCountRef.current = 0; 
+      refresh().then(() => {
+        console.log('✅ Data refreshed successfully');
+        setTimeout(() => {
+          setIsRefreshingForNotification(false);
+        }, 200);
+      });
+    }
+    
+    if (!targetKey) {
+      lastRefreshedTargetRef.current = null;
+      if (isRefreshingForNotification) {
+        setIsRefreshingForNotification(false);
+      }
+    }
+  }, [reviewEmployeeId, openEmployeeIdFromUrl, reviewWeekStartDate, isLoading, isRefreshingForNotification, refresh]);
+
+  useEffect(() => {
+    const targetEmployeeId = openEmployeeIdFromUrl || reviewEmployeeId;
+    const targetWeekStart = reviewWeekStartDate;
+    
+    // Wait while refreshing data
+    if (isRefreshingForNotification) {
+      return;
+    }
     
     // Handle case with employee ID
     if (targetEmployeeId && targetEmployeeId !== hasProcessedReviewRef.current && !isLoading) {
@@ -178,7 +210,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
         hasProcessedReviewRef.current = null;
       }
     }
-    // Handle case without employee ID but with week (for old notifications)
     else if (!targetEmployeeId && targetWeekStart && targetWeekStart !== hasProcessedReviewRef.current && !isLoading) {
       if (filteredEmployeeGroups.length === 0 && retryCountRef.current < 10) {
         retryCountRef.current++;
@@ -188,26 +219,15 @@ const ReviewTimesheetsWindow: React.FC = () => {
         return;
       }
       
-      // Debug: Log all available timesheets
-      console.log('🔍 Looking for EditRequested timesheet for week:', targetWeekStart);
-      console.log('📊 Available employee groups:', filteredEmployeeGroups.length);
-      console.log('📋 Employee timesheet map:', employeeTimesheetMap);
-      
-      // Find employee with EditRequested status for this week using the map
       const employeeIndex = filteredEmployeeGroups.findIndex(group => {
         const employeeId = group.employee._id;
         const employeeTimesheets = employeeTimesheetMap[employeeId] || [];
         
-        console.log(`👤 Checking employee: ${group.employee.firstName} ${group.employee.lastName} (${employeeId})`);
         employeeTimesheets.forEach((ts: any) => {
-          console.log(`  📅 Week: ${ts.weekStartDate}, Status: ${ts.status}`);
-          // Normalize the week date format for comparison
           const normalizedWeek = ts.weekStartDate ? new Date(ts.weekStartDate).toISOString().slice(0, 10) : null;
-          console.log(`  🔄 Normalized week: ${normalizedWeek}`);
         });
         
         const hasMatch = employeeTimesheets.some((ts: any) => {
-          // Normalize both dates to YYYY-MM-DD format for comparison
           const tsWeek = ts.weekStartDate ? new Date(ts.weekStartDate).toISOString().slice(0, 10) : null;
           const weekMatches = tsWeek === targetWeekStart;
           const statusMatches = ts.status === TimesheetStatus.EditRequested;
@@ -218,11 +238,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
         return hasMatch;
       });
       
-      if (employeeIndex !== -1) {
-        console.log('✅ Found employee at index:', employeeIndex);
-        console.log('🎯 Setting openRow to:', employeeIndex);
-        console.log('👁️ Current openRow state:', openRow);
-        
+      if (employeeIndex !== -1) {  
         setTimeout(() => {
           console.log('⏰ Opening drawer for employee at index:', employeeIndex);
           setOpenRow(employeeIndex);
@@ -230,10 +246,7 @@ const ReviewTimesheetsWindow: React.FC = () => {
           setTimeout(() => {
             const tableRows = document.querySelectorAll('tbody tr');
             const targetRowIndex = employeeIndex * 2;
-            console.log('📜 Total table rows:', tableRows.length);
-            console.log('🎯 Target row index:', targetRowIndex);
             if (tableRows[targetRowIndex]) {
-              console.log('✅ Scrolling to row');
               tableRows[targetRowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
               console.warn('⚠️ Target row not found');
@@ -245,14 +258,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
         retryCountRef.current = 0;
         
         setTimeout(() => {
-          console.log('🧹 Cleaning up review state');
           dispatch(setReviewWeekStartDate(null));
           hasProcessedReviewRef.current = null;
         }, 1500);
       } else {
-        // Fallback: If no exact match, try to find ANY EditRequested timesheet for this employee
-        console.warn('⚠️ No exact match for week:', targetWeekStart);
-        console.log('🔍 Looking for ANY EditRequested timesheet instead...');
         
         const fallbackIndex = filteredEmployeeGroups.findIndex(group => {
           const employeeId = group.employee._id;
@@ -262,15 +271,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
             ts.status === TimesheetStatus.EditRequested
           );
           
-          if (hasEditRequest) {
-            console.log(`✅ Found EditRequested timesheet for: ${group.employee.firstName} ${group.employee.lastName}`);
-          }
-          
           return hasEditRequest;
         });
         
         if (fallbackIndex !== -1) {
-          console.log('✅ Found employee with ANY EditRequested timesheet at index:', fallbackIndex);
           
           setTimeout(() => {
             setOpenRow(fallbackIndex);
@@ -292,15 +296,13 @@ const ReviewTimesheetsWindow: React.FC = () => {
             hasProcessedReviewRef.current = null;
           }, 1500);
         } else {
-          console.warn('⚠️ No employee found with any EditRequested timesheet');
-          console.warn('📊 Searched through', filteredEmployeeGroups.length, 'employee groups');
           retryCountRef.current = 0;
           dispatch(setReviewWeekStartDate(null));
           hasProcessedReviewRef.current = null;
         }
       }
     }
-  }, [reviewEmployeeId, openEmployeeIdFromUrl, reviewWeekStartDate, isLoading, filteredEmployeeGroups, employeeGroups.length, employeeTimesheetMap, dispatch, searchText, searchParams, setSearchParams]);
+  }, [reviewEmployeeId, openEmployeeIdFromUrl, reviewWeekStartDate, isLoading, filteredEmployeeGroups, employeeGroups.length, employeeTimesheetMap, dispatch, searchText, searchParams, setSearchParams, timesheets.length]);
 
   const handleApproveEditRequest = async (timesheetId: string) => {
     setApprovingEditRequest(true);

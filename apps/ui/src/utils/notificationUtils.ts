@@ -121,9 +121,15 @@ export const handleReviewTimesheetsNavigation = (
   dispatch(select_btn('Review Timesheets'));
 
   if (relatedUserId) {
-    navigate(`${navPath}?openEmployeeId=${relatedUserId}`);
+    navigate(`${navPath}?openEmployeeId=${relatedUserId}`, {
+      replace: window.location.pathname === navPath,
+      state: { timestamp: Date.now() },
+    });
   } else {
-    navigate(navPath);
+    navigate(navPath, {
+      replace: window.location.pathname === navPath,
+      state: { timestamp: Date.now() },
+    });
   }
 };
 
