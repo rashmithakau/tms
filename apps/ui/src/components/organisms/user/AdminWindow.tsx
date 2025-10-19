@@ -25,6 +25,7 @@ import {
   ITableColumn 
 } from '../../../interfaces/dashboard';
 import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
+import { AdminHistoryWindow } from '../history';
 
 
 const AdminWindow: React.FC = () => {
@@ -457,6 +458,10 @@ const AdminWindow: React.FC = () => {
 
       {selectedBtn === 'Reports' && (
           <ReportDashboard />
+      )}
+
+      {selectedBtn === 'History' && (
+          <AdminHistoryWindow />
       )}
     </>
   );
