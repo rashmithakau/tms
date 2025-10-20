@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -66,12 +65,11 @@ const HistoryTable: React.FC<HistoryTableProps> = ({
   };
 
   return (
-    <Paper elevation={1}>
-      <TableContainer sx={{ maxHeight: 'calc(100vh - 250px)' }}>
-        <Table stickyHeader>
-          <TableHead sx={{ backgroundColor: 'grey.50' }}>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Date</TableCell>
+    <TableContainer sx={{ maxHeight: 'calc(100vh - 250px)' }}>
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Date</TableCell>
               <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Time</TableCell>
               <TableCell sx={{ fontWeight: 'bold', minWidth: 200 }}>Type</TableCell>
               <TableCell sx={{ fontWeight: 'bold', minWidth: 400 }}>Description</TableCell>
@@ -126,7 +124,6 @@ const HistoryTable: React.FC<HistoryTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
-    </Paper>
   );
 };
 
