@@ -17,7 +17,7 @@ export const createTeamHandler = catchErrors(async (req, res) => {
 
 
 
-  const team = await createTeam(normalized);
+  const team = await createTeam(normalized, req.userId);
   
   
   
@@ -60,13 +60,13 @@ export const updateStaffHandler = catchErrors(async (req, res) => {
     members?: string[];
     supervisor?: string | null;
   };
-  const result = await updateTeamStaff(id, { members, supervisor });
+  const result = await updateTeamStaff(id, { members, supervisor }, req.userId);
   return res.status(OK).json(result);
 });
 
 export const deleteTeamHandler = catchErrors(async (req, res) => {
   const { id } = req.params as { id: string };
-  const result = await softDeleteTeam(id);
+  const result = await softDeleteTeam(id, req.userId);
   return res.status(OK).json(result);
 });
 

@@ -7,3 +7,4 @@ export * from './rejectReason';
 export * from './auth';
 export * from './common';
 export * from './report';
+export * from './history';

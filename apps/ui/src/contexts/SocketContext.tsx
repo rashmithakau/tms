@@ -86,7 +86,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (!authState.user?._id) {
-      return; // Don't create socket connection if user is not authenticated
+      return; 
     }
 
     const userId = authState.user._id;

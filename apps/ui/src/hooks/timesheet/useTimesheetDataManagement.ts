@@ -50,8 +50,6 @@ export const useTimesheetDataManagement = (): TimesheetDataManagementReturn => {
     }, 0);
   }, [data, dispatch]);
 
-  // Sync Redux timesheet data back to local state when updated externally
-  // Skip sync when we're loading fresh data (data is empty array after clearing)
   useEffect(() => {
     if (!isUpdatingFromLocal.current && reduxTimesheetData && reduxTimesheetData.length > 0 && data.length > 0) {
       const reduxDataString = JSON.stringify(reduxTimesheetData);
