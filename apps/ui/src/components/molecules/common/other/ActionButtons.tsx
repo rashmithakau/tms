@@ -3,14 +3,16 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { IActionButtonsProps } from "../../../../interfaces/component";
 
-const ActionButtons: React.FC<IActionButtonsProps> = ({ onEdit, onDelete, disabled }) => (
+const ActionButtons: React.FC<IActionButtonsProps> = ({ onEdit, onDelete, disabled, disableEdit, showDelete = true, disableDelete }) => (
   <>
-    <IconButton onClick={onEdit} color="primary" disabled={disabled}>
+    <IconButton onClick={onEdit} color="primary" disabled={disableEdit ?? disabled}>
       <EditIcon />
     </IconButton>
-    <IconButton onClick={onDelete} color="error" disabled={disabled}>
-      <DeleteIcon />
-    </IconButton>
+    {showDelete && (
+      <IconButton onClick={onDelete} color="error" disabled={disableDelete ?? disabled}>
+        <DeleteIcon />
+      </IconButton>
+    )}
   </>
 );
 

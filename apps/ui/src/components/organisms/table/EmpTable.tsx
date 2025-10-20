@@ -9,6 +9,8 @@ import DataTable from './DataTable';
 import { DataTableColumn, EmployeeRow, EmpTableProps } from '../../../interfaces';
 import { useTheme } from '@mui/material/styles';
 import { formatContactNumber } from '../../../utils';
+import { useAuth } from '../../../contexts/AuthContext';
+import { UserRole } from '@tms/shared';
 
 const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -18,6 +20,50 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
   const selectedRow = rows.find((r) => r.id === confirm.id);
   const toast = useToast();
   const theme = useTheme();
+  const { authState } = useAuth();
+  const currentUserRole = authState.user?.role as UserRole | undefined;
+
+  const normalizeRoleKey = (roleValue: string | undefined): 'admin' | 'supervisorAdmin' | 'superAdmin' | 'supervisor' | 'emp' | undefined => {
+    if (!roleValue) return undefined;
+    const map: Record<string, string> = {
+      'Admin': 'admin',
+      'Supervisor Admin': 'supervisorAdmin',
+      'Super Admin': 'superAdmin',
+      'Supervisor': 'supervisor',
+      'Employee': 'emp'
+    };
+    // If already lower-case key, keep it
+    const maybeKey = map[roleValue] || roleValue;
+    switch (maybeKey) {
+      case 'admin':
+      case 'supervisorAdmin':
+      case 'superAdmin':
+      case 'supervisor':
+      case 'emp':
+        return maybeKey as any;
+      default:
+        return undefined;
+    }
+  };
+
+  const canDeleteRow = (row: EmployeeRow): boolean => {
+    if (!currentUserRole) return false;
+    const targetRoleKey = normalizeRoleKey(typeof row.role === 'string' ? row.role : undefined);
+    if (!targetRoleKey) return false;
+    // Super Admin can delete Admin and Supervisor Admin only
+    if (currentUserRole === UserRole.SuperAdmin) {
+      return targetRoleKey === 'admin' || targetRoleKey === 'supervisorAdmin';
+    }
+    // Admin and Supervisor Admin can delete Supervisor and Employee
+    if (currentUserRole === UserRole.Admin || currentUserRole === UserRole.SupervisorAdmin) {
+      return targetRoleKey === 'supervisor' || targetRoleKey === 'emp';
+    }
+    return false;
+  };
+
+  const isRowInactive = (row: EmployeeRow): boolean => {
+    return String(row.status) === 'Inactive' || (row as any).status === false;
+  };
 
   const filteredRows = useMemo(() => {
     if (roleFilter === 'all') {
@@ -87,17 +133,33 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
     {
       label: 'Actions',
       key: 'actions',
-      render: (row) => (
-        <span>
-          <ActionButtons
-            onEdit={() => {
-              if (onEditRow) onEditRow(row);
-              else setEditingId(row.id ?? null);
-            }}
-            onDelete={() => setConfirm({ open: true, id: row.id })}
-          />
-        </span>
-      ),
+      render: (row) => {
+        const allowed = canDeleteRow(row);
+        const inactive = isRowInactive(row);
+
+        const isAdminLevelViewer = currentUserRole === UserRole.Admin || currentUserRole === UserRole.SupervisorAdmin;
+
+        const rowRoleKey = normalizeRoleKey(typeof row.role === 'string' ? row.role : undefined);
+        const disableEdit = !!(isAdminLevelViewer && (rowRoleKey === 'admin' || rowRoleKey === 'supervisorAdmin'));
+
+        const showDelete = isAdminLevelViewer ? true : allowed;
+        const disableDelete = inactive || (isAdminLevelViewer ? !allowed : false);
+
+        return (
+          <span>
+            <ActionButtons
+              onEdit={() => {
+                if (onEditRow) onEditRow(row);
+                else setEditingId(row.id ?? null);
+              }}
+              onDelete={() => setConfirm({ open: true, id: row.id })}
+              disableEdit={disableEdit}
+              showDelete={showDelete}
+              disableDelete={disableDelete}
+            />
+          </span>
+        );
+      },
     },
   ];
   return (
@@ -106,11 +168,14 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
         columns={columns}
         rows={filteredRows}
         getRowKey={(row) => row.id ?? ''}
+        onRowClick={(row) => {
+          if (onEditRow) onEditRow(row);
+        }}
       />
       <ConfirmDialog
         open={confirm.open}
         title="Delete Employee"
-        message="Are you sure you want to delete this employee? This action cannot be undone."
+        message="Are you sure want to delete this Account?"
         icon={<DeleteRoundedIcon />}
         confirmText="Delete"
         onCancel={() => setConfirm({ open: false })}

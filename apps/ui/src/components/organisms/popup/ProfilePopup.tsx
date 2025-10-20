@@ -12,9 +12,9 @@ import { useSupervisorDisplay } from '../../../hooks/profile';
 import { ProfilePopupProps } from '../../../interfaces/organisms/popup';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose }) => {
+const ProfilePopup: React.FC<ProfilePopupProps> = ({ open, onClose, user: overrideUser }) => {
   const { authState } = useAuth();
-  const user = authState.user as any;
+  const user = (overrideUser as any) ?? (authState.user as any);
   
   const supervisorDisplay = useSupervisorDisplay({ user, open });
 
