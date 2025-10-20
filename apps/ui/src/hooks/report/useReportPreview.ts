@@ -5,7 +5,7 @@ import {
   previewDetailedTimesheet,
   previewDetailedTimesheetRaw,
 } from '../../api/report';
-import { UseReportPreviewOptions, UseReportPreviewReturn } from '../../interfaces/report/reportpreview';
+import { UseReportPreviewOptions, UseReportPreviewReturn } from '../../interfaces/report/hook/IUseReportPreview';
 
 export const useReportPreview = ({ 
   reportType, 
@@ -53,7 +53,7 @@ export const useReportPreview = ({
           { key: 'employeeName', header: 'Employee' },
           { key: 'employeeEmail', header: 'Email' },
           { key: 'weekStartDate', header: 'Week Start' },
-          { key: 'approvalStatus', header: 'Approval' },
+          { key: 'approvalStatus', header: 'Approval Status' }, 
         ]);
         setPreviewRows(rows);
       } else if (reportType === 'detailed-timesheet') {

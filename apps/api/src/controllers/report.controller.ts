@@ -527,6 +527,16 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
     const user = userMap.get(String(t.userId));
     let totalTimesheetHours = 0;
     
+    // Calculate week-level status based on daily statuses (Mon-Fri only)
+    const weekdayIndices = [0, 1, 2, 3, 4];
+    const aggregatedDayStatus: string[] = Array(7).fill(TimesheetStatus.Draft);
+    const dayStatusPrecedence: Record<string, number> = {
+      [TimesheetStatus.Rejected]: 4,
+      [TimesheetStatus.Pending]: 3,
+      [TimesheetStatus.Approved]: 2,
+      [TimesheetStatus.Draft]: 1,
+    };
+
     const categories = (t.data || []).map((cat: any) => ({
       category: cat.category,
       items: (cat.items || []).map((item: any) => {
@@ -534,6 +544,21 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
         const dailyHours = Array.isArray(item.hours) ? item.hours : [];
         const itemTotalHours = dailyHours.reduce((sum: number, hours: number) => sum + (hours || 0), 0);
         totalTimesheetHours += itemTotalHours;
+        
+        // Aggregate daily statuses for week-level status calculation
+        const hoursArr: number[] = dailyHours.map((h: any) => Number(h) || 0);
+        const dailyStatusArr: string[] = Array.isArray(item.dailyStatus) ? item.dailyStatus : [];
+        
+        for (let d = 0; d < 7; d++) {
+          const hasHours = (hoursArr[d] || 0) > 0;
+          if (!hasHours) continue;
+          
+          const statusForItem = dailyStatusArr[d] || TimesheetStatus.Draft;
+          const currentAgg = aggregatedDayStatus[d];
+          if ((dayStatusPrecedence[statusForItem] || 0) > (dayStatusPrecedence[currentAgg] || 0)) {
+            aggregatedDayStatus[d] = statusForItem;
+          }
+        }
         
         return {
           work: item.work,
@@ -549,13 +574,23 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
       }),
     }));
     
+    // Determine week-level status: Rejected only if entire week (Mon-Fri) is rejected
+    const isWeekFullyApproved = weekdayIndices.every((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Approved);
+    const isWeekFullyRejected = weekdayIndices.every((idx) => aggregatedDayStatus[idx] === TimesheetStatus.Rejected);
+    
+    const computedStatus = isWeekFullyApproved
+      ? TimesheetStatus.Approved
+      : isWeekFullyRejected
+        ? TimesheetStatus.Rejected
+        : TimesheetStatus.Pending;
+    
     return {
       employeeId: String(t.userId),
       employeeName: user?.name || 'Unknown',
       employeeEmail: user?.email || '',
       weekStartDate: formatDateForDisplay(t.weekStartDate),
       timesheetId: String(t._id),
-      status: t.status,
+      status: computedStatus, // Use computed week-level status
       submissionDate: t.submittedAt ? formatDateForDisplay(t.submittedAt) : null,
       approvalDate: t.approvedAt ? formatDateForDisplay(t.approvedAt) : null,
       rejectionReason: t.rejectionReason,

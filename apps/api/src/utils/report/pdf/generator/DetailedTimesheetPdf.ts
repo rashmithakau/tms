@@ -147,10 +147,11 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
           const weekStartRaw = new Date(timesheetWeek.weekStartDate);
           const weekStart = this.formatDate(weekStartRaw);
           const weekEnd = this.formatDate(this.addDays(timesheetWeek.weekStartDate, 6));
+          // Use the computed week-level status from the timesheet data
           const baseCells = [
             weekStart,
             weekEnd,
-            timesheetWeek.status,
+            timesheetWeek.status, // This status is already computed correctly in the controller
           ];
           const workCells = includeWork ? [item.work || ''] : [];
           const dayCells = [

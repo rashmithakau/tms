@@ -299,7 +299,7 @@ export class DetailedTimesheetExcel extends BaseExcelGenerator {
           const baseCells: (string | number)[] = [
             this.formatDate(weekStartRaw),
             this.formatDate(weekEndRaw),
-            timesheetWeek.status,
+            timesheetWeek.status, // This status is already computed correctly in the controller
           ];
           const workCells: (string | number)[] = includeWork
             ? [item.work || '']
