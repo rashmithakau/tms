@@ -53,14 +53,12 @@ const TimesheetEditRequestSchema = new Schema<ITimesheetEditRequestDocument>(
   }
 );
 
-// Compound index for efficient querying
 TimesheetEditRequestSchema.index({ timesheetId: 1, status: 1 });
 TimesheetEditRequestSchema.index({ requiredApprovals: 1, status: 1 });
 
 const TimesheetEditRequestModel = mongoose.model<ITimesheetEditRequestDocument>(
-  'TimesheetEditRequest',
-  TimesheetEditRequestSchema,
-  'timesheet_edit_requests'
+  'timesheet_edit_requests',
+  TimesheetEditRequestSchema
 );
 
 export default TimesheetEditRequestModel;
