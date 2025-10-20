@@ -11,19 +11,13 @@ import { useApiCall } from '../../../../hooks/api/useApiCall';
 import PageLoading from '../../../molecules/common/loading/PageLoading';
 import Divider from '@mui/material/Divider';
 import { updateUser } from '../../../../api/user';
-import * as yup from 'yup';
+import {EditAccountSchema} from '../../../../validations/other';
 
 type EditAccountData = {
   designation: string;
   contactNumber: string;
   status: 'Active' | 'Inactive';
 };
-
-const schema = yup.object({
-  designation: yup.string().trim().required('Designation is required'),
-  contactNumber: yup.string().trim().required('Contact number is required'),
-  status: yup.mixed<'Active' | 'Inactive'>().oneOf(['Active', 'Inactive']).required('Status is required'),
-});
 
 export default function EditAccountPopup({
   open,
@@ -49,7 +43,7 @@ export default function EditAccountPopup({
   });
 
   const { register, handleSubmit, reset, setValue, control, formState: { errors, isValid } } = useForm<EditAccountData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(EditAccountSchema),
     mode: 'onChange',
     defaultValues: {
       designation: '',

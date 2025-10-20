@@ -11,9 +11,14 @@ import { useTheme } from '@mui/material/styles';
 import { formatContactNumber } from '../../../utils';
 import { useAuth } from '../../../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
+import EditAccountPopup from '../auth/popup/EditAccountPopup';
 
 const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPopup, setEditPopup] = useState<{ open: boolean; user: EmployeeRow | null }>({
+    open: false,
+    user: null,
+  });
   const [confirm, setConfirm] = useState<{ open: boolean; id?: string }>({
     open: false,
   });
@@ -146,11 +151,10 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
         const disableDelete = inactive || (isAdminLevelViewer ? !allowed : false);
 
         return (
-          <span>
+          <span onClick={(e) => e.stopPropagation()}>
             <ActionButtons
               onEdit={() => {
-                if (onEditRow) onEditRow(row);
-                else setEditingId(row.id ?? null);
+                setEditPopup({ open: true, user: row });
               }}
               onDelete={() => setConfirm({ open: true, id: row.id })}
               disableEdit={disableEdit}
@@ -170,6 +174,14 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
         getRowKey={(row) => row.id ?? ''}
         onRowClick={(row) => {
           if (onEditRow) onEditRow(row);
+        }}
+      />
+      <EditAccountPopup
+        open={editPopup.open}
+        onClose={() => setEditPopup({ open: false, user: null })}
+        user={editPopup.user}
+        onSuccess={async () => {
+          if (onRefresh) await onRefresh();
         }}
       />
       <ConfirmDialog
