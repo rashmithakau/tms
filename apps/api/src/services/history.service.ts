@@ -1,5 +1,6 @@
 import History from '../models/history.model';
 import { HistoryActionType } from '../constants/historyActionType';
+import { formatRoleDisplayName } from '../utils';
 
 export class HistoryService {
   static async log(data: {
@@ -41,7 +42,7 @@ export class HistoryService {
         id: createdUser.id,
         name: createdUser.name,
       },
-      description: `Created user ${createdUser.name} with role ${createdUser.role}`,
+      description: `Created user ${createdUser.name} with role ${formatRoleDisplayName(createdUser.role)}`,
       metadata: { roleAssigned: createdUser.role },
     });
   }
@@ -109,7 +110,7 @@ export class HistoryService {
         id: user.id,
         name: user.name,
       },
-      description: `Changed role for ${user.name} from ${oldRole} to ${newRole}`,
+      description: `Changed role for ${user.name} from ${formatRoleDisplayName(oldRole)} to ${formatRoleDisplayName(newRole)}`,
       metadata: { oldValue: oldRole, newValue: newRole },
     });
   }
