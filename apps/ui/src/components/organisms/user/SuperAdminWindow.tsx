@@ -173,6 +173,7 @@ const SuperAdminWindow: React.FC = () => {
           onDeleteProject={undefined}
           onViewReports={undefined}
           onViewTimesheet={undefined}
+          addUserButtonLabel="Admin"
         />
         
         <CreateAccountPopup

@@ -7,7 +7,8 @@ import { IQuickActionsProps } from '../../../interfaces/dashboard';
 const QuickActions: React.FC<IQuickActionsProps> = ({
   onAddUser,
   onAddProject,
-  onViewReports
+  onViewReports,
+  addUserButtonLabel = 'Admin'
 }) => {
   return (
     <Paper
@@ -33,7 +34,7 @@ const QuickActions: React.FC<IQuickActionsProps> = ({
       <Box display="flex" flexDirection="column" gap={2} flex={1}>
         {onAddUser && (
           <AdminActionButton
-            label="Admin"
+            label={addUserButtonLabel}
             icon={<Add fontSize="small" />}
             onClick={onAddUser}
             variant="outlined"
