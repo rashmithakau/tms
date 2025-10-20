@@ -8,6 +8,18 @@ export const getHistoryHandler = async (req: Request, res: Response) => {
     const userId = req.userId;
     const userRole = req.userRole as UserRole;
 
+    // Only allow Admin, SupervisorAdmin, and SuperAdmin to access history
+    if (
+      userRole !== UserRole.Admin && 
+      userRole !== UserRole.SupervisorAdmin && 
+      userRole !== UserRole.SuperAdmin
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Only administrators can view system history.',
+      });
+    }
+
     const {
       actionType,
       entityType,
@@ -47,11 +59,6 @@ export const getHistoryHandler = async (req: Request, res: Response) => {
       if (endDate) {
         query.timestamp.$lte = new Date(endDate as string);
       }
-    }
-
-    // For Admin users, only show their own actions
-    if (userRole === UserRole.Admin || userRole === UserRole.SupervisorAdmin) {
-      query.performedBy = userId;
     }
 
     // Pagination
