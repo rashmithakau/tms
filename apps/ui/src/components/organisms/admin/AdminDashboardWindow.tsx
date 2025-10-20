@@ -23,7 +23,8 @@ const AdminDashboardWindow: React.FC<IAdminDashboardWindowProps> = ({
   onEditProject,
   onDeleteProject,
   onViewReports,
-  onViewTimesheet
+  onViewTimesheet,
+  addUserButtonLabel
 }) => {
 
   const septemberTimesheetData = timesheetStats || {
@@ -113,6 +114,7 @@ const AdminDashboardWindow: React.FC<IAdminDashboardWindowProps> = ({
                   onAddUser={onAddUser}
                   onAddProject={onAddProject}
                   onViewReports={onViewReports}
+                  addUserButtonLabel={addUserButtonLabel}
                 />
               </Box>
 

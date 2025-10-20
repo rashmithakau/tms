@@ -363,6 +363,7 @@ const AdminWindow: React.FC = () => {
             onViewTimesheet={(timesheetId) => {
               dispatch(select_btn('Review Timesheets'));
             }}
+            addUserButtonLabel="Employee"
           />
           
           <CreateAccountPopup

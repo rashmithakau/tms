@@ -31,4 +31,5 @@ export interface IAdminDashboardWindowProps {
   onViewReports?: () => void;
   onManageSettings?: () => void;
   onViewTimesheet?: (timesheetId: string) => void;
+  addUserButtonLabel?: string;
 }
