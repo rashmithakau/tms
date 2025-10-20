@@ -8,8 +8,9 @@ import { UserRole } from '@tms/shared';
 import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../utils/data';
 import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
 import { CreateProjectParams } from '../interfaces/project';
+import { HistoryService } from './history.service';
 
-export const createProject = async (data: CreateProjectParams) => {
+export const createProject = async (data: CreateProjectParams, performedBy?: string) => {
   const existingProject = await ProjectModel.exists({
     projectName: data.projectName,
   });
@@ -28,6 +29,14 @@ export const createProject = async (data: CreateProjectParams) => {
 
   if (project.supervisor) {
     await updateUserRoleOnSupervisorAssignment(project.supervisor.toString());
+  }
+
+  // Log history
+  if (performedBy) {
+    await HistoryService.logProjectCreated(performedBy, {
+      id: project._id.toString(),
+      name: project.projectName,
+    });
   }
 
   return {
@@ -69,11 +78,17 @@ export const listMyProjects = async (userId: string) => {
 
 export const updateProjectStaff = async (
   projectId: string,
-  data: { employees?: string[]; supervisor?: string | null }
+  data: { employees?: string[]; supervisor?: string | null },
+  performedBy?: string
 ) => {
-  //get the previous supervisor
-  const existing = await ProjectModel.findById(projectId).select('supervisor');
+  //get the previous supervisor and employees
+  const existing = await ProjectModel.findById(projectId).select('supervisor employees projectName');
   const update: any = {};
+  
+  // Track employee changes for history logging
+  const oldEmployeeIds = existing?.employees?.map(id => id.toString()) || [];
+  const newEmployeeIds = data.employees?.filter(id => !!id) || oldEmployeeIds;
+  
   if (Array.isArray(data.employees)) {
     update.employees = data.employees
       .filter((id) => !!id)
@@ -93,6 +108,36 @@ export const updateProjectStaff = async (
     .populate({ path: 'supervisor', select: 'firstName lastName email' });
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project update failed');
 
+  // Log employee changes
+  if (performedBy && Array.isArray(data.employees)) {
+    const addedEmployees = newEmployeeIds.filter(id => !oldEmployeeIds.includes(id));
+    const removedEmployees = oldEmployeeIds.filter(id => !newEmployeeIds.includes(id));
+
+    // Log added employees
+    for (const empId of addedEmployees) {
+      const employee = await UserModel.findById(empId).select('firstName lastName');
+      if (employee) {
+        await HistoryService.logProjectEmployeeAdded(
+          performedBy,
+          { id: projectId, name: project.projectName },
+          { id: empId, name: `${employee.firstName} ${employee.lastName}` }
+        );
+      }
+    }
+
+    // Log removed employees
+    for (const empId of removedEmployees) {
+      const employee = await UserModel.findById(empId).select('firstName lastName');
+      if (employee) {
+        await HistoryService.logProjectEmployeeRemoved(
+          performedBy,
+          { id: projectId, name: project.projectName },
+          { id: empId, name: `${employee.firstName} ${employee.lastName}` }
+        );
+      }
+    }
+  }
+
   // Update roles based on supervisor change
   if (data.supervisor !== undefined) {
     const previousSupervisorId = existing?.supervisor?.toString() || null;
@@ -101,7 +146,7 @@ export const updateProjectStaff = async (
       : null;
 
     if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
-      const sup = await UserModel.findById(newSupervisorId).select('role');
+      const sup = await UserModel.findById(newSupervisorId).select('role firstName lastName');
       if (sup) {
         if (sup.role === UserRole.Admin) {
           await UserModel.findByIdAndUpdate(newSupervisorId, {
@@ -111,6 +156,32 @@ export const updateProjectStaff = async (
           await UserModel.findByIdAndUpdate(newSupervisorId, {
             $set: { role: UserRole.Supervisor },
           });
+        }
+
+        // Log supervisor change/assignment
+        if (performedBy) {
+          const newSupervisor = {
+            id: newSupervisorId,
+            name: `${sup.firstName} ${sup.lastName}`,
+          };
+
+          if (previousSupervisorId) {
+            const prevSup = await UserModel.findById(previousSupervisorId).select('firstName lastName');
+            if (prevSup) {
+              await HistoryService.logProjectSupervisorChanged(
+                performedBy,
+                { id: projectId, name: project.projectName },
+                { id: previousSupervisorId, name: `${prevSup.firstName} ${prevSup.lastName}` },
+                newSupervisor
+              );
+            }
+          } else {
+            await HistoryService.logProjectSupervisorAssigned(
+              performedBy,
+              { id: projectId, name: project.projectName },
+              newSupervisor
+            );
+          }
         }
       }
     }
@@ -167,9 +238,9 @@ export const updateProjectStaff = async (
   return { project };
 };
 
-export const softDeleteProject = async (projectId: string) => {
+export const softDeleteProject = async (projectId: string, performedBy?: string) => {
   // Capture the current project data before deletion
-  const existing = await ProjectModel.findById(projectId).select('supervisor employees');
+  const existing = await ProjectModel.findById(projectId).select('supervisor employees projectName');
 
   const project = await ProjectModel.findByIdAndUpdate(
     projectId,
@@ -177,6 +248,14 @@ export const softDeleteProject = async (projectId: string) => {
     { new: true }
   );
   appAssert(project, INTERNAL_SERVER_ERROR, 'Project delete failed');
+
+  // Log history
+  if (performedBy && existing) {
+    await HistoryService.logProjectDeleted(performedBy, {
+      id: projectId,
+      name: existing.projectName,
+    });
+  }
 
   // Handle supervisor role management
   const supervisorId = existing?.supervisor?.toString();

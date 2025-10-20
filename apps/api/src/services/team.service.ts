@@ -9,8 +9,9 @@ import { stringArrayToObjectIds, stringToObjectId, filterValidIds } from '../uti
 import { updateUserRoleOnSupervisorAssignment, checkAndDowngradeUserRole } from '../utils/auth';
 import { updateUserTeamMemberships } from '../utils/data';
 import { CreateTeamParams } from '../interfaces/team';
+import { HistoryService } from './history.service';
 
-export const createTeam = async (data: CreateTeamParams) => {
+export const createTeam = async (data: CreateTeamParams, performedBy?: string) => {
   
   
   const exists = await TeamModel.exists({ teamName: data.teamName });
@@ -43,7 +44,13 @@ export const createTeam = async (data: CreateTeamParams) => {
 
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team creation failed');
 
- 
+  // Log history
+  if (performedBy) {
+    await HistoryService.logTeamCreated(performedBy, {
+      id: team._id.toString(),
+      name: team.teamName,
+    });
+  }
 
   try {
     // Update supervisor role if supervisor is assigned
@@ -143,10 +150,15 @@ export const listAllSupervisedTeams = async (supervisorId: string) => {
 
 export const updateTeamStaff = async (
   teamId: string,
-  data: { members?: string[]; supervisor?: string | null }
+  data: { members?: string[]; supervisor?: string | null },
+  performedBy?: string
 ) => {
-  const existing = await TeamModel.findById(teamId).select('supervisor');
+  const existing = await TeamModel.findById(teamId).select('supervisor members teamName');
   const update: any = {};
+  
+  // Track member changes for history logging
+  const oldMemberIds = existing?.members?.map(id => id.toString()) || [];
+  const newMemberIds = data.members?.filter(id => !!id) || oldMemberIds;
   
   if (Array.isArray(data.members)) {
     update.members = data.members
@@ -170,6 +182,36 @@ export const updateTeamStaff = async (
     
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team update failed');
 
+  // Log member changes
+  if (performedBy && Array.isArray(data.members)) {
+    const addedMembers = newMemberIds.filter(id => !oldMemberIds.includes(id));
+    const removedMembers = oldMemberIds.filter(id => !newMemberIds.includes(id));
+
+    // Log added members
+    for (const memberId of addedMembers) {
+      const member = await UserModel.findById(memberId).select('firstName lastName');
+      if (member) {
+        await HistoryService.logTeamMemberAdded(
+          performedBy,
+          { id: teamId, name: team.teamName },
+          { id: memberId, name: `${member.firstName} ${member.lastName}` }
+        );
+      }
+    }
+
+    // Log removed members
+    for (const memberId of removedMembers) {
+      const member = await UserModel.findById(memberId).select('firstName lastName');
+      if (member) {
+        await HistoryService.logTeamMemberRemoved(
+          performedBy,
+          { id: teamId, name: team.teamName },
+          { id: memberId, name: `${member.firstName} ${member.lastName}` }
+        );
+      }
+    }
+  }
+
   if (data.supervisor !== undefined) {
     const previousSupervisorId = existing?.supervisor?.toString() || null;
     const newSupervisorId = team.supervisor
@@ -177,7 +219,7 @@ export const updateTeamStaff = async (
       : null;
 
     if (newSupervisorId && previousSupervisorId !== newSupervisorId) {
-      const sup = await UserModel.findById(newSupervisorId).select('role');
+      const sup = await UserModel.findById(newSupervisorId).select('role firstName lastName');
       if (sup) {
         if (sup.role === UserRole.Admin) {
           await UserModel.findByIdAndUpdate(newSupervisorId, {
@@ -187,6 +229,32 @@ export const updateTeamStaff = async (
           await UserModel.findByIdAndUpdate(newSupervisorId, {
             $set: { role: UserRole.Supervisor },
           });
+        }
+
+        // Log supervisor change/assignment
+        if (performedBy) {
+          const newSupervisor = {
+            id: newSupervisorId,
+            name: `${sup.firstName} ${sup.lastName}`,
+          };
+
+          if (previousSupervisorId) {
+            const prevSup = await UserModel.findById(previousSupervisorId).select('firstName lastName');
+            if (prevSup) {
+              await HistoryService.logTeamSupervisorChanged(
+                performedBy,
+                { id: teamId, name: team.teamName },
+                { id: previousSupervisorId, name: `${prevSup.firstName} ${prevSup.lastName}` },
+                newSupervisor
+              );
+            }
+          } else {
+            await HistoryService.logTeamSupervisorAssigned(
+              performedBy,
+              { id: teamId, name: team.teamName },
+              newSupervisor
+            );
+          }
         }
       }
     }
@@ -235,8 +303,8 @@ export const updateTeamStaff = async (
   return { team };
 };
 
-export const softDeleteTeam = async (teamId: string) => {
-  const existing = await TeamModel.findById(teamId).select('supervisor members');
+export const softDeleteTeam = async (teamId: string, performedBy?: string) => {
+  const existing = await TeamModel.findById(teamId).select('supervisor members teamName');
 
   const team = await TeamModel.findByIdAndUpdate(
     teamId,
@@ -244,6 +312,14 @@ export const softDeleteTeam = async (teamId: string) => {
     { new: true }
   );
   appAssert(team, INTERNAL_SERVER_ERROR, 'Team delete failed');
+
+  // Log history
+  if (performedBy && existing) {
+    await HistoryService.logTeamDeleted(performedBy, {
+      id: teamId,
+      name: existing.teamName,
+    });
+  }
 
   const supervisorId = existing?.supervisor?.toString();
   if (supervisorId) {

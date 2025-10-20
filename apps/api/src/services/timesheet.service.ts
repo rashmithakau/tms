@@ -19,7 +19,7 @@ import {
   ITimesheetCategoryInput,
   UpdateTimesheetParams,
 } from '../interfaces';
-import { createTimesheetSubmittedNotification, createTimesheetEditRequestNotification, createTimesheetEditApprovedNotification, createTimesheetEditRejectedNotification } from '../utils/notification/notificationUtils';
+import { createTimesheetSubmittedNotification, createTimesheetEditRequestNotification, createTimesheetEditApprovedNotification, createTimesheetEditRejectedNotification, createTimesheetApprovedNotification } from '../utils/notification/notificationUtils';
 import TimesheetEditRequestModel from '../models/timesheetEditRequest.model';
 
 export const createTimesheet = async (params: ICreateTimesheetParams) => {
@@ -66,22 +66,19 @@ export const createTimesheetWithBusinessLogic = async (
 export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
   const results = [];
 
-  // Get employee information for notifications
   const employee = await UserModel.findById(userId).select('firstName lastName');
   const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'An employee';
 
-  // Get all supervisors for this employee
   const employeeProjects = await ProjectModel.find({ employees: userId }).populate('supervisor', '_id firstName lastName');
   const employeeTeams = await TeamModel.find({ members: userId }).populate('supervisor', '_id firstName lastName');
 
   const supervisorIds = new Set<string>();
-  
-  // Add supervisors from projects
+
   employeeProjects.forEach(project => {
     if (project.supervisor?._id) {
       const supervisor = project.supervisor as any;
       const supervisorIdStr = supervisor._id.toString();
-      // Don't send notification to the employee themselves
+
       if (supervisorIdStr !== userId) {
         supervisorIds.add(supervisorIdStr);
         console.log('Added project supervisor:', supervisor.firstName, supervisor.lastName, supervisorIdStr);
@@ -94,7 +91,7 @@ export const submitDraftTimesheets = async (userId: string, ids: string[]) => {
     if (team.supervisor?._id) {
       const supervisor = team.supervisor as any;
       const supervisorIdStr = supervisor._id.toString();
-      // Don't send notification to the employee themselves
+
       if (supervisorIdStr !== userId) {
         supervisorIds.add(supervisorIdStr);
         console.log('Added team supervisor:', supervisor.firstName, supervisor.lastName, supervisorIdStr);
@@ -307,30 +304,95 @@ export const updateDailyTimesheetStatus = async (
 
   timesheet.markModified('data');
 
-  const allItemsProcessed = timesheet.data.every((cat) =>
-    cat.items.every((itm) =>
-      itm.dailyStatus.every(
-        (dayStatus) =>
-          dayStatus === TimesheetStatus.Approved ||
-          dayStatus === TimesheetStatus.Rejected
-      )
-    )
+  // Check day by day: For each day (0-6), if ANY item has hours on that day,
+  // then ALL items with hours on that day must be approved or rejected
+  const daysWithHours = new Array(7).fill(false);
+  const daysAllProcessed = new Array(7).fill(true);
+  const daysAllApproved = new Array(7).fill(true);
+
+  // First pass: identify which days have hours and check their status
+  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+    let dayHasHours = false;
+    let dayAllProcessedStatus = true;
+    let dayAllApprovedStatus = true;
+
+    timesheet.data.forEach((cat) => {
+      cat.items.forEach((itm) => {
+        const hourValue = parseFloat(itm.hours[dayIndex] || '0');
+        if (hourValue > 0) {
+          dayHasHours = true;
+          const dayStatus = itm.dailyStatus[dayIndex];
+          
+          // Check if this day is processed (approved or rejected)
+          if (dayStatus !== TimesheetStatus.Approved && dayStatus !== TimesheetStatus.Rejected) {
+            dayAllProcessedStatus = false;
+          }
+          
+          // Check if this day is approved
+          if (dayStatus !== TimesheetStatus.Approved) {
+            dayAllApprovedStatus = false;
+          }
+        }
+      });
+    });
+
+    daysWithHours[dayIndex] = dayHasHours;
+    if (dayHasHours) {
+      daysAllProcessed[dayIndex] = dayAllProcessedStatus;
+      daysAllApproved[dayIndex] = dayAllApprovedStatus;
+    }
+  }
+
+  // Check if all days with hours are processed
+  const allDaysWithHoursProcessed = daysWithHours.every((hasHours, idx) => 
+    !hasHours || daysAllProcessed[idx]
   );
 
-  if (allItemsProcessed) {
-    const allApproved = timesheet.data.every((cat) =>
-      cat.items.every((itm) =>
-        itm.dailyStatus.every(
-          (dayStatus) => dayStatus === TimesheetStatus.Approved
-        )
-      )
+  console.log('Days with hours:', daysWithHours);
+  console.log('Days all processed:', daysAllProcessed);
+  console.log('All days with hours processed:', allDaysWithHoursProcessed);
+
+  if (allDaysWithHoursProcessed) {
+    // Check if all days with hours are approved
+    const allDaysWithHoursApproved = daysWithHours.every((hasHours, idx) => 
+      !hasHours || daysAllApproved[idx]
     );
-    timesheet.status = allApproved
+    
+    console.log('Days all approved:', daysAllApproved);
+    console.log('All days with hours approved:', allDaysWithHoursApproved);
+    
+    const previousStatus = timesheet.status;
+    timesheet.status = allDaysWithHoursApproved
       ? TimesheetStatus.Approved
       : TimesheetStatus.Rejected;
 
     if (timesheet.status === TimesheetStatus.Rejected && rejectionReason) {
       timesheet.rejectionReason = rejectionReason;
+    }
+
+    // Send notification to employee when all dates with hours are approved
+    if (allDaysWithHoursApproved && previousStatus !== TimesheetStatus.Approved) {
+      try {
+        const weekStartDate = new Date(timesheet.weekStartDate);
+        const weekEndDate = new Date(weekStartDate);
+        weekEndDate.setDate(weekEndDate.getDate() + 6);
+        
+        const employeeId = ((timesheet.userId as any)._id || timesheet.userId).toString();
+        
+        console.log('=== Sending Timesheet Approval Notification (Single Update) ===');
+        console.log('Employee ID:', employeeId);
+        console.log('Week:', weekStartDate.toISOString().split('T')[0], '-', weekEndDate.toISOString().split('T')[0]);
+        console.log('Days with hours approved:', daysWithHours.map((h, i) => h ? (daysAllApproved[i] ? `Day ${i}: ✓` : `Day ${i}: ✗`) : `Day ${i}: (no hours)`).join(', '));
+        
+        await createTimesheetApprovedNotification(
+          employeeId,
+          weekStartDate,
+          weekEndDate
+        );
+        console.log('✓ Timesheet approval notification sent successfully');
+      } catch (notificationError) {
+        console.error('✗ Failed to send timesheet approval notification:', notificationError);
+      }
     }
   }
 
@@ -636,30 +698,65 @@ export const batchUpdateDailyTimesheetStatus = async (
 
       timesheet.markModified('data');
 
-      const allItemsProcessed = timesheet.data.every((cat) =>
-        cat.items.every((itm) =>
-          itm.dailyStatus.every(
-            (dayStatus) =>
-              dayStatus === TimesheetStatus.Approved ||
-              dayStatus === TimesheetStatus.Rejected
-          )
-        )
+      // Check day by day: For each day (0-6), if ANY item has hours on that day,
+      // then ALL items with hours on that day must be approved or rejected
+      const daysWithHours = new Array(7).fill(false);
+      const daysAllProcessed = new Array(7).fill(true);
+      const daysAllApproved = new Array(7).fill(true);
+
+      // First pass: identify which days have hours and check their status
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        let dayHasHours = false;
+        let dayAllProcessedStatus = true;
+        let dayAllApprovedStatus = true;
+
+        timesheet.data.forEach((cat) => {
+          cat.items.forEach((itm) => {
+            const hourValue = parseFloat(itm.hours[dayIndex] || '0');
+            if (hourValue > 0) {
+              dayHasHours = true;
+              const dayStatus = itm.dailyStatus[dayIndex];
+              
+              // Check if this day is processed (approved or rejected)
+              if (dayStatus !== TimesheetStatus.Approved && dayStatus !== TimesheetStatus.Rejected) {
+                dayAllProcessedStatus = false;
+              }
+              
+              // Check if this day is approved
+              if (dayStatus !== TimesheetStatus.Approved) {
+                dayAllApprovedStatus = false;
+              }
+            }
+          });
+        });
+
+        daysWithHours[dayIndex] = dayHasHours;
+        if (dayHasHours) {
+          daysAllProcessed[dayIndex] = dayAllProcessedStatus;
+          daysAllApproved[dayIndex] = dayAllApprovedStatus;
+        }
+      }
+
+      // Check if all days with hours are processed
+      const allDaysWithHoursProcessed = daysWithHours.every((hasHours, idx) => 
+        !hasHours || daysAllProcessed[idx]
       );
 
-      console.log('All items processed:', allItemsProcessed);
+      console.log('Days with hours:', daysWithHours);
+      console.log('Days all processed:', daysAllProcessed);
+      console.log('All days with hours processed:', allDaysWithHoursProcessed);
 
-      if (allItemsProcessed) {
-        const allApproved = timesheet.data.every((cat) =>
-          cat.items.every((itm) =>
-            itm.dailyStatus.every(
-              (dayStatus) => dayStatus === TimesheetStatus.Approved
-            )
-          )
+      if (allDaysWithHoursProcessed) {
+        // Check if all days with hours are approved
+        const allDaysWithHoursApproved = daysWithHours.every((hasHours, idx) => 
+          !hasHours || daysAllApproved[idx]
         );
 
-        console.log('All approved:', allApproved);
+        console.log('Days all approved:', daysAllApproved);
+        console.log('All days with hours approved:', allDaysWithHoursApproved);
 
-        timesheet.status = allApproved
+        const previousStatus = timesheet.status;
+        timesheet.status = allDaysWithHoursApproved
           ? TimesheetStatus.Approved
           : TimesheetStatus.Rejected;
 
@@ -669,6 +766,33 @@ export const batchUpdateDailyTimesheetStatus = async (
           );
           if (rejectionUpdate?.rejectionReason) {
             timesheet.rejectionReason = rejectionUpdate.rejectionReason;
+          }
+        }
+
+        // Send notification to employee when all dates with hours are approved
+        if (allDaysWithHoursApproved && previousStatus !== TimesheetStatus.Approved) {
+          try {
+            const weekStartDate = new Date(timesheet.weekStartDate);
+            const weekEndDate = new Date(weekStartDate);
+            weekEndDate.setDate(weekEndDate.getDate() + 6);
+            
+            const employeeId = ((timesheet.userId as any)._id || timesheet.userId).toString();
+            
+            console.log('=== Sending Timesheet Approval Notification (Batch Update) ===');
+            console.log('Employee ID:', employeeId);
+            console.log('Week:', weekStartDate.toISOString().split('T')[0], '-', weekEndDate.toISOString().split('T')[0]);
+            console.log('Previous Status:', previousStatus);
+            console.log('New Status:', TimesheetStatus.Approved);
+            console.log('Days with hours approved:', daysWithHours.map((h, i) => h ? (daysAllApproved[i] ? `Day ${i}: ✓` : `Day ${i}: ✗`) : `Day ${i}: (no hours)`).join(', '));
+            
+            await createTimesheetApprovedNotification(
+              employeeId,
+              weekStartDate,
+              weekEndDate
+            );
+            console.log('✓ Timesheet approval notification sent successfully to employee:', employeeId);
+          } catch (notificationError) {
+            console.error('✗ Failed to send timesheet approval notification:', notificationError);
           }
         }
       }
@@ -1075,7 +1199,8 @@ export const requestTimesheetEdit = async (userId: string, timesheetId: string) 
         employeeName,
         weekStartDate,
         weekEndDate,
-        timesheetId
+        timesheetId,
+        userId // Pass employeeId for navigation
       );
     } catch (error) {
       console.error('Error sending edit request notification to supervisor:', supervisorId, error);

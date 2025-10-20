@@ -18,9 +18,8 @@ import { listMyNotifications, markAllNotificationsRead } from '../../../api/noti
 import { INotificationDropdownProps } from '../../../interfaces/organisms';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setWeekStartDate, setWeekEndDate, setReviewEmployeeId, setReviewWeekStartDate } from '../../../store/slices/timesheetSlice';
-import { select_btn } from '../../../store/slices/dashboardNavSlice';
-import { NotificationType } from '@tms/shared';
+import { useAuth } from '../../../contexts/AuthContext';
+import { handleNotificationNavigation, formatRelativeTime } from '../../../utils';
 
 const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
   iconButtonSx = {},
@@ -34,6 +33,8 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
     markAllRead, 
     setNotificationsFromServer 
   } = useSocket();
+  const { authState } = useAuth();
+  const { user } = authState;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -80,7 +81,6 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
       console.error('Error fetching notifications:', error);
     }
 
-    
     try {
       await markAllNotificationsRead();
       markAllRead();
@@ -93,133 +93,9 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
     setAnchorEl(null);
   };
 
-  const getWeekStartFromDate = (dateString: string): string => {
-    // Parse date in UTC to avoid timezone issues
-    const date = new Date(dateString + 'T00:00:00Z');
-    const utcDay = date.getUTCDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    // Calculate days to subtract to get to Monday
-    const diffToMonday = (utcDay + 6) % 7; // Sunday: 6, Monday: 0, Tuesday: 1, etc.
-    const monday = new Date(Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate() - diffToMonday,
-      0, 0, 0, 0
-    ));
-    return monday.toISOString().slice(0, 10);
-  };
-
   const handleNotificationItemClick = (notification: any) => {
     handleClose();
-
-    console.log('🔔 Notification clicked:', notification.type);
-    console.log('📅 Notification data:', notification);
-
-    let weekStart: string | null = null;
-    
-    if (notification.weekStartDate) {
-      weekStart = notification.weekStartDate;
-      console.log('✅ Found weekStartDate in notification:', weekStart);
-    } 
-    else if (notification.rejectedDates && notification.rejectedDates.length > 0) {
-      const firstRejectedDate = notification.rejectedDates[0];
-      weekStart = getWeekStartFromDate(firstRejectedDate);
-      console.log('✅ Calculated weekStart from rejectedDates:', weekStart);
-    }
-    else if (notification.message) {
-      // Try to parse date from message for various notification types
-      const dateMatch = notification.message.match(/week of (\w{3} \w{3} \d{1,2} \d{4})/);
-      if (dateMatch && dateMatch[1]) {
-        const parsedDate = new Date(dateMatch[1]);
-        if (!isNaN(parsedDate.getTime())) {
-          const year = parsedDate.getFullYear();
-          const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-          const day = String(parsedDate.getDate()).padStart(2, '0');
-          weekStart = `${year}-${month}-${day}`;
-          console.log('✅ Parsed weekStart from message:', weekStart);
-        }
-      }
-    }
-
-    if (weekStart) {
-      const startDate = new Date(weekStart);
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
-      const weekEnd = endDate.toISOString().slice(0, 10);
-
-      console.log('📆 Dispatching week range:', weekStart, 'to', weekEnd);
-      dispatch(setWeekStartDate(weekStart));
-      dispatch(setWeekEndDate(weekEnd));
-    } else {
-      console.warn('⚠️ No weekStart found for notification');
-    }
-
-    switch (notification.type) {
-      case NotificationType.TimesheetRejected:
-      case NotificationType.TimesheetReminder:
-      case NotificationType.TimesheetEditRequest:
-      case NotificationType.TimesheetEditApproved:
-      case NotificationType.TimesheetEditRejected:
-        dispatch(select_btn('My Timesheets'));
-        // Navigate with state to force re-render even if already on page
-        navigate('/employee', { 
-          replace: window.location.pathname === '/employee',
-          state: { timestamp: Date.now() }
-        });
-        break;
-      
-      case NotificationType.TimesheetSubmitted:
-        // Navigate to Review Timesheets for supervisor notifications
-        console.log('👤 Review employee ID from notification:', notification.relatedUserId);
-        console.log('� Review week start:', weekStart);
-        
-        // Check if we have the necessary data
-        if (!notification.relatedUserId) {
-          console.warn('⚠️ This notification was created before the employee ID tracking feature was added.');
-          console.warn('⚠️ The drawer will not auto-open. Please manually find the employee.');
-          console.warn('💡 Tip: New notifications will have this feature.');
-        }
-        
-        // Set the employee ID and week for auto-opening the drawer
-        if (notification.relatedUserId) {
-          dispatch(setReviewEmployeeId(notification.relatedUserId));
-          if (weekStart) {
-            dispatch(setReviewWeekStartDate(weekStart));
-          }
-          dispatch(select_btn('Review Timesheets'));
-          navigate(`/employee?openEmployeeId=${notification.relatedUserId}`);
-        } else {
-          if (weekStart) {
-            dispatch(setReviewWeekStartDate(weekStart));
-          }
-          dispatch(select_btn('Review Timesheets'));
-          navigate('/employee');
-        }
-        break;
-      
-      case NotificationType.ProjectAssignment:
-      case NotificationType.TeamAssignment:
-        dispatch(select_btn('My Timesheets'));
-        navigate('/employee');
-        break;
-      
-      default:
-        navigate('/employee');
-        break;
-    }
-  };
-
-  const formatTime = (timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return new Date(timestamp).toLocaleDateString();
+    handleNotificationNavigation(notification, dispatch, navigate, user?.role);
   };
 
   return (
@@ -334,7 +210,7 @@ const NotificationDropdown: React.FC<INotificationDropdownProps> = ({
                         color="text.secondary"
                         sx={{ flexShrink: 0 }}
                       >
-                        {formatTime(notification.createdAt)}
+                        {formatRelativeTime(notification.createdAt)}
                       </Typography>
                     </Box>
                   }

@@ -36,8 +36,22 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const reviewWeekStartDate = useSelector((state: any) => state.timesheet.reviewWeekStartDate);
   const currentUserId = authState.user?._id;
   
-  // Get employee ID from URL params
   const openEmployeeIdFromUrl = searchParams.get('openEmployeeId');
+  
+  const employeeTimesheetMap = timesheets.reduce((map: any, timesheet: any) => {
+    const userId = timesheet.userId?._id;
+    if (!userId || userId === currentUserId) return map;
+    
+    if (!map[userId]) {
+      map[userId] = [];
+    }
+    map[userId].push({
+      weekStartDate: timesheet.weekStartDate,
+      status: timesheet.status,
+      _id: timesheet._id
+    });
+    return map;
+  }, {});
   
   
   const filteredRows = rows.filter(r => r.status !== TimesheetStatus.Draft);
@@ -50,7 +64,6 @@ const ReviewTimesheetsWindow: React.FC = () => {
 
     if (!row.employee) return groups;
     
-    // Exclude the current user's timesheets
     if (currentUserId && row.employee._id === currentUserId) {
       return groups;
     }
@@ -104,12 +117,49 @@ const ReviewTimesheetsWindow: React.FC = () => {
   const [openRow, setOpenRow] = useState<number | null>(null);
   const [approvingEditRequest, setApprovingEditRequest] = useState(false);
   const [rejectingEditRequest, setRejectingEditRequest] = useState(false);
+  const [isRefreshingForNotification, setIsRefreshingForNotification] = useState(false);
   const hasProcessedReviewRef = useRef<string | null>(null);
+  const lastRefreshedTargetRef = useRef<string | null>(null);
   const retryCountRef = useRef(0);
 
   useEffect(() => {
     const targetEmployeeId = openEmployeeIdFromUrl || reviewEmployeeId;
+    const targetWeekStart = reviewWeekStartDate;
     
+    const targetKey = targetEmployeeId || targetWeekStart || null;
+    
+    if (targetKey && targetKey !== lastRefreshedTargetRef.current && !isRefreshingForNotification && !isLoading) {
+      console.log('🔄 Refreshing supervised timesheets data due to notification navigation');
+      setIsRefreshingForNotification(true);
+      lastRefreshedTargetRef.current = targetKey;
+      hasProcessedReviewRef.current = null; 
+      retryCountRef.current = 0; 
+      refresh().then(() => {
+        console.log('✅ Data refreshed successfully');
+        setTimeout(() => {
+          setIsRefreshingForNotification(false);
+        }, 200);
+      });
+    }
+    
+    if (!targetKey) {
+      lastRefreshedTargetRef.current = null;
+      if (isRefreshingForNotification) {
+        setIsRefreshingForNotification(false);
+      }
+    }
+  }, [reviewEmployeeId, openEmployeeIdFromUrl, reviewWeekStartDate, isLoading, isRefreshingForNotification, refresh]);
+
+  useEffect(() => {
+    const targetEmployeeId = openEmployeeIdFromUrl || reviewEmployeeId;
+    const targetWeekStart = reviewWeekStartDate;
+    
+    // Wait while refreshing data
+    if (isRefreshingForNotification) {
+      return;
+    }
+    
+    // Handle case with employee ID
     if (targetEmployeeId && targetEmployeeId !== hasProcessedReviewRef.current && !isLoading) {
       if (filteredEmployeeGroups.length === 0 && retryCountRef.current < 10) {
         retryCountRef.current++;
@@ -160,7 +210,99 @@ const ReviewTimesheetsWindow: React.FC = () => {
         hasProcessedReviewRef.current = null;
       }
     }
-  }, [reviewEmployeeId, openEmployeeIdFromUrl, isLoading, filteredEmployeeGroups, employeeGroups.length, dispatch, searchText, searchParams, setSearchParams]);
+    else if (!targetEmployeeId && targetWeekStart && targetWeekStart !== hasProcessedReviewRef.current && !isLoading) {
+      if (filteredEmployeeGroups.length === 0 && retryCountRef.current < 10) {
+        retryCountRef.current++;
+        setTimeout(() => {
+          setOpenRow(prev => prev === null ? -1 : null);
+        }, 500);
+        return;
+      }
+      
+      const employeeIndex = filteredEmployeeGroups.findIndex(group => {
+        const employeeId = group.employee._id;
+        const employeeTimesheets = employeeTimesheetMap[employeeId] || [];
+        
+        employeeTimesheets.forEach((ts: any) => {
+          const normalizedWeek = ts.weekStartDate ? new Date(ts.weekStartDate).toISOString().slice(0, 10) : null;
+        });
+        
+        const hasMatch = employeeTimesheets.some((ts: any) => {
+          const tsWeek = ts.weekStartDate ? new Date(ts.weekStartDate).toISOString().slice(0, 10) : null;
+          const weekMatches = tsWeek === targetWeekStart;
+          const statusMatches = ts.status === TimesheetStatus.EditRequested;
+          console.log(`  🔎 Checking: week=${tsWeek} vs ${targetWeekStart} (match: ${weekMatches}), status=${ts.status} (match: ${statusMatches})`);
+          return weekMatches && statusMatches;
+        });
+        
+        return hasMatch;
+      });
+      
+      if (employeeIndex !== -1) {  
+        setTimeout(() => {
+          console.log('⏰ Opening drawer for employee at index:', employeeIndex);
+          setOpenRow(employeeIndex);
+          
+          setTimeout(() => {
+            const tableRows = document.querySelectorAll('tbody tr');
+            const targetRowIndex = employeeIndex * 2;
+            if (tableRows[targetRowIndex]) {
+              tableRows[targetRowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              console.warn('⚠️ Target row not found');
+            }
+          }, 300);
+        }, 200);
+        
+        hasProcessedReviewRef.current = targetWeekStart;
+        retryCountRef.current = 0;
+        
+        setTimeout(() => {
+          dispatch(setReviewWeekStartDate(null));
+          hasProcessedReviewRef.current = null;
+        }, 1500);
+      } else {
+        
+        const fallbackIndex = filteredEmployeeGroups.findIndex(group => {
+          const employeeId = group.employee._id;
+          const employeeTimesheets = employeeTimesheetMap[employeeId] || [];
+          
+          const hasEditRequest = employeeTimesheets.some((ts: any) => 
+            ts.status === TimesheetStatus.EditRequested
+          );
+          
+          return hasEditRequest;
+        });
+        
+        if (fallbackIndex !== -1) {
+          
+          setTimeout(() => {
+            setOpenRow(fallbackIndex);
+            
+            setTimeout(() => {
+              const tableRows = document.querySelectorAll('tbody tr');
+              const targetRowIndex = fallbackIndex * 2;
+              if (tableRows[targetRowIndex]) {
+                tableRows[targetRowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 300);
+          }, 200);
+          
+          hasProcessedReviewRef.current = targetWeekStart;
+          retryCountRef.current = 0;
+          
+          setTimeout(() => {
+            dispatch(setReviewWeekStartDate(null));
+            hasProcessedReviewRef.current = null;
+          }, 1500);
+        } else {
+          retryCountRef.current = 0;
+          dispatch(setReviewWeekStartDate(null));
+          hasProcessedReviewRef.current = null;
+        }
+      }
+    }
+  }, [reviewEmployeeId, openEmployeeIdFromUrl, reviewWeekStartDate, isLoading, filteredEmployeeGroups, employeeGroups.length, employeeTimesheetMap, dispatch, searchText, searchParams, setSearchParams, timesheets.length]);
 
   const handleApproveEditRequest = async (timesheetId: string) => {
     setApprovingEditRequest(true);

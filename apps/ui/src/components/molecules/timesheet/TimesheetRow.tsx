@@ -54,12 +54,8 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
           tooltipMessage = 'You do not supervise this team or employee';
         }
       } else {
-        // Other entries: can approve if supervises the employee
-        canApprove = supervisesEmployee;
-        
-        if (!supervisesEmployee) {
-          tooltipMessage = 'You do not supervise this employee';
-        }
+        // Other entries (sick, vacation, etc.): any supervisor can approve
+        canApprove = true;
       }
       
       const isCheckboxDisabled = isDisabled || !canApprove;

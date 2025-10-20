@@ -18,7 +18,7 @@ export const registerHandler = (role: UserRole) =>
       role,
     };
 
-    const user = await createUser(requestWithRole);
+    const user = await createUser(requestWithRole, req.userId);
 
     return res.status(CREATED).json(user);
   });
@@ -36,7 +36,7 @@ export const deleteUserHandler = () =>
   catchErrors(async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    await deleteUser(id);
+    await deleteUser(id, req.userId);
 
     return res.status(OK).json({ message: 'User deleted successfully' });
   });
@@ -59,6 +59,6 @@ export const updateUserHandler = () =>
   catchErrors(async (req: Request, res: Response) => {
     const { id } = req.params;
     const parsed = updateUserSchema.parse(req.body);
-    const result = await updateUserById(id, parsed);
+    const result = await updateUserById(id, parsed, req.userId);
     return res.status(OK).json(result);
   });

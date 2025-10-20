@@ -23,7 +23,7 @@ export const createHandler = catchErrors(async (req, res) => {
     supervisor: parsedUi.supervisor ?? null,
   });
 
-  const project = await createProject(normalized);
+  const project = await createProject(normalized, req.userId);
 
   return res.status(CREATED).json(project);
 });
@@ -47,13 +47,13 @@ export const updateStaffHandler = catchErrors(async (req, res) => {
     employees?: string[];
     supervisor?: string | null;
   };
-  const result = await updateProjectStaff(id, { employees, supervisor });
+  const result = await updateProjectStaff(id, { employees, supervisor }, req.userId);
   return res.status(OK).json(result);
 });
 
 export const deleteHandler = catchErrors(async (req, res) => {
   const { id } = req.params as { id: string };
-  const result = await softDeleteProject(id);
+  const result = await softDeleteProject(id, req.userId);
   return res.status(OK).json(result);
 });
 

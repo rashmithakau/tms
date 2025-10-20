@@ -6,6 +6,7 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import AdminWindow from '../components/organisms/user/AdminWindow';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import HistoryIcon from '@mui/icons-material/History';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
 
@@ -20,6 +21,7 @@ const AdminPage = () => {
       { text: 'Accounts', icon: <AssessmentOutlinedIcon /> },
       { text: 'Teams', icon: <BusinessOutlinedIcon /> },
       { text: 'My Timesheets', icon: <AssignmentIcon /> },
+      { text: 'History', icon: <HistoryIcon /> },
     ]
   ];
 

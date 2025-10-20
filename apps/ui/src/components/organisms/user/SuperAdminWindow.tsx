@@ -16,6 +16,8 @@ import AdminDashboardWindow from '../admin/AdminDashboardWindow';
 import { useDashboardStats, useTimesheetRejectionReasons } from '../../../hooks/api/useDashboard';
 import EditAccountPopup from '../auth/popup/EditAccountPopup';
 import ProfilePopup from '../popup/ProfilePopup';
+import { SuperAdminHistoryWindow } from '../history';
+
 
 const SuperAdminWindow: React.FC = () => {
   const theme = useTheme();
@@ -23,7 +25,7 @@ const SuperAdminWindow: React.FC = () => {
   const selectedBtn = useSelector((state: any) => state.dashboardNav.selectedBtn);
 
   useEffect(() => {
-    if (!selectedBtn || (selectedBtn !== 'Dashboard' && selectedBtn !== 'Accounts')) {
+    if (!selectedBtn || (selectedBtn !== 'Dashboard' && selectedBtn !== 'Accounts' && selectedBtn !== 'History')) {
       dispatch(select_btn('Dashboard'));
     }
   }, []);
@@ -257,6 +259,11 @@ const SuperAdminWindow: React.FC = () => {
         />
 </>
     );
+  }
+
+  // History View
+  if (selectedBtn === 'History') {
+    return <SuperAdminHistoryWindow />;
   }
 
   return null;
