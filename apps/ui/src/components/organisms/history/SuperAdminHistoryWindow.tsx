@@ -2,10 +2,11 @@ import React from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import WindowLayout from '../../templates/layout/WindowLayout';
 import HistoryTable from '../history/HistoryTable';
+import HistoryFilter from '../../molecules/history/HistoryFilter';
 import { useHistory } from '../../../hooks/api/useHistory';
 
 const SuperAdminHistoryWindow: React.FC = () => {
-  const { history, loading, error } = useHistory();
+  const { history, loading, error, applyFilters } = useHistory();
 
   return (
     <WindowLayout
@@ -23,6 +24,13 @@ const SuperAdminHistoryWindow: React.FC = () => {
             {error}
           </Alert>
         )}
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <HistoryFilter 
+            onFilterChange={applyFilters}
+            showUserFilter={true}
+          />
+        </Box>
 
         <HistoryTable
           rows={history}

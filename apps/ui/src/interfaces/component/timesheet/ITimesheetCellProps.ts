@@ -9,6 +9,6 @@ export interface TimesheetCellProps {
   isEditable: boolean;
   onCellClick: () => void;
   onCellChange: (value: string) => void;
-  onCellKeyDown: (e: React.KeyboardEvent) => void;
+  onCellKeyDown: (e: React.KeyboardEvent, descriptionButtonEvent?: React.MouseEvent<HTMLButtonElement>) => void;
   onDescriptionClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
