@@ -84,12 +84,9 @@ export const previewDetailedTimesheet = async (filter: ReportFilter) => {
 export const previewDetailedTimesheetRaw = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
   params.set('format', 'json');
-  const res = await API.get<{ data: any[] }>(`/api/reports/detailed-timesheet?${params.toString()}`);
+  const res = await API.get<{ data: any[] }>(`/api/reports/timesheet-entries?${params.toString()}`);
   return res.data.data;
 };
-
-
-// removed previewRejectedTimesheets API as feature is not supported
 
 
 export const getSupervisedEmployees = async () => {

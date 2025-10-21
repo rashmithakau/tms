@@ -37,33 +37,52 @@ export class ApprovalStatusExcel extends BaseExcelGenerator {
     periodRow.alignment = { horizontal: 'center' };
     periodRow.height = 13;
 
-    // Table header
-    this.addHeaderRow(['Employee Name', 'Email', 'Week Start', 'Week End', 'Status']);
-    const headerRow = this.worksheet.lastRow;
-    if (headerRow) {
-      headerRow.font = { bold: true, size: 9 };
-      headerRow.height = 14;
-    }
-
-    // Sort by week start for consistency
-    const sorted = data.slice().sort((a, b) => {
-      const aTime = new Date(a.weekStartDate as any).getTime();
-      const bTime = new Date(b.weekStartDate as any).getTime();
-      return aTime - bTime;
+    // Group data by employee
+    const groupedData: { [employeeKey: string]: IApprovalStatusReport[] } = {};
+    
+    data.forEach(item => {
+      const employeeKey = `${item.employeeName}|${item.employeeEmail}`;
+      if (!groupedData[employeeKey]) {
+        groupedData[employeeKey] = [];
+      }
+      groupedData[employeeKey].push(item);
     });
 
-    // Rows
-    sorted.forEach((item) => {
-      const startDate = new Date(item.weekStartDate);
-      const weekEndDate = new Date(startDate);
-      weekEndDate.setDate(startDate.getDate() + 6);
-      this.addDataRow([
-        item.employeeName,
-        (item as any).employeeEmail,
-        typeof item.weekStartDate === 'string' ? item.weekStartDate : new Date(item.weekStartDate).toISOString().slice(0, 10),
-        weekEndDate.toISOString().slice(0, 10),
-        item.approvalStatus
-      ]);
+    // Process each employee group
+    Object.keys(groupedData).forEach(employeeKey => {
+      const employeeData = groupedData[employeeKey];
+      const firstItem = employeeData[0];
+      
+      // Add employee header
+      this.addEmployeeHeader(firstItem.employeeName, firstItem.employeeEmail);
+      
+      // Sort employee's timesheets by week start date
+      const sortedEmployeeData = employeeData.sort((a, b) => 
+        new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime()
+      );
+
+      // Add table header for this employee
+      this.addHeaderRow(['Week Start', 'Week End', 'Status']);
+      const headerRow = this.worksheet.lastRow;
+      if (headerRow) {
+        headerRow.font = { bold: true, size: 9 };
+        headerRow.height = 14;
+      }
+
+      // Add rows for this employee
+      sortedEmployeeData.forEach((item) => {
+        const startDate = new Date(item.weekStartDate);
+        const weekEndDate = new Date(startDate);
+        weekEndDate.setDate(startDate.getDate() + 6);
+        this.addDataRow([
+          typeof item.weekStartDate === 'string' ? item.weekStartDate : new Date(item.weekStartDate).toISOString().slice(0, 10),
+          weekEndDate.toISOString().slice(0, 10),
+          item.approvalStatus
+        ]);
+      });
+
+      // Add some space between employees
+      this.worksheet.addRow([]);
     });
 
     // Analytics & Key Metrics
@@ -82,7 +101,7 @@ export class ApprovalStatusExcel extends BaseExcelGenerator {
     this.worksheet.mergeCells(metricsHeader.number, 4, metricsHeader.number, 5);
     metricsHeader.font = { bold: true, size: 10 };
 
-    const stats = this.calculateApprovalStatistics(sorted);
+    const stats = this.calculateApprovalStatistics(data);
 
     const metrics: Array<[string, string | number]> = [
       ['Total Employees', stats.uniqueEmployees],
@@ -132,6 +151,12 @@ export class ApprovalStatusExcel extends BaseExcelGenerator {
       approvedCount,
       approvalRate
     };
+  }
+
+  private addEmployeeHeader(employeeName: string, employeeEmail: string): void {
+    const employeeRow = this.worksheet.addRow([`${employeeName} - ${employeeEmail}`]);
+    employeeRow.font = { bold: true, size: 11 };
+    employeeRow.height = 16;
   }
 
   async write(res: any, filename: string): Promise<void> {

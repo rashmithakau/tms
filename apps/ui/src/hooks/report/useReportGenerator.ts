@@ -12,20 +12,30 @@ import { ReportFilter, Employee } from '../../interfaces/api';
 import { ReportMetadata } from '@tms/shared';
 import { downloadBlobAsFile, generateReportFilename } from '../../utils';
 import { UseReportGeneratorOptions, UseReportGeneratorReturn } from '../../interfaces/report/hook/IUseReportGenerator';
+import { useAuth } from '../../contexts/AuthContext';
+import { UserRole } from '@tms/shared';
+import { getAllActiveUsers } from '../../api/user';
 
 
 export const useReportGenerator = (options: UseReportGeneratorOptions = {}): UseReportGeneratorReturn => {
   const { onSuccess, onError } = options;
   const { success: showSuccess, error: showError } = useToast();
+  const { authState } = useAuth();
+  const currentUser = authState.user;
+  const userRole = currentUser?.role as UserRole;
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [supervisedEmployees, setSupervisedEmployees] = useState<Employee[]>([]);
   const [reportMetadata, setReportMetadata] = useState<ReportMetadata | null>(null);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Determine if user can see all data or only supervised data
+  const canSeeAllData = userRole === UserRole.Admin || userRole === UserRole.SupervisorAdmin || userRole === UserRole.SuperAdmin;
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [canSeeAllData]);
 
   const loadInitialData = async () => {
     await Promise.all([
@@ -39,10 +49,19 @@ export const useReportGenerator = (options: UseReportGeneratorOptions = {}): Use
     setError(null);
     
     try {
-      const response = await getSupervisedEmployees();
-      setSupervisedEmployees(response.data.employees);
+      let response;
+      
+      if (canSeeAllData) {
+        // Admin, SupervisorAdmin, SuperAdmin can see all users
+        response = await getAllActiveUsers();
+        setSupervisedEmployees(response.data.users || []);
+      } else {
+        // Supervisor can only see supervised employees
+        response = await getSupervisedEmployees();
+        setSupervisedEmployees(response.data.employees);
+      }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to load supervised employees';
+      const errorMessage = err.response?.data?.message || 'Failed to load employees';
       setError(errorMessage);
       onError?.(errorMessage);
       showError(errorMessage);

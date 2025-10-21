@@ -15,27 +15,27 @@ import {
   useTheme 
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
-import { EmployeeSelectProps } from '../../../../interfaces/report/filter'
+import { TeamSelectProps } from '../../../../interfaces/report/filter';
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 
-const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds, onChange, disabled }) => {
+const TeamSelect: React.FC<TeamSelectProps> = ({ teams, selectedTeamIds, onChange, disabled }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
   
-  // Filter employees based on search term
-  const filteredEmployees = useMemo(() => {
-    if (!searchTerm.trim()) return employees;
+  // Filter teams based on search term
+  const filteredTeams = useMemo(() => {
+    if (!searchTerm.trim()) return teams;
     
-    return employees.filter(employee => {
-      const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
-      const email = employee.email.toLowerCase();
+    return teams.filter(team => {
+      const teamName = team.teamName.toLowerCase();
       const search = searchTerm.toLowerCase();
       
-      return fullName.includes(search) || email.includes(search);
+      return teamName.includes(search);
     });
-  }, [employees, searchTerm]);
+  }, [teams, searchTerm]);
 
   // Function to highlight matching text
   const highlightText = (text: string, searchTerm: string) => {
@@ -46,7 +46,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <span key={index} style={{ backgroundColor:theme.palette.background.paper, fontWeight: 'bold' }}>
+        <span key={index} style={{ backgroundColor: theme.palette.background.paper, fontWeight: 'bold' }}>
           {part}
         </span>
       ) : part
@@ -57,7 +57,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
     PaperProps: {
       style: {
         maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 250,
+        width: 300,
         backgroundColor: theme.palette.background.default,
       },
     },
@@ -73,7 +73,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
 
   return (
     <FormControl fullWidth size="small" disabled={disabled}>
-      <InputLabel>Employees</InputLabel>
+      <InputLabel>Teams</InputLabel>
       <Select
         multiple
         open={open}
@@ -82,17 +82,17 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
           setOpen(false);
           setSearchTerm(''); 
         }}
-        value={selectedIds}
+        value={selectedTeamIds}
         onChange={handleSelectChange}
-        input={<OutlinedInput label="Employees" />}
+        input={<OutlinedInput label="Teams" />}
         renderValue={selected => (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {(selected as string[]).map(employeeId => {
-              const employee = employees.find(emp => emp._id === employeeId);
+            {(selected as string[]).map(teamId => {
+              const team = teams.find(t => t._id === teamId);
               return (
                 <Chip
-                  key={employeeId}
-                  label={employee ? `${employee.firstName} ${employee.lastName}` : employeeId}
+                  key={teamId}
+                  label={team ? team.teamName : teamId}
                   size="small"
                 />
               );
@@ -106,7 +106,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
           <TextField
             size="small"
             fullWidth
-            placeholder="Search employees..."
+            placeholder="Search teams..."
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(e) => e.stopPropagation()}
@@ -131,43 +131,58 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
         {searchTerm.trim() && (
           <Box sx={{ px: 2, py: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
             <Typography variant="caption" color="text.secondary">
-              Results for "{searchTerm}" ({filteredEmployees.length} found)
+              Results for "{searchTerm}" ({filteredTeams.length} found)
             </Typography>
           </Box>
         )}
 
-        {/* Employee List */}
-        {filteredEmployees.length > 0 ? (
-          filteredEmployees.map(employee => (
-            <MenuItem 
-              key={employee._id} 
-              value={employee._id}
-              sx={{
-                bgcolor: theme.palette.background.default,
-                '&:hover': {
-                  bgcolor: theme.palette.action.hover,
-                },
-              }}
-            >
-              <Checkbox 
-                checked={selectedIds.indexOf(employee._id) > -1} 
-              />
-              <ListItemText 
-                primary={highlightText(`${employee.firstName} ${employee.lastName}`, searchTerm)}
-                secondary={highlightText(employee.email, searchTerm)}
-              />
-            </MenuItem>
-          ))
+        {/* Team List */}
+        {filteredTeams.length > 0 ? (
+          filteredTeams.map(team => {
+            const supervisorName = team.supervisor 
+              ? `${team.supervisor.firstName} ${team.supervisor.lastName}`
+              : 'No supervisor';
+            
+            return (
+              <MenuItem 
+                key={team._id} 
+                value={team._id}
+                sx={{
+                  bgcolor: theme.palette.background.default,
+                  '&:hover': {
+                    bgcolor: theme.palette.action.hover,
+                  },
+                }}
+              >
+                <Checkbox 
+                  checked={selectedTeamIds.indexOf(team._id) > -1} 
+                />
+                <ListItemText 
+                  primary={highlightText(team.teamName, searchTerm)}
+                  secondary={
+                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                      <Typography variant="caption" component="span">
+                        {team.members.length} member{team.members.length !== 1 ? 's' : ''}
+                      </Typography>
+                      <Typography variant="caption" component="span" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                        Supervisor: {supervisorName}
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </MenuItem>
+            );
+          })
         ) : searchTerm.trim() ? (
           <MenuItem disabled>
             <ListItemText 
-              primary={`No employees found for "${searchTerm}"`}
+              primary={`No teams found for "${searchTerm}"`}
               secondary="Try a different search term"
             />
           </MenuItem>
         ) : (
           <MenuItem disabled>
-            <ListItemText primary="No employees available" />
+            <ListItemText primary="No teams available" />
           </MenuItem>
         )}
       </Select>
@@ -175,4 +190,5 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
   );
 };
 
-export default EmployeeSelect;
+export default TeamSelect;
+

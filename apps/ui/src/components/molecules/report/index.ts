@@ -1,6 +1,5 @@
 export * from './filter';
 export * from './generationpanel' ;
-export * from './informationpanel';
 export * from './table';
 export * from './alert';
 export * from './loading';

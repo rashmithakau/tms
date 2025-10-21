@@ -40,7 +40,8 @@ export default function CustomAppBar({
   const adminSelectedMenu = useSelector((state: any) => state.dashboardNav.selectedBtn);
   
   const shouldShowSearchBar = empSelectedMenu === EmpMenuItem.ReviewTimesheets || 
-                              adminSelectedMenu === 'Review Timesheets';
+                              adminSelectedMenu === 'Review Timesheets' ||
+                              adminSelectedMenu === 'Accounts';
 
   useEffect(() => {
     if (!shouldShowSearchBar) {
@@ -131,7 +132,11 @@ export default function CustomAppBar({
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
           {shouldShowSearchBar && (
             <Box sx={{ width: 400 }}>
-              <SearchBar searchBy="employee name" />
+              <SearchBar searchBy={
+                adminSelectedMenu === 'Accounts' 
+                  ? "Employee ID or Name" 
+                  : "Employee Name"
+              } />
             </Box>
           )}
         </Box>

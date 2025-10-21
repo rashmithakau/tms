@@ -14,7 +14,8 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
       () => this.currentY,
       (y) => this.currentY = y,
       (space) => this.checkPageBreak(space),
-      this.pageWidth
+      this.pageWidth,
+      () => this.isFirstPage
     );
   }
 
@@ -151,8 +152,8 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
           const baseCells = [
             weekStart,
             weekEnd,
-            timesheetWeek.status, // This status is already computed correctly in the controller
-          ];
+            timesheetWeek.status,
+          ]
           const workCells = includeWork ? [item.work || ''] : [];
           const dayCells = [
             this.formatHoursForDisplay(dailyHours[0]),
@@ -410,9 +411,9 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
     const allTeams = new Set<string>();
     let totalTasks = 0;
     
-    // Calculate accurate total hours from all items
+  
     data.forEach(d => {
-      // Track per-week leave hours aggregated across all other items
+     
       const weeklyLeaveHours: number[] = [0, 0, 0, 0, 0];
 
       d.categories.forEach(cat => {
@@ -440,7 +441,7 @@ export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
         });
       });
 
-      // Convert weekly aggregated leave hours to other day fractions (8h = 1 day)
+      // Convert weekly aggregated leave hours to other day fractions 
       for (let i = 0; i < 5; i++) {
         const fraction = weeklyLeaveHours[i] / 8;
         if (fraction > 0) otherDays += Math.min(fraction, 1);

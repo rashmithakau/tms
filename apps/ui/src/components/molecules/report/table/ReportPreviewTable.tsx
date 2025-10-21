@@ -122,7 +122,7 @@ const ReportPreviewTable = <T extends { weekStartDate?: string } = any>({
   // For main preview tables, use ReportLayout
   return (
     <ReportLayout
-      title={title || 'Preview Table'}
+      title={title || ''}
       noBorder
     >
       {rows.length === 0 ? (

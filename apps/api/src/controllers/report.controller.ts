@@ -68,7 +68,7 @@ export const getSupervisedEmployeesHandler: RequestHandler = async (req, res) =>
   res.json({ employees });
 };
 
-const buildTimesheetQuery = (supervisorId: string, userRole: UserRole, params: any) => {
+const buildTimesheetQuery = async (supervisorId: string, userRole: UserRole, params: any) => {
   const { startDate, endDate, employeeIds, approvalStatus, projectIds, teamIds } = params as {
     startDate?: string;
     endDate?: string;
@@ -102,22 +102,52 @@ const buildTimesheetQuery = (supervisorId: string, userRole: UserRole, params: a
     }
   }
 
+  // Handle team filtering with awareness of isDepartment property
+  let teamFilterMode: 'department' | 'non-department' | 'mixed' = 'department';
+  let selectedTeamIdsList: string[] = [];
   if (teamIds) {
     const list = Array.isArray(teamIds) ? teamIds : [teamIds];
+    selectedTeamIdsList = list;
     if (list.length) {
-      query['data.items.teamId'] = { $in: list };
+      // Check if selected teams include non-department teams
+      const selectedTeams = await TeamModel.find({ _id: { $in: list } }).select('_id isDepartment').lean();
+      const hasNonDept = selectedTeams.some((t: any) => t.isDepartment === false);
+      const hasDept = selectedTeams.some((t: any) => t.isDepartment !== false);
+      
+      if (hasNonDept && !hasDept) {
+        teamFilterMode = 'non-department';
+        
+      } else if (hasNonDept && hasDept) {
+        teamFilterMode = 'mixed';
+       
+        query['data.items.teamId'] = { $in: list };
+      } else {
+       
+        query['data.items.teamId'] = { $in: list };
+      }
     }
   }
 
-  return { query, memberFilter };
+  return { query, memberFilter, teamFilterMode, selectedTeamIds: selectedTeamIdsList };
 };
 
-const ensureSupervisorScope = async (supervisorId: string, userRole: UserRole, memberFilter: any) => {
+const ensureSupervisorScope = async (
+  supervisorId: string, 
+  userRole: UserRole, 
+  memberFilter: any,
+  teamFilterMode?: 'department' | 'non-department' | 'mixed',
+  selectedTeamIds?: string[]
+) => {
   if (userRole === UserRole.Admin || userRole === UserRole.SupervisorAdmin || userRole === UserRole.SuperAdmin) {
     // Admin, SupervisorAdmin, and SuperAdmin can access all employees except SuperAdmin
     if (memberFilter?.$in?.length) {
       // If specific employees are selected, use those
       return memberFilter.$in;
+    } else if (teamFilterMode === 'non-department' && selectedTeamIds && selectedTeamIds.length > 0) {
+      // For non-department teams, get members of those teams
+      const teams = await TeamModel.find({ _id: { $in: selectedTeamIds } }).select('members').lean();
+      const teamMembers = Array.from(new Set(teams.flatMap((t: any) => t.members.map((m: any) => String(m)))));
+      return teamMembers;
     } else {
       // If no specific employees selected, get all employees except SuperAdmin
       const allEmployees = await UserModel.find({ 
@@ -128,8 +158,17 @@ const ensureSupervisorScope = async (supervisorId: string, userRole: UserRole, m
   } else {
     // Supervisor can only access their supervised employees
     const memberIds = await getSupervisedEmployeeIds(supervisorId);
-    const scoped = memberFilter?.$in?.length ? memberFilter.$in.filter((id: string) => memberIds.includes(id)) : memberIds;
-    return scoped;
+    if (memberFilter?.$in?.length) {
+      const scoped = memberFilter.$in.filter((id: string) => memberIds.includes(id));
+      return scoped;
+    } else if (teamFilterMode === 'non-department' && selectedTeamIds && selectedTeamIds.length > 0) {
+      // For non-department teams, get members of those teams that are supervised
+      const teams = await TeamModel.find({ _id: { $in: selectedTeamIds } }).select('members').lean();
+      const teamMembers = Array.from(new Set(teams.flatMap((t: any) => t.members.map((m: any) => String(m)))));
+      return teamMembers.filter((id: string) => memberIds.includes(id));
+    } else {
+      return memberIds;
+    }
   }
 };
 
@@ -150,8 +189,8 @@ export const generateSubmissionStatusReportHandler: RequestHandler = async (req,
   const supervisorId = req.userId as string;
   const { format = 'excel', startDate, endDate, employeeIds, submissionStatus, projectIds, teamIds } = req.query as any;
 
-  const { query, memberFilter } = buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
-  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter);
+  const { query, memberFilter, teamFilterMode, selectedTeamIds } = await buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
+  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter, teamFilterMode, selectedTeamIds);
 
   const timesheets = await Timesheet.find({ ...query, userId: { $in: scopedIds } }).lean();
 
@@ -303,8 +342,8 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
   const userRole = req.userRole as UserRole;
   const { format = 'excel', startDate, endDate, employeeIds, approvalStatus, projectIds, teamIds } = req.query as any;
 
-  const { query, memberFilter } = buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, approvalStatus, projectIds, teamIds });
-  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter);
+  const { query, memberFilter, teamFilterMode, selectedTeamIds } = await buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, approvalStatus, projectIds, teamIds });
+  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter, teamFilterMode, selectedTeamIds);
 
   const timesheets = await Timesheet.find({ ...query, userId: { $in: scopedIds } }).lean();
   const users = await UserModel.find({ _id: { $in: scopedIds } }).select('_id firstName lastName email').lean();
@@ -492,10 +531,10 @@ export const generateApprovalStatusReportHandler: RequestHandler = async (req, r
 export const generateDetailedTimesheetReportHandler: RequestHandler = async (req, res) => {
   const supervisorId = req.userId as string;
   const userRole = req.userRole as UserRole;
-  const { format = 'excel', startDate, endDate, employeeIds, projectIds, teamIds } = req.query as any;
+  const { format = 'excel', startDate, endDate, employeeIds, projectIds, teamIds, workType } = req.query as any;
 
-  const { query, memberFilter } = buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
-  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter);
+  const { query, memberFilter, teamFilterMode, selectedTeamIds } = await buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
+  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter, teamFilterMode, selectedTeamIds);
 
   const timesheets = await Timesheet.find({ ...query, userId: { $in: scopedIds } }).lean();
   const users = await UserModel.find({ _id: { $in: scopedIds } }).select('_id firstName lastName email').lean();
@@ -514,14 +553,18 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
     )
   )));
 
-  // Fetch project and team names
+  // Fetch project and team names (and team isDepartment)
   const [projects, teams] = await Promise.all([
     allProjectIds.length ? ProjectModel.find({ _id: { $in: allProjectIds } }).select('_id projectName').lean() : [],
-    allTeamIds.length ? TeamModel.find({ _id: { $in: allTeamIds } }).select('_id teamName').lean() : [],
+    allTeamIds.length ? TeamModel.find({ _id: { $in: allTeamIds } }).select('_id teamName isDepartment').lean() : [],
   ]);
   
   const projectMap = new Map<string, string>(projects.map((p: any) => [String(p._id), p.projectName] as [string, string]));
   const teamMap = new Map<string, string>(teams.map((t: any) => [String(t._id), t.teamName] as [string, string]));
+  const teamDeptMap = new Map<string, boolean>(teams.map((t: any) => [String(t._id), Boolean(t.isDepartment)] as [string, boolean]));
+
+  // Check if any selected team filter is a non-department team
+  const hasNonDeptTeamFilter = teamFilterMode === 'non-department' || teamFilterMode === 'mixed';
 
   const data = timesheets.map((t: any) => {
     const user = userMap.get(String(t.userId));
@@ -537,9 +580,32 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
       [TimesheetStatus.Draft]: 1,
     };
 
-    const categories = (t.data || []).map((cat: any) => ({
+    const categories = (t.data || [])
+      .filter((cat: any) => {
+        if (!workType || workType === 'both') return true;
+        if (workType === 'project') return cat.category === 'Project';
+        if (workType === 'team') return cat.category === 'Team';
+        return true;
+      })
+      .map((cat: any) => ({
       category: cat.category,
-      items: (cat.items || []).map((item: any) => {
+      items: (cat.items || [])
+        .filter((item: any) => {
+          if (cat.category === 'Team') {
+            // If a non-department team is selected in filters, show all work
+            // Otherwise, only show department team work
+            const tid = item.teamId ? String(item.teamId) : '';
+            if (!tid) return false;
+            if (hasNonDeptTeamFilter) {
+              // Show all team work when non-dept team is selected
+              return true;
+            }
+            // Default behavior: only show department teams
+            return teamDeptMap.get(tid) === true;
+          }
+          return true;
+        })
+        .map((item: any) => {
         // Calculate total hours for this item
         const dailyHours = Array.isArray(item.hours) ? item.hours : [];
         const itemTotalHours = dailyHours.reduce((sum: number, hours: number) => sum + (hours || 0), 0);
@@ -621,12 +687,25 @@ export const generateDetailedTimesheetReportHandler: RequestHandler = async (req
 export const generateTimesheetEntriesReportHandler: RequestHandler = async (req, res) => {
   const supervisorId = req.userId as string;
   const userRole = req.userRole as UserRole;
-  const { format = 'pdf', startDate, endDate, employeeIds, projectIds, teamIds } = req.query as any;
+  const { format = 'pdf', startDate, endDate, employeeIds, projectIds, teamIds, workType } = req.query as any;
 
-  const { query, memberFilter } = buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
-  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter);
+  const { query, memberFilter, teamFilterMode, selectedTeamIds } = await buildTimesheetQuery(supervisorId, userRole, { startDate, endDate, employeeIds, projectIds, teamIds });
+  const scopedIds = await ensureSupervisorScope(supervisorId, userRole, memberFilter, teamFilterMode, selectedTeamIds);
 
   const timesheets = await Timesheet.find({ ...query, userId: { $in: scopedIds } }).lean();
+  // Preload teams for isDepartment filtering if needed
+  let teamDeptMap = new Map<string, boolean>();
+  if (!workType || workType === 'both' || workType === 'team') {
+    const allTeamIds = Array.from(new Set((timesheets as any[]).flatMap((t: any) => (t.data || []).flatMap((c: any) => (c.items || []).map((it: any) => it.teamId).filter(Boolean)))));
+    if (allTeamIds.length) {
+      const teams = await TeamModel.find({ _id: { $in: allTeamIds } }).select('_id isDepartment').lean();
+      teamDeptMap = new Map<string, boolean>(teams.map((t: any) => [String(t._id), Boolean(t.isDepartment)] as [string, boolean]));
+    }
+  }
+  
+  // Check if any selected team filter is a non-department team
+  const hasNonDeptTeamFilter = teamFilterMode === 'non-department' || teamFilterMode === 'mixed';
+  
   const users = await UserModel.find({ _id: { $in: scopedIds } }).select('_id firstName lastName email').lean();
   const userMap = new Map<string, { name: string; email: string }>();
   users.forEach((u: any) => userMap.set(String(u._id), { name: `${u.firstName} ${u.lastName}`, email: u.email }));
@@ -634,6 +713,11 @@ export const generateTimesheetEntriesReportHandler: RequestHandler = async (req,
   const dataByEmployee: Record<string, { employeeName: string; employeeEmail: string; tables: Array<{ title: string; rows: any[] }> }> = {};
 
   for (const t of timesheets as any[]) {
+    // Only process submitted timesheets for timesheet entries report
+    if (t.status === 'Draft') {
+      continue; // Skip draft/unsubmitted timesheets
+    }
+    
     const user = userMap.get(String(t.userId));
     const employeeKey = String(t.userId);
     if (!dataByEmployee[employeeKey]) {
@@ -643,8 +727,31 @@ export const generateTimesheetEntriesReportHandler: RequestHandler = async (req,
     // Resolve bounds once per timesheet for per-day filtering
     const startBound = startDate ? new Date(startDate as any) : null;
     const endBound = endDate ? new Date(endDate as any) : null;
-    (t.data || []).forEach((cat: any) => {
-      (cat.items || []).forEach((it: any) => {
+    (t.data || [])
+      .filter((cat: any) => {
+        if (!workType || workType === 'both') return true;
+        if (workType === 'project') return cat.category === 'Project';
+        if (workType === 'team') return cat.category === 'Team';
+        return true;
+      })
+      .forEach((cat: any) => {
+      (cat.items || [])
+        .filter((it: any) => {
+          if (cat.category === 'Team') {
+            // If a non-department team is selected in filters, show all work
+            // Otherwise, only show department team work
+            const tid = it.teamId ? String(it.teamId) : '';
+            if (!tid) return false;
+            if (hasNonDeptTeamFilter) {
+              // Show all team work when non-dept team is selected
+              return true;
+            }
+            // Default behavior: only show department teams
+            return teamDeptMap.get(tid) === true;
+          }
+          return true;
+        })
+        .forEach((it: any) => {
         const title = cat.category === 'Project' ? `Project: ${it.work || it.projectName || 'Project'}` : cat.category === 'Team' ? `Team: ${it.work || it.teamName || 'Team'}` : cat.category === 'Other' ? 'Leave' : cat.category;
         let table = dataByEmployee[employeeKey].tables.find((tb) => tb.title === title);
         if (!table) {

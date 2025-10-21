@@ -22,7 +22,8 @@ export class ProfessionalPDFComponents {
     private getCurrentY: () => number,
     private setCurrentY: (y: number) => void,
     private checkPageBreak: (space: number) => void,
-    private pageWidth: number
+    private pageWidth: number,
+    private getIsFirstPage: () => boolean
   ) {}
 
   //report header with company branding
@@ -104,6 +105,9 @@ export class ProfessionalPDFComponents {
    
     this.checkPageBreak(headerHeight + 5 + rowHeight);
 
+    // Determine if we're starting table on first page with header
+    const isFirstPageTable = this.getIsFirstPage();
+
     // Table header
     let x = this.margin;
     const tableY = this.getCurrentY();
@@ -141,8 +145,56 @@ export class ProfessionalPDFComponents {
 
     this.setCurrentY(tableY + headerHeight + 5);
 
+    // Track rows on current page
+    let rowsOnCurrentPage = 0;
+    const maxRowsFirstPage = 29; // First page with header
+    const maxRowsOtherPages = 35; // Other pages without header
+
     // Table rows
     data.forEach((rowData, rowIndex) => {
+      // Check if we need to break to new page based on row count
+      const currentPageIsFirst = this.getIsFirstPage();
+      const maxRowsForCurrentPage = currentPageIsFirst ? maxRowsFirstPage : maxRowsOtherPages;
+      
+      if (rowsOnCurrentPage >= maxRowsForCurrentPage) {
+        this.checkPageBreak(rowHeight * 5); // Force page break
+        rowsOnCurrentPage = 0;
+        
+        // Re-render table header on new page
+        x = this.margin;
+        const newTableY = this.getCurrentY();
+        
+        this.doc.rect(this.margin, newTableY, 
+          columnWidths.reduce((sum, width) => sum + width, 0), headerHeight)
+          .fill(headerColor);
+        
+        this.doc.rect(this.margin, newTableY + headerHeight, 
+          columnWidths.reduce((sum, width) => sum + width, 0), 2)
+          .fill(this.colors.border);
+        
+        this.doc.fontSize(8)
+          .fillColor('white')
+          .font('Helvetica-Bold');
+        
+        x = this.margin;
+        headers.forEach((header, index) => {
+          this.doc.text(header, x + 10, newTableY + 12, {
+            width: columnWidths[index] - 20,
+            align: textAlign,
+            ellipsis: true
+          });
+          
+          if (index < headers.length - 1) {
+            this.doc.rect(x + columnWidths[index], newTableY, 1, headerHeight)
+              .fill('rgba(255,255,255,0.2)');
+          }
+          
+          x += columnWidths[index];
+        });
+        
+        this.setCurrentY(newTableY + headerHeight + 5);
+      }
+      
       this.checkPageBreak(rowHeight + 5);
       
       const currentRowY = this.getCurrentY();
@@ -202,6 +254,7 @@ export class ProfessionalPDFComponents {
       });
 
       this.setCurrentY(currentRowY + rowHeight);
+      rowsOnCurrentPage++;
     });
 
     this.setCurrentY(this.getCurrentY() + 10);

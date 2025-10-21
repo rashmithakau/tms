@@ -29,7 +29,7 @@ const ReportPreviewContainer: React.FC<ReportPreviewContainerProps> = ({
     );
   }
 
-  // Show empty state when no supervised employees
+
   if (supervisedEmployeesCount === 0) {
     return (
       <ReportEmptyState
@@ -39,12 +39,12 @@ const ReportPreviewContainer: React.FC<ReportPreviewContainerProps> = ({
     );
   }
 
-  // Show preview based on report type
+
   if (!reportType) {
     return null;
   }
 
-  const isGroupedReport = reportType === 'detailed-timesheet' || reportType === 'timesheet-entries';
+  const isGroupedReport = reportType === 'detailed-timesheet' || reportType === 'timesheet-entries' || reportType === 'submission-status' || reportType === 'approval-status';
   const hasGroupedData = Object.keys(groupedPreviewData).length > 0;
 
   if (isGroupedReport && hasGroupedData) {

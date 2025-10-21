@@ -20,7 +20,7 @@ const ProtectedRoute: React.FC<IProtectedRouteProps> = ({
 
   useEffect(() => {
     const performAuthCheck = async () => {
-      if (requireAuth && !hasCheckedAuth) {
+      if (requireAuth && !hasCheckedAuth && !isCheckingAuth) {
         setIsCheckingAuth(true);
         try {
           await checkAuth();
@@ -30,13 +30,14 @@ const ProtectedRoute: React.FC<IProtectedRouteProps> = ({
           setHasCheckedAuth(true);
           setIsCheckingAuth(false);
         }
-      } else if (!requireAuth) {
+      } else if (!requireAuth && !hasCheckedAuth) {
         setHasCheckedAuth(true);
       }
     };
 
     performAuthCheck();
-  }, [checkAuth, hasCheckedAuth, requireAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requireAuth, hasCheckedAuth, isCheckingAuth]);
 
   // Show loading while checking authentication
   if (requireAuth && (isLoading || isCheckingAuth || !hasCheckedAuth)) {

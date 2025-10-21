@@ -14,7 +14,8 @@ export class SubmissionStatusPdf extends ProfessionalBasePDFGenerator {
       () => this.currentY,
       (y) => (this.currentY = y),
       (space) => this.checkPageBreak(space),
-      this.pageWidth
+      this.pageWidth,
+      () => this.isFirstPage
     );
   }
 
