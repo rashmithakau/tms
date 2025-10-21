@@ -91,10 +91,10 @@ const ReviewTimesheetsWindow: React.FC = () => {
 
   const filteredEmployeeGroups = employeeGroups.filter(group => {
     if (!searchText.trim()) return true;
-    
-    const fullName = `${group.employee.firstName} ${group.employee.lastName}`.toLowerCase();
+
+    const fullName = `${group.employee.firstName} ${group.employee.lastName}`.toLowerCase().replace(/\s+/g, ' ').trim();
     const email = group.employee.email?.toLowerCase() || '';
-    const searchLower = searchText.toLowerCase();
+    const searchLower = searchText.toLowerCase().replace(/\s+/g, ' ').trim();
     
     return fullName.includes(searchLower) || email.includes(searchLower);
   });

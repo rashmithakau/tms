@@ -14,7 +14,8 @@ export class ApprovalStatusPdf extends ProfessionalBasePDFGenerator {
       () => this.currentY,
       (y) => this.currentY = y,
       (space) => this.checkPageBreak(space),
-      this.pageWidth
+      this.pageWidth,
+      () => this.isFirstPage
     );
   }
 
@@ -51,30 +52,65 @@ export class ApprovalStatusPdf extends ProfessionalBasePDFGenerator {
       return;
     }
 
-    const headers = ['Employee', 'Email', 'Week Start', 'Week End', 'Status'];
-    const columnWidths = [150, 130, 80, 80, 80];
+    // Group data by employee
+    const groupedData: { [employeeKey: string]: IApprovalStatusReport[] } = {};
+    
+    data.forEach(item => {
+      const employeeKey = `${item.employeeName}|${item.employeeEmail}`;
+      if (!groupedData[employeeKey]) {
+        groupedData[employeeKey] = [];
+      }
+      groupedData[employeeKey].push(item);
+    });
 
-    const tableData = data
-      .slice()
-      .sort((a, b) => new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime())
-      .map(item => {
-      const startDate = new Date(item.weekStartDate);
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
+    // Process each employee group
+    Object.keys(groupedData).forEach(employeeKey => {
+      const employeeData = groupedData[employeeKey];
+      const firstItem = employeeData[0];
       
-      return [
-        item.employeeName,
-        item.employeeEmail,
-        `${this.formatDate(item.weekStartDate)}`,
-        `${this.formatDate(endDate)}`,
-        item.approvalStatus
-      ];
-    });
+      // Add employee header
+      this.addEmployeeHeader(firstItem.employeeName, firstItem.employeeEmail);
+      
+      // Sort employee's timesheets by week start date
+      const sortedEmployeeData = employeeData.sort((a, b) => 
+        new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime()
+      );
 
-    this.components.addProfessionalTable(headers, tableData, columnWidths, {
-      alternateRows: true,
-      fontSize: 9
+      // Create table for this employee
+      const headers = ['Week Start', 'Week End', 'Status'];
+      const columnWidths = [170, 170, 170];
+
+      const tableData = sortedEmployeeData.map(item => {
+        const startDate = new Date(item.weekStartDate);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        
+        return [
+          `${this.formatDate(item.weekStartDate)}`,
+          `${this.formatDate(endDate)}`,
+          item.approvalStatus
+        ];
+      });
+
+      this.components.addProfessionalTable(headers, tableData, columnWidths, {
+        alternateRows: true,
+        fontSize: 9
+      });
+
+      // Add some space between employees
+      this.currentY += 20;
     });
+  }
+
+  private addEmployeeHeader(employeeName: string, employeeEmail: string): void {
+    this.checkPageBreak(40);
+    
+    this.doc.fontSize(12)
+      .fillColor(this.colors.text.primary)
+      .font('Helvetica-Bold')
+      .text(`${employeeName} - ${employeeEmail}`, this.margin, this.currentY);
+    
+    this.currentY += 25;
   }
 
   private addAnalyticsSection(data: IApprovalStatusReport[]): void {

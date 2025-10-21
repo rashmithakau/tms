@@ -14,7 +14,8 @@ export class SubmissionStatusPdf extends ProfessionalBasePDFGenerator {
       () => this.currentY,
       (y) => (this.currentY = y),
       (space) => this.checkPageBreak(space),
-      this.pageWidth
+      this.pageWidth,
+      () => this.isFirstPage
     );
   }
 
@@ -88,29 +89,53 @@ export class SubmissionStatusPdf extends ProfessionalBasePDFGenerator {
       return;
     }
 
-    const headers = ['Employee', 'Email', 'Week Start', 'Week End', 'Status'];
-    const columnWidths = [150, 130, 80, 80, 80];
+    // Group data by employee
+    const groupedData = this.groupDataByEmployee(data);
 
-    const tableData = data
-      .slice()
-      .sort((a, b) => new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime())
-      .map((item) => {
-      const startDate = new Date(item.weekStartDate);
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
+    // Add each employee's data separately
+    Object.values(groupedData).forEach((employeeData, index) => {
+      if (index > 0) {
+        // Add spacing between employees
+        this.currentY += 20;
+      }
 
-      return [
-        item.employeeName,
-        item.employeeEmail,
-        `${this.formatDate(item.weekStartDate)}`,
-        `${this.formatDate(endDate)}`,
-        item.submissionStatus,
-      ];
-    });
+      // Employee header
+      this.doc
+        .fontSize(12)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica-Bold')
+        .text(
+          `${employeeData.employeeName} (${employeeData.employeeEmail})`,
+          this.margin,
+          this.currentY
+        );
 
-    this.components.addProfessionalTable(headers, tableData, columnWidths, {
-      alternateRows: true,
-      fontSize: 9,
+      this.currentY += 20;
+
+      // Table headers for this employee
+      const headers = ['Week Start', 'Week End', 'Status'];
+      const columnWidths = [170, 170, 170];
+
+      // Sort employee's data by week start date
+      const sortedEmployeeData = employeeData.weeks
+        .slice()
+        .sort((a, b) => new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime())
+        .map((item) => {
+          const startDate = new Date(item.weekStartDate);
+          const endDate = new Date(startDate);
+          endDate.setDate(startDate.getDate() + 6);
+
+          return [
+            `${this.formatDate(item.weekStartDate)}`,
+            `${this.formatDate(endDate)}`,
+            item.submissionStatus,
+          ];
+        });
+
+      this.components.addProfessionalTable(headers, sortedEmployeeData, columnWidths, {
+        alternateRows: true,
+        fontSize: 9,
+      });
     });
   }
 
@@ -237,6 +262,24 @@ export class SubmissionStatusPdf extends ProfessionalBasePDFGenerator {
 
   private addComplianceBreakdown(stats: any): void {
     this.currentY += 20;
+  }
+
+  private groupDataByEmployee(data: ISubmissionStatusReport[]) {
+    const grouped: { [key: string]: { employeeName: string; employeeEmail: string; weeks: ISubmissionStatusReport[] } } = {};
+    
+    data.forEach((item) => {
+      const key = `${item.employeeName}|${item.employeeEmail}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          employeeName: item.employeeName,
+          employeeEmail: item.employeeEmail,
+          weeks: []
+        };
+      }
+      grouped[key].weeks.push(item);
+    });
+    
+    return grouped;
   }
 
   private calculateStatistics(data: ISubmissionStatusReport[]) {

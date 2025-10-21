@@ -20,7 +20,8 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
       () => this.currentY,
       (y) => (this.currentY = y),
       (space) => this.checkPageBreak(space),
-      this.pageWidth
+      this.pageWidth,
+      () => this.isFirstPage
     );
   }
 
@@ -68,12 +69,8 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
         }
       });
 
-      // Per-employee summary metrics
       const empStats = this.calculateEmployeeStats(emp.tables);
-      
-    
-      
-      // Check if we have enough space for the summary table
+   
       this.checkPageBreak(150);
       
       this.doc.fontSize(11)
@@ -100,8 +97,13 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
       this.currentY += 10;
     });
 
-    // Overall Summary
-    this.checkPageBreak(200);
+    // Overall Summary - ensure enough space for complete table
+    const summaryRowCount = 6;
+    const rowHeight = 25;
+    const headerHeight = 30;
+    const requiredSpace = headerHeight + 40 + (summaryRowCount * rowHeight) + 50;
+    
+    this.checkPageBreak(requiredSpace);
     this.currentY += 20;
     
     this.components.addSectionDivider('Overall Summary');
@@ -110,11 +112,11 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
     
     // Create summary table
     const tableWidth = this.pageWidth - (this.margin * 2);
-    const rowHeight = 25;
     
     // Table header
-    this.doc.rect(this.margin, this.currentY, tableWidth, 30)
-      .fill(this.colors.primary);
+    this.doc.rect(this.margin, this.currentY, tableWidth, headerHeight)
+      .fill(this.colors.primary)
+      .stroke(this.colors.border);
     
     this.doc.fontSize(11)
       .fillColor('white')
@@ -122,13 +124,13 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
       .text('Category', this.margin + 10, this.currentY + 10)
       .text('Result', this.margin + tableWidth - 100, this.currentY + 10);
     
-    this.currentY += 35;
+    this.currentY += headerHeight;
 
     const summaryData = [
       { label: 'Total Employees', value: overallStats.totalEmployees, type: 'info' as const },
       { label: 'Total Working Days', value: overallStats.totalWorkingDays, type: 'info' as const },
       { label: 'Total Hours', value: `${overallStats.totalHours.toFixed(2)} h`, type: 'success' as const },
-      { label: 'Projects Involved', value: overallStats.projectEntries, type: 'success' as const },
+      { label: 'Projects Involved', value: overallStats.projectEntries, type: 'info' as const },
       { label: 'Teams Involved', value: overallStats.teamEntries, type: 'info' as const },
       { label: 'Leave Days Taken', value: overallStats.leaveDays, type: 'warning' as const },
     ];
@@ -154,17 +156,24 @@ export class TimesheetEntriesPdf extends ProfessionalBasePDFGenerator {
         .font('Helvetica')
         .text(item.label, this.margin + 30, rowY + 8);
       
-      // Metric value
+      // Metric value - ensure it's always visible
       this.doc.fontSize(12)
         .fillColor(this.colors.text.primary)
         .font('Helvetica-Bold')
-        .text(String(item.value), this.margin + tableWidth - 90, rowY + 8, {
+        .text(String(item.value), this.margin + tableWidth - 100, rowY + 8, {
           align: 'left',
-          width: 80
+          width: 90
         });
       
       this.currentY += rowHeight;
     });
+    
+    // Add bottom border to close the table
+    this.doc.moveTo(this.margin, this.currentY)
+      .lineTo(this.margin + tableWidth, this.currentY)
+      .stroke(this.colors.border);
+    
+    this.currentY += 15;
 
     return this.doc;
   }

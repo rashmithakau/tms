@@ -16,7 +16,9 @@ export const useReportFilters = ({
     setCurrentFilter(filter);
     const hasDateRange = !!(filter.startDate && filter.endDate);
     const hasEmployees = !!(filter.employeeIds && filter.employeeIds.length > 0);
-    setIsFilterValid(hasDateRange || hasEmployees);
+    const hasTeam = !!(filter.teamId && filter.teamId !== '');
+    const hasProject = !!(filter.projectId && filter.projectId !== '');
+    setIsFilterValid(hasDateRange && (hasEmployees || hasTeam || hasProject));
   };
 
   const resetFilters = () => {

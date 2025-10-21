@@ -6,6 +6,7 @@ export abstract class ProfessionalBasePDFGenerator {
     protected readonly pageWidth: number = 612; 
     protected readonly pageHeight: number = 792;
     protected readonly margin: number = 40;
+    protected isFirstPage: boolean = true;
 
     //color scheme
     protected readonly colors = {
@@ -66,6 +67,7 @@ export abstract class ProfessionalBasePDFGenerator {
         if (this.currentY + requiredSpace > this.pageHeight - this.margin) {
             this.doc.addPage();
             this.currentY = this.margin + 20;
+            this.isFirstPage = false;
         }
     }
 

@@ -12,6 +12,7 @@ import { formatContactNumber } from '../../../utils';
 import { useAuth } from '../../../contexts/AuthContext';
 import { UserRole } from '@tms/shared';
 import EditAccountPopup from '../auth/popup/EditAccountPopup';
+import { useSelector } from 'react-redux';
 
 const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -27,6 +28,7 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
   const theme = useTheme();
   const { authState } = useAuth();
   const currentUserRole = authState.user?.role as UserRole | undefined;
+  const searchText = useSelector((state: any) => state.searchBar.searchText);
 
   const normalizeRoleKey = (roleValue: string | undefined): 'admin' | 'supervisorAdmin' | 'superAdmin' | 'supervisor' | 'emp' | undefined => {
     if (!roleValue) return undefined;
@@ -37,7 +39,7 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
       'Supervisor': 'supervisor',
       'Employee': 'emp'
     };
-    // If already lower-case key, keep it
+   
     const maybeKey = map[roleValue] || roleValue;
     switch (maybeKey) {
       case 'admin':
@@ -71,27 +73,45 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
   };
 
   const filteredRows = useMemo(() => {
-    if (roleFilter === 'all') {
-      return rows;
+    let result = rows;
+    
+    // Filter by role
+    if (roleFilter !== 'all') {
+      result = result.filter((row) => {
+        
+        const rowRole = row.role;
+        if (typeof rowRole === 'string') {
+         
+          const roleMap: Record<string, string> = {
+            'Admin': 'admin',
+            'Supervisor Admin': 'supervisorAdmin', 
+            'Super Admin': 'superAdmin',
+            'Supervisor': 'supervisor',
+            'Employee': 'emp'
+          };
+          const actualRole = roleMap[rowRole] || rowRole;
+          return actualRole === roleFilter;
+        }
+        return rowRole === roleFilter;
+      });
     }
-    return rows.filter((row) => {
-      // Handle both raw role values and display text
-      const rowRole = row.role;
-      if (typeof rowRole === 'string') {
-        // If it's display text, convert back to enum value for comparison
-        const roleMap: Record<string, string> = {
-          'Admin': 'admin',
-          'Supervisor Admin': 'supervisorAdmin', 
-          'Super Admin': 'superAdmin',
-          'Supervisor': 'supervisor',
-          'Employee': 'emp'
-        };
-        const actualRole = roleMap[rowRole] || rowRole;
-        return actualRole === roleFilter;
-      }
-      return rowRole === roleFilter;
-    });
-  }, [rows, roleFilter]);
+    
+    // Filter by search text 
+    if (searchText && searchText.trim()) {
+      const searchLower = searchText.toLowerCase().replace(/\s+/g, ' ').trim();
+      result = result.filter((row) => {
+        const employeeId = (row.employee_id || '').toLowerCase();
+        const fullName = `${row.firstName} ${row.lastName}`.toLowerCase().replace(/\s+/g, ' ').trim();
+        const email = (row.email || '').toLowerCase();
+        
+        return employeeId.includes(searchLower) || 
+               fullName.includes(searchLower) ||
+               email.includes(searchLower);
+      });
+    }
+    
+    return result;
+  }, [rows, roleFilter, searchText]);
 
   const columns: DataTableColumn<EmployeeRow>[] = [
     { label: '', key: 'empty', render: () => null },

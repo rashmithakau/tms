@@ -1,8 +1,7 @@
-import {
-  ReportFilter,
-  Employee,
-  ReportMetadata
-} from '../../../api/report';
+import { ReportFilter, Employee } from '../../api/IReport';
+import { ReportMetadata } from '@tms/shared';
+
+
 export interface UseReportGeneratorOptions {
   onSuccess?: (filename: string) => void;
   onError?: (error: string) => void;

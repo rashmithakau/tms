@@ -3,14 +3,14 @@ import { ReportFilter, DetailedTimesheetPreviewRow } from '../interfaces/api';
 
 export const buildQueryParams = (filter: ReportFilter): URLSearchParams => {
   const params = new URLSearchParams();
-  params.append('format', 'json');
   if (filter.startDate) params.append('startDate', filter.startDate);
   if (filter.endDate) params.append('endDate', filter.endDate);
   if (filter.employeeIds?.length) filter.employeeIds.forEach((id) => params.append('employeeIds', id));
   if (filter.submissionStatus?.length) filter.submissionStatus.forEach((s) => params.append('submissionStatus', s));
   if (filter.approvalStatus?.length) filter.approvalStatus.forEach((s) => params.append('approvalStatus', s));
-  if (filter.projectIds?.length) filter.projectIds.forEach((id) => params.append('projectIds', id));
-  if (filter.teamIds?.length) filter.teamIds.forEach((id) => params.append('teamIds', id));
+  if (filter.projectId) params.append('projectIds', filter.projectId);
+  if (filter.teamId) params.append('teamIds', filter.teamId);
+  if (filter.workType && !filter.projectId && !filter.teamId) params.append('workType', filter.workType);
   return params;
 };
 

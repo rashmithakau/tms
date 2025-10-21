@@ -37,32 +37,55 @@ export class SubmissionStatusExcel extends BaseExcelGenerator {
     periodRow.alignment = { horizontal: 'center' };
     periodRow.height = 13;
 
+    // Group data by employee
+    const groupedData = this.groupDataByEmployee(data);
 
+    // Add each employee's data separately
+    Object.values(groupedData).forEach((employeeData, index) => {
+      if (index > 0) {
+        // Add spacing between employees
+        this.worksheet.addRow([]);
+      }
 
-    this.addHeaderRow(['Employee Name', 'Email', 'Week Start', 'Week End', 'Status']);
-   
-    const headerRow = this.worksheet.lastRow;
-    if (headerRow) {
-      headerRow.font = { bold: true, size: 9 };
-      headerRow.height = 14;
-    }
-    const sorted = data.slice().sort((a, b) => {
-      const aTime = new Date(a.weekStartDate as any).getTime();
-      const bTime = new Date(b.weekStartDate as any).getTime();
-      return aTime - bTime;
-    });
-    sorted.forEach((item) => {
-      // Calculate week end 
-      const startDate = new Date(item.weekStartDate);
-      const weekEndDate = new Date(startDate);
-      weekEndDate.setDate(startDate.getDate() + 6);
-      this.addDataRow([
-        item.employeeName,
-        item.employeeEmail,
-        typeof item.weekStartDate === 'string' ? item.weekStartDate : new Date(item.weekStartDate).toISOString().slice(0, 10),
-        weekEndDate.toISOString().slice(0, 10),
-        item.submissionStatus
-      ]);
+      // Employee header
+      const employeeHeaderRow = this.worksheet.addRow([`${employeeData.employeeName} (${employeeData.employeeEmail})`]);
+      this.worksheet.mergeCells(employeeHeaderRow.number, 1, employeeHeaderRow.number, totalColumns);
+      employeeHeaderRow.font = { bold: true, size: 11 };
+      employeeHeaderRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE2E8F0' }
+      };
+      employeeHeaderRow.height = 16;
+
+      // Add header row for this employee
+      this.addHeaderRow(['Week Start', 'Week End', 'Status']);
+      
+      const headerRow = this.worksheet.lastRow;
+      if (headerRow) {
+        headerRow.font = { bold: true, size: 9 };
+        headerRow.height = 14;
+      }
+
+      // Sort employee's data by week start date
+      const sortedEmployeeData = employeeData.weeks.slice().sort((a, b) => {
+        const aTime = new Date(a.weekStartDate as any).getTime();
+        const bTime = new Date(b.weekStartDate as any).getTime();
+        return aTime - bTime;
+      });
+
+      // Add data rows for this employee
+      sortedEmployeeData.forEach((item) => {
+        // Calculate week end 
+        const startDate = new Date(item.weekStartDate);
+        const weekEndDate = new Date(startDate);
+        weekEndDate.setDate(startDate.getDate() + 6);
+        this.addDataRow([
+          typeof item.weekStartDate === 'string' ? item.weekStartDate : new Date(item.weekStartDate).toISOString().slice(0, 10),
+          weekEndDate.toISOString().slice(0, 10),
+          item.submissionStatus
+        ]);
+      });
     });
 
     //Analytics & Insights 
@@ -82,7 +105,7 @@ export class SubmissionStatusExcel extends BaseExcelGenerator {
     this.worksheet.mergeCells(metricsHeader.number, 4, metricsHeader.number, 5);
     metricsHeader.font = { bold: true, size: 10 };
 
-    const stats = this.calculateStatistics(sorted);
+    const stats = this.calculateStatistics(data);
 
     const metrics: Array<[string, string | number]> = [
       ['Total Employees', stats.totalEmployees],
@@ -102,6 +125,24 @@ export class SubmissionStatusExcel extends BaseExcelGenerator {
       const valueCell = this.worksheet.getCell(row.number, 4);
       valueCell.alignment = { horizontal: 'left' };
     });
+  }
+
+  private groupDataByEmployee(data: ISubmissionStatusReport[]) {
+    const grouped: { [key: string]: { employeeName: string; employeeEmail: string; weeks: ISubmissionStatusReport[] } } = {};
+    
+    data.forEach((item) => {
+      const key = `${item.employeeName}|${item.employeeEmail}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          employeeName: item.employeeName,
+          employeeEmail: item.employeeEmail,
+          weeks: []
+        };
+      }
+      grouped[key].weeks.push(item);
+    });
+    
+    return grouped;
   }
 
   private calculateStatistics(data: ISubmissionStatusReport[]) {

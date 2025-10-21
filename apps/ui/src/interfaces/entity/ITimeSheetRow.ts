@@ -13,6 +13,7 @@ export interface ITimeSheetRow {
   plannedHours?: number;
   hoursSpent?: number;
   employee?: {
+    employee_id: string;
     _id: string;
     firstName: string;
     lastName: string;

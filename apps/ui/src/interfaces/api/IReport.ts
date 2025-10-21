@@ -6,8 +6,9 @@ export interface ReportFilter {
   employeeIds?: string[];
   submissionStatus?: string[];
   approvalStatus?: string[];
-  projectIds?: string[];
-  teamIds?: string[];
+  projectId?: string;
+  teamId?: string;
+  workType?: 'project' | 'team' | 'both';
 }
 
 export interface Employee {
@@ -36,10 +37,10 @@ export interface ApprovalStatusPreviewRow {
   approvalDate?: string | null;
   totalHours: number;
   rejectionReason?: string;
-  rejectDates?: string; // comma-separated dates of rejections
-  rejectReasons?: string; // aggregated reasons
-  rejectDetails?: string; // e.g., "2025-10-01: Reason A | Reason B; 2025-10-03: Reason C"
-  rejectDetailsMap?: Record<string, string[]>; // { '2025-10-01': ['Reason A', 'Reason B'] }
+  rejectDates?: string; 
+  rejectReasons?: string;
+  rejectDetails?: string; 
+  rejectDetailsMap?: Record<string, string[]>; 
 }
 
 export interface DetailedTimesheetPreviewRow {

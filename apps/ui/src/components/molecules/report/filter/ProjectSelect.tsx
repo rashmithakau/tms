@@ -15,27 +15,27 @@ import {
   useTheme 
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
-import { EmployeeSelectProps } from '../../../../interfaces/report/filter'
+import { ProjectSelectProps } from '../../../../interfaces/report/filter';
+
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
 
-const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds, onChange, disabled }) => {
+const ProjectSelect: React.FC<ProjectSelectProps> = ({ projects, selectedProjectIds, onChange, disabled }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [open, setOpen] = useState(false);
   
-  // Filter employees based on search term
-  const filteredEmployees = useMemo(() => {
-    if (!searchTerm.trim()) return employees;
+  // Filter projects based on search term
+  const filteredProjects = useMemo(() => {
+    if (!searchTerm.trim()) return projects;
     
-    return employees.filter(employee => {
-      const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
-      const email = employee.email.toLowerCase();
+    return projects.filter(project => {
+      const projectName = project.projectName.toLowerCase();
       const search = searchTerm.toLowerCase();
       
-      return fullName.includes(search) || email.includes(search);
+      return projectName.includes(search);
     });
-  }, [employees, searchTerm]);
+  }, [projects, searchTerm]);
 
   // Function to highlight matching text
   const highlightText = (text: string, searchTerm: string) => {
@@ -46,7 +46,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <span key={index} style={{ backgroundColor:theme.palette.background.paper, fontWeight: 'bold' }}>
+        <span key={index} style={{ backgroundColor: theme.palette.background.paper, fontWeight: 'bold' }}>
           {part}
         </span>
       ) : part
@@ -57,7 +57,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
     PaperProps: {
       style: {
         maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 250,
+        width: 300,
         backgroundColor: theme.palette.background.default,
       },
     },
@@ -73,7 +73,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
 
   return (
     <FormControl fullWidth size="small" disabled={disabled}>
-      <InputLabel>Employees</InputLabel>
+      <InputLabel>Projects</InputLabel>
       <Select
         multiple
         open={open}
@@ -82,17 +82,17 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
           setOpen(false);
           setSearchTerm(''); 
         }}
-        value={selectedIds}
+        value={selectedProjectIds}
         onChange={handleSelectChange}
-        input={<OutlinedInput label="Employees" />}
+        input={<OutlinedInput label="Projects" />}
         renderValue={selected => (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {(selected as string[]).map(employeeId => {
-              const employee = employees.find(emp => emp._id === employeeId);
+            {(selected as string[]).map(projectId => {
+              const project = projects.find(p => p._id === projectId);
               return (
                 <Chip
-                  key={employeeId}
-                  label={employee ? `${employee.firstName} ${employee.lastName}` : employeeId}
+                  key={projectId}
+                  label={project ? project.projectName : projectId}
                   size="small"
                 />
               );
@@ -106,7 +106,7 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
           <TextField
             size="small"
             fullWidth
-            placeholder="Search employees..."
+            placeholder="Search projects..."
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(e) => e.stopPropagation()}
@@ -131,43 +131,58 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
         {searchTerm.trim() && (
           <Box sx={{ px: 2, py: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
             <Typography variant="caption" color="text.secondary">
-              Results for "{searchTerm}" ({filteredEmployees.length} found)
+              Results for "{searchTerm}" ({filteredProjects.length} found)
             </Typography>
           </Box>
         )}
 
-        {/* Employee List */}
-        {filteredEmployees.length > 0 ? (
-          filteredEmployees.map(employee => (
-            <MenuItem 
-              key={employee._id} 
-              value={employee._id}
-              sx={{
-                bgcolor: theme.palette.background.default,
-                '&:hover': {
-                  bgcolor: theme.palette.action.hover,
-                },
-              }}
-            >
-              <Checkbox 
-                checked={selectedIds.indexOf(employee._id) > -1} 
-              />
-              <ListItemText 
-                primary={highlightText(`${employee.firstName} ${employee.lastName}`, searchTerm)}
-                secondary={highlightText(employee.email, searchTerm)}
-              />
-            </MenuItem>
-          ))
+        {/* Project List */}
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map(project => {
+            const supervisorName = project.supervisor 
+              ? `${project.supervisor.firstName} ${project.supervisor.lastName}`
+              : 'No supervisor';
+            
+            return (
+              <MenuItem 
+                key={project._id} 
+                value={project._id}
+                sx={{
+                  bgcolor: theme.palette.background.default,
+                  '&:hover': {
+                    bgcolor: theme.palette.action.hover,
+                  },
+                }}
+              >
+                <Checkbox 
+                  checked={selectedProjectIds.indexOf(project._id) > -1} 
+                />
+                <ListItemText 
+                  primary={highlightText(project.projectName, searchTerm)}
+                  secondary={
+                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                      <Typography variant="caption" component="span">
+                        {project.employees.length} employee{project.employees.length !== 1 ? 's' : ''} Supervisor: {supervisorName}
+                      </Typography>
+                      <Typography variant="caption" component="span" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                        Supervisor: {supervisorName}
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </MenuItem>
+            );
+          })
         ) : searchTerm.trim() ? (
           <MenuItem disabled>
             <ListItemText 
-              primary={`No employees found for "${searchTerm}"`}
+              primary={`No projects found for "${searchTerm}"`}
               secondary="Try a different search term"
             />
           </MenuItem>
         ) : (
           <MenuItem disabled>
-            <ListItemText primary="No employees available" />
+            <ListItemText primary="No projects available" />
           </MenuItem>
         )}
       </Select>
@@ -175,4 +190,5 @@ const EmployeeSelect: React.FC<EmployeeSelectProps> = ({ employees, selectedIds,
   );
 };
 
-export default EmployeeSelect;
+export default ProjectSelect;
+
