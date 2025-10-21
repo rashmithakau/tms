@@ -10,8 +10,6 @@ export const buildQueryParams = (filter: ReportFilter): URLSearchParams => {
   if (filter.approvalStatus?.length) filter.approvalStatus.forEach((s) => params.append('approvalStatus', s));
   if (filter.projectId) params.append('projectIds', filter.projectId);
   if (filter.teamId) params.append('teamIds', filter.teamId);
-  // Only send workType if no specific project/team is selected
-  // When filtering by specific project/team, we want ALL timesheet entries for those users
   if (filter.workType && !filter.projectId && !filter.teamId) params.append('workType', filter.workType);
   return params;
 };
