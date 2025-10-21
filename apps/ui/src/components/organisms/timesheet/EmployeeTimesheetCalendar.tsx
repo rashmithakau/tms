@@ -116,6 +116,50 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
     onDaySelectionChange(newSelections);
   };
 
+  // Bulk selection handler for selecting/deselecting all days in a row
+  const handleBulkDaySelectionChange = (categoryIndex: number, itemIndex: number, dayIndices: number[], selected: boolean) => {
+    if (!isSelectionMode || !onDaySelectionChange) return;
+    const actualTimesheetId = weekOriginalTimesheet?._id;
+    if (!actualTimesheetId) return;
+
+    const mapped = getOriginalIndices(categoryIndex, itemIndex);
+    if (!mapped) return;
+
+    let newSelections = [...selectedDays];
+
+    dayIndices.forEach(dayIndex => {
+      const selectionKey = {
+        timesheetId: actualTimesheetId,
+        categoryIndex: mapped.categoryIndex,
+        itemIndex: mapped.itemIndex,
+        dayIndex,
+      };
+
+      if (selected) {
+        // Add if not already present
+        const exists = newSelections.some(s =>
+          s.categoryIndex === mapped.categoryIndex &&
+          s.itemIndex === mapped.itemIndex &&
+          s.dayIndex === dayIndex
+        );
+        if (!exists) {
+          newSelections.push(selectionKey);
+        }
+      } else {
+        // Remove the selection
+        newSelections = newSelections.filter(selection =>
+          !(
+            selection.categoryIndex === mapped.categoryIndex &&
+            selection.itemIndex === mapped.itemIndex &&
+            selection.dayIndex === dayIndex
+          )
+        );
+      }
+    });
+
+    onDaySelectionChange(newSelections);
+  };
+
 
   const formatTotal = (value: number): string => {
     return value.toFixed(2).padStart(5, '0');
@@ -276,6 +320,7 @@ const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
                         isSelectionMode={isSelectionMode}
                         isDaySelected={isDaySelected}
                         handleDaySelectionChange={handleDaySelectionChange}
+                        handleBulkDaySelectionChange={handleBulkDaySelectionChange}
                         supervisedProjectIds={supervisedProjectIds}
                         supervisedTeamIds={supervisedTeamIds}
                         supervisedUserIds={supervisedUserIds}

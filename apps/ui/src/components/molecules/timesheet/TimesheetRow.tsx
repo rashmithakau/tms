@@ -12,14 +12,74 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
   isSelectionMode,
   isDaySelected,
   handleDaySelectionChange,
+  handleBulkDaySelectionChange,
   supervisedProjectIds,
   supervisedTeamIds,
   supervisedUserIds = [],
   employeeId,
-}) => (
-  <TableRow>
-    <TableCell sx={{ textAlign: 'left', verticalAlign: 'middle', width: '50px', minWidth: '50px' }} />
-    <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '200px', minWidth: '200px' }}>{row.work}</TableCell>
+}) => {
+  // Check if any day in this row can be approved by this supervisor
+  const supervisesEmployee = employeeId ? supervisedUserIds.includes(employeeId) : false;
+  
+  let canApproveRow = false;
+  if (row.projectId) {
+    canApproveRow = supervisedProjectIds.includes(row.projectId);
+  } else if (row.teamId) {
+    const supervisesTeam = supervisedTeamIds.includes(row.teamId);
+    canApproveRow = supervisesTeam || supervisesEmployee;
+  } else {
+    canApproveRow = true;
+  }
+
+  // Check which days have hours and can be selected
+  const selectableDays = row.hours
+    .map((hour: string, colIndex: number) => {
+      const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
+      const hasHours = parseFloat(hour) > 0;
+      const isDisabled = dailyStatus === TimesheetStatus.Approved || dailyStatus === TimesheetStatus.Rejected;
+      return { colIndex, hasHours, isDisabled, canSelect: hasHours && !isDisabled && canApproveRow };
+    })
+    .filter(day => day.canSelect);
+
+  // Check if all selectable days are selected
+  const allSelectableDaysSelected = selectableDays.length > 0 && 
+    selectableDays.every(day => isDaySelected(catIndex, rowIndex, day.colIndex));
+  
+  // Check if some (but not all) selectable days are selected
+  const someSelectableDaysSelected = selectableDays.some(day => isDaySelected(catIndex, rowIndex, day.colIndex)) && 
+    !allSelectableDaysSelected;
+
+  // Handle select all checkbox change
+  const handleSelectAllChange = (checked: boolean) => {
+    if (selectableDays.length === 0) return;
+    
+    // Use bulk handler if available, otherwise fall back to individual calls
+    if (handleBulkDaySelectionChange) {
+      const dayIndices = selectableDays.map(day => day.colIndex);
+      handleBulkDaySelectionChange(catIndex, rowIndex, dayIndices, checked);
+    } else {
+      // Fallback to individual calls (will only apply the last one due to state management)
+      selectableDays.forEach((day) => {
+        handleDaySelectionChange(catIndex, rowIndex, day.colIndex, checked);
+      });
+    }
+  };
+
+  return (
+    <TableRow>
+      <TableCell sx={{ textAlign: 'center', verticalAlign: 'middle', width: '50px', minWidth: '50px' }}>
+        {isSelectionMode && selectableDays.length > 0 && (
+          <Checkbox
+            size="small"
+            checked={allSelectableDaysSelected}
+            indeterminate={someSelectableDaysSelected}
+            onChange={e => handleSelectAllChange(e.target.checked)}
+            sx={{ p: 0 }}
+            title="Select/Deselect all days for this task/project"
+          />
+        )}
+      </TableCell>
+      <TableCell sx={{ textAlign: 'left', paddingLeft: '16px', paddingRight: '16px', verticalAlign: 'middle', width: '200px', minWidth: '200px' }}>{row.work}</TableCell>
     {row.hours.map((hour: string, colIndex: number) => {
       const dailyStatus = row.dailyStatus?.[colIndex] || TimesheetStatus.Draft;
       const isSelected = isDaySelected(catIndex, rowIndex, colIndex);
@@ -92,5 +152,5 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
     </TableCell>
   </TableRow>
 );
-
+};
 export default TimesheetRow;

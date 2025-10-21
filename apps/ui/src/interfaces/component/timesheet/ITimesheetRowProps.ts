@@ -6,6 +6,7 @@ export interface ITimesheetRowProps {
   isSelectionMode: boolean;
   isDaySelected: (catIndex: number, rowIndex: number, colIndex: number) => boolean;
   handleDaySelectionChange: (catIndex: number, rowIndex: number, colIndex: number, checked: boolean) => void;
+  handleBulkDaySelectionChange?: (catIndex: number, rowIndex: number, dayIndices: number[], checked: boolean) => void;
   supervisedProjectIds: string[];
   supervisedTeamIds: string[];
   supervisedUserIds?: string[];
