@@ -38,11 +38,20 @@ const TimeSheetTableCalendar: React.FC = () => {
     closeEditCell,
     closeDescriptionEditor,
     handleCellKeyDown,
+    handleDescriptionKeyDown,
   } = useTimesheetCellEditing(data, updateData, timesheetStatus || undefined);
   const { calcRowTotal, columnTotals, grandTotal } = useTimesheetCalculations(data);
   
-  // Calculate total hours from grandTotal
-  const totalHours = parseFloat(grandTotal || '0');
+  // Calculate total hours from grandTotal (convert HH.MM format to decimal hours)
+  const parseTimeToDecimal = (timeStr: string): number => {
+    if (!timeStr || timeStr === '00.00') return 0;
+    const parts = timeStr.split('.');
+    const hours = parseInt(parts[0]) || 0;
+    const minutes = parseInt(parts[1]) || 0;
+    return hours + (minutes / 60);
+  };
+  
+  const totalHours = parseTimeToDecimal(grandTotal || '00.00');
   
   // Ref for the table container
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -184,6 +193,7 @@ const TimeSheetTableCalendar: React.FC = () => {
           }
         }}
         onClose={closeDescriptionEditor}
+        onKeyDown={handleDescriptionKeyDown}
       />
     </Box>
   );

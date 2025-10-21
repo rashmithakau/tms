@@ -1,28 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  TextField,
-  Button,
   Chip,
   Stack,
   SelectChangeEvent,
+  Popover,
+  Typography,
+  Divider,
 } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import ClearIcon from '@mui/icons-material/Clear';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import dayjs, { Dayjs } from 'dayjs';
 import { HistoryActionType } from '../../../interfaces/api';
+import { getAllActiveUsers } from '../../../api/user';
+import { DatePickerAtom } from '../../atoms/report';
+import EmployeeSelect from '../report/filter/EmployeeSelect';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
+import { useTheme } from '@mui/material';
 
 interface HistoryFilterProps {
   onFilterChange: (filters: {
     actionType?: HistoryActionType[];
     entityType?: ('User' | 'Project' | 'Team')[];
+    performedBy?: string;
     startDate?: string;
     endDate?: string;
   }) => void;
   showUserFilter?: boolean;
+}
+
+interface UserOption {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 const actionTypeOptions = [
@@ -52,11 +66,37 @@ const entityTypeOptions = [
   { value: 'Team', label: 'Team' },
 ];
 
-const HistoryFilter: React.FC<HistoryFilterProps> = ({ onFilterChange, showUserFilter = false }) => {
+const HistoryFilter: React.FC<HistoryFilterProps> = ({ onFilterChange, showUserFilter = true }) => {
+  const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  
   const [selectedActionTypes, setSelectedActionTypes] = useState<HistoryActionType[]>([]);
   const [selectedEntityTypes, setSelectedEntityTypes] = useState<('User' | 'Project' | 'Team')[]>([]);
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [employees, setEmployees] = useState<UserOption[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      if (showUserFilter) {
+        setLoadingEmployees(true);
+        try {
+          const response = await getAllActiveUsers();
+          setEmployees(response.data.users || []);
+        } catch (error) {
+          console.error('Failed to fetch employees:', error);
+          setEmployees([]);
+        } finally {
+          setLoadingEmployees(false);
+        }
+      }
+    };
+    
+    fetchEmployees();
+  }, [showUserFilter]);
 
   const handleActionTypeChange = (event: SelectChangeEvent<HistoryActionType[]>) => {
     const value = event.target.value as HistoryActionType[];
@@ -68,122 +108,262 @@ const HistoryFilter: React.FC<HistoryFilterProps> = ({ onFilterChange, showUserF
     setSelectedEntityTypes(value);
   };
 
+  const handleEmployeeChange = (ids: string[]) => {
+    setSelectedEmployeeIds(ids);
+  };
+
+  const handleStartDateChange = (date: Dayjs | null) => {
+    setStartDate(date ? date.format('YYYY-MM-DD') : null);
+  };
+
+  const handleEndDateChange = (date: Dayjs | null) => {
+    setEndDate(date ? date.format('YYYY-MM-DD') : null);
+  };
+
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   const handleApplyFilters = () => {
     onFilterChange({
       actionType: selectedActionTypes.length > 0 ? selectedActionTypes : undefined,
       entityType: selectedEntityTypes.length > 0 ? selectedEntityTypes : undefined,
+      performedBy: selectedEmployeeIds.length === 1 ? selectedEmployeeIds[0] : undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     });
+    handleClose();
   };
 
   const handleClearFilters = () => {
     setSelectedActionTypes([]);
     setSelectedEntityTypes([]);
-    setStartDate('');
-    setEndDate('');
+    setSelectedEmployeeIds([]);
+    setStartDate(null);
+    setEndDate(null);
     onFilterChange({});
   };
 
   const hasActiveFilters = 
     selectedActionTypes.length > 0 || 
     selectedEntityTypes.length > 0 || 
+    selectedEmployeeIds.length > 0 ||
     startDate || 
     endDate;
 
-  return (
-    <Box sx={{ mb: 3 }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 200 }} size="small">
-          <InputLabel>Entity Type</InputLabel>
-          <Select
-            multiple
-            value={selectedEntityTypes}
-            onChange={handleEntityTypeChange}
-            label="Entity Type"
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
-                ))}
-              </Box>
-            )}
-          >
-            {entityTypeOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+  const activeFilterCount = 
+    (selectedActionTypes.length > 0 ? 1 : 0) +
+    (selectedEntityTypes.length > 0 ? 1 : 0) +
+    (selectedEmployeeIds.length > 0 ? 1 : 0) +
+    (startDate ? 1 : 0) +
+    (endDate ? 1 : 0);
 
-        <FormControl sx={{ minWidth: 250 }} size="small">
-          <InputLabel>Action Type</InputLabel>
-          <Select
-            multiple
-            value={selectedActionTypes}
-            onChange={handleActionTypeChange}
-            label="Action Type"
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip 
-                    key={value} 
-                    label={actionTypeOptions.find(o => o.value === value)?.label || value} 
-                    size="small" 
+  return (
+    <Box>
+      <BaseBtn
+        startIcon={<FilterAltOutlinedIcon />}
+        onClick={handleOpen}
+        variant="text"
+        aria-label="Open filter menu"
+        aria-controls={open ? 'history-filter-popover' : undefined}
+      >
+        Filter {activeFilterCount > 0 && `(${activeFilterCount})`}
+      </BaseBtn>
+
+      <Popover
+        id="history-filter-popover"
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{ 
+          sx: { 
+            p: 3, 
+            width: 450,
+            maxHeight: '80vh',
+            bgcolor: theme.palette.background.paper 
+          } 
+        }}
+      >
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Filter History
+        </Typography>
+
+        <Stack spacing={2.5}>
+          {/* Category Filter */}
+          <Box>
+            <FormControl fullWidth size="small">
+              <InputLabel>Select categories</InputLabel>
+              <Select
+                multiple
+                value={selectedEntityTypes}
+                onChange={handleEntityTypeChange}
+                label="Select categories"
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} size="small" />
+                    ))}
+                  </Box>
+                )}
+              >
+                {entityTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Action Type Filter */}
+          <Box>
+            <FormControl fullWidth size="small">
+              <InputLabel>Select action types</InputLabel>
+              <Select
+                multiple
+                value={selectedActionTypes}
+                onChange={handleActionTypeChange}
+                label="Select action types"
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip 
+                        key={value} 
+                        label={actionTypeOptions.find(o => o.value === value)?.label || value} 
+                        size="small" 
+                      />
+                    ))}
+                  </Box>
+                )}
+              >
+                {actionTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Employee Filter */}
+          {showUserFilter && (
+            <Box>
+              <EmployeeSelect
+                employees={employees}
+                selectedIds={selectedEmployeeIds}
+                onChange={handleEmployeeChange}
+                disabled={loadingEmployees}
+              />
+            </Box>
+          )}
+
+          {/* Date Range Filter */}
+          <Box>
+            <Stack direction="row" spacing={2}>
+              <DatePickerAtom
+                label="Start Date"
+                value={startDate}
+                onChange={handleStartDateChange}
+                disabled={false}
+              />
+              <DatePickerAtom
+                label="End Date"
+                value={endDate}
+                onChange={handleEndDateChange}
+                disabled={false}
+                minDate={startDate ? dayjs(startDate) : undefined}
+              />
+            </Stack>
+          </Box>
+        </Stack>
+
+        {/* Active Filters Display */}
+        {hasActiveFilters && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                Active Filters:
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                {selectedEntityTypes.map((type) => (
+                  <Chip
+                    key={type}
+                    size="small"
+                    label={`Category: ${type}`}
+                    onDelete={() => {
+                      setSelectedEntityTypes(selectedEntityTypes.filter(t => t !== type));
+                    }}
                   />
                 ))}
-              </Box>
-            )}
-          >
-            {actionTypeOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          label="Start Date"
-          type="date"
-          size="small"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: 150 }}
-        />
-
-        <TextField
-          label="End Date"
-          type="date"
-          size="small"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: 150 }}
-        />
-
-        <Button
-          variant="contained"
-          startIcon={<FilterListIcon />}
-          onClick={handleApplyFilters}
-          sx={{ minWidth: 120 }}
-        >
-          Apply
-        </Button>
-
-        {hasActiveFilters && (
-          <Button
-            variant="outlined"
-            startIcon={<ClearIcon />}
-            onClick={handleClearFilters}
-            sx={{ minWidth: 120 }}
-          >
-            Clear
-          </Button>
+                {selectedActionTypes.map((type) => (
+                  <Chip
+                    key={type}
+                    size="small"
+                    label={actionTypeOptions.find(o => o.value === type)?.label || type}
+                    onDelete={() => {
+                      setSelectedActionTypes(selectedActionTypes.filter(t => t !== type));
+                    }}
+                  />
+                ))}
+                {selectedEmployeeIds.map((id) => {
+                  const employee = employees.find(emp => emp._id === id);
+                  return (
+                    <Chip
+                      key={id}
+                      size="small"
+                      label={employee ? `${employee.firstName} ${employee.lastName}` : id}
+                      onDelete={() => {
+                        setSelectedEmployeeIds(selectedEmployeeIds.filter(empId => empId !== id));
+                      }}
+                    />
+                  );
+                })}
+                {startDate && (
+                  <Chip
+                    size="small"
+                    label={`From: ${dayjs(startDate).format('MMM DD, YYYY')}`}
+                    onDelete={() => setStartDate(null)}
+                  />
+                )}
+                {endDate && (
+                  <Chip
+                    size="small"
+                    label={`To: ${dayjs(endDate).format('MMM DD, YYYY')}`}
+                    onDelete={() => setEndDate(null)}
+                  />
+                )}
+              </Stack>
+            </Box>
+          </>
         )}
-      </Stack>
+
+        {/* Action Buttons */}
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <BaseBtn
+            size="small"
+            variant="outlined"
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+          >
+            Clear All
+          </BaseBtn>
+          <BaseBtn 
+            size="small" 
+            variant="contained" 
+            onClick={handleApplyFilters}
+          >
+            Apply Filters
+          </BaseBtn>
+        </Box>
+      </Popover>
     </Box>
   );
 };

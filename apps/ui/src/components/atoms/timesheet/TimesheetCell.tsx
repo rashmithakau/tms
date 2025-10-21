@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { InputBase, IconButton, Tooltip } from '@mui/material';
 import { EditNote as EditNoteIcon } from '@mui/icons-material';
 import { TimesheetCellProps } from '../../../interfaces';
@@ -16,6 +16,28 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
   onCellKeyDown,
   onDescriptionClick,
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const descriptionButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && descriptionButtonRef.current) {
+      // Create a synthetic event with the description button as target
+      const syntheticEvent = {
+        currentTarget: descriptionButtonRef.current,
+      } as React.MouseEvent<HTMLButtonElement>;
+      
+      onCellKeyDown(e, syntheticEvent);
+    } else {
+      onCellKeyDown(e);
+    }
+  };
+
   const getStatusColor = (status: TimesheetStatus): string => {
     switch (status) {
       case TimesheetStatus.Approved:
@@ -38,19 +60,15 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
         gap: '6px',
         width: '100%',
         position: 'relative',
-        margin: '-2px',
-        padding: '2px',
-        borderRadius: '4px',
-        border: isEditing ? '2px solid #1976d2' : '2px solid transparent',
-        transition: 'all 0.2s ease-in-out',
       }}
     >
           {/* Hour input/display */}
           {isEditing ? (
             <InputBase
+              inputRef={inputRef}
               value={hour}
               onChange={(e) => onCellChange(e.target.value)}
-              onKeyDown={onCellKeyDown}
+              onKeyDown={handleKeyDown}
               autoFocus
               sx={{
                 width: '50px',
@@ -60,9 +78,10 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
                 borderRadius: 1,
                 textAlign: 'left',
                 fontSize: '14px',
-                backgroundColor: '#fff',
+                backgroundColor: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
+                flexShrink: 0,
                 '& input': {
                   textAlign: 'left',
                   paddingLeft: '0px',
@@ -84,6 +103,7 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
                 opacity: isEditable ? 1 : 0.7,
                 textAlign: 'left',
                 width: '50px',
+                minWidth: '50px',
                 height: '20px',
                 paddingLeft: '0px',
                 paddingRight: '0px',
@@ -93,6 +113,7 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
                 alignItems: 'center',
                 fontSize: '14px',
                 lineHeight: '20px',
+                flexShrink: 0,
               }}
             >
               {hour}
@@ -108,6 +129,7 @@ const TimesheetCell: React.FC<TimesheetCellProps> = ({
           >
             <span>
               <IconButton
+                ref={descriptionButtonRef}
                 size="small"
                 onClick={onDescriptionClick}
                 disabled={!isEditable}

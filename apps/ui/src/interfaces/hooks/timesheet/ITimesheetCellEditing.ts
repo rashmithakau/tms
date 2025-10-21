@@ -22,5 +22,7 @@ export interface TimesheetCellEditingReturn {
   handleDescriptionChange: (catIndex: number, rowIndex: number, colIndex: number, value: string) => void;
   closeEditCell: () => void;
   closeDescriptionEditor: () => void;
-  handleCellKeyDown: (e: React.KeyboardEvent) => void;
+  handleCellKeyDown: (e: React.KeyboardEvent, descriptionButtonEvent?: React.MouseEvent<HTMLButtonElement>) => void;
+  handleDescriptionKeyDown: (e: React.KeyboardEvent) => void;
+  closeDescriptionAndMoveNext: () => void;
 }

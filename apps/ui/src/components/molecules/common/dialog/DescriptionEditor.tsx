@@ -8,6 +8,7 @@ const DescriptionEditor: React.FC<IDescriptionEditorProps> = ({
   value,
   onChange,
   onClose,
+  onKeyDown,
 }) => {
   return (
     <Popover
@@ -20,6 +21,7 @@ const DescriptionEditor: React.FC<IDescriptionEditorProps> = ({
         value={value}
         placeholder="Enter description"
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         autoFocus
         sx={{ p: 1, width: 250 }}
       />

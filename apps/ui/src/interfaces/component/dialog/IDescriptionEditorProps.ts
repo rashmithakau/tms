@@ -4,4 +4,5 @@ export interface IDescriptionEditorProps {
   value: string;
   onChange: (value: string) => void;
   onClose: () => void;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
 }
