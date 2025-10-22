@@ -140,8 +140,7 @@ export class SubmissionStatusPdf extends ProfessionalBasePDFGenerator {
   }
 
   private addAnalyticsSection(data: ISubmissionStatusReport[]): void {
-    this.components.addSectionDivider('Analytics');
-
+    
     // Calculate statistics
     const stats = this.calculateStatistics(data);
 

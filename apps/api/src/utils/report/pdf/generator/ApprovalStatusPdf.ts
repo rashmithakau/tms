@@ -114,7 +114,7 @@ export class ApprovalStatusPdf extends ProfessionalBasePDFGenerator {
   }
 
   private addAnalyticsSection(data: IApprovalStatusReport[]): void {
-    this.components.addSectionDivider('Analytics');
+  
 
     // Calculate statistics
     const stats = this.calculateApprovalStatistics(data);

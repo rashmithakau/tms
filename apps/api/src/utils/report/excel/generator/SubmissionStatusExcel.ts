@@ -48,14 +48,9 @@ export class SubmissionStatusExcel extends BaseExcelGenerator {
       }
 
       // Employee header
-      const employeeHeaderRow = this.worksheet.addRow([`${employeeData.employeeName} (${employeeData.employeeEmail})`]);
+      const employeeHeaderRow = this.worksheet.addRow([`${employeeData.employeeName} - ${employeeData.employeeEmail}`]);
       this.worksheet.mergeCells(employeeHeaderRow.number, 1, employeeHeaderRow.number, totalColumns);
       employeeHeaderRow.font = { bold: true, size: 11 };
-      employeeHeaderRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE2E8F0' }
-      };
       employeeHeaderRow.height = 16;
 
       // Add header row for this employee
