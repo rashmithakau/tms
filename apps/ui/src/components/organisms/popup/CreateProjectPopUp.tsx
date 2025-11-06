@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, FormControlLabel, Radio } from '@mui/material';
 import BaseTextField from '../../atoms/common/inputField/BaseTextField';
 import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
@@ -16,7 +16,11 @@ import Divider from '@mui/material/Divider';
 import { UserRole } from '@tms/shared';
 import SupervisorSelect from '../../molecules/employee/supervisor/SupervisorSelect';
 import BillableSelect from '../../molecules/common/other/BillableSelect';
-import { CreateProjectFormData, CreateProjectPopupProps } from '../../../interfaces/organisms/popup';
+import {
+  CreateProjectFormData,
+  CreateProjectPopupProps,
+} from '../../../interfaces/organisms/popup';
+import { CheckBox } from '../../atoms/common/checkBox';
 
 const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
   open,
@@ -29,7 +33,6 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
   const theme = useTheme();
   const toast = useToast();
 
-  
   const {
     control,
     handleSubmit,
@@ -50,12 +53,12 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
         supervisor: data.supervisor ?? null,
       });
       toast.success('Project created');
-      onClose(); 
+      onClose();
       reset();
-      setSelectedEmployees([]); 
+      setSelectedEmployees([]);
     } catch (error) {
       toast.error('Failed to create project');
-      setSelectedEmployees([]); 
+      setSelectedEmployees([]);
     }
   };
 
@@ -110,6 +113,35 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
                 />
               )}
             />
+
+            {/* Client Name Field */}
+            <Box sx={{ mb: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Controller
+              name="clientName"
+              control={control}
+              render={({ field }) => (
+                <BaseTextField
+                  {...field}
+                  label="Client Name"
+                  placeholder="Enter Client Name"
+                  variant="outlined"
+                  id="client-name"
+                  error={!!errors.clientName}
+                  helperText={errors.clientName?.message || ' '}
+                />
+              )}
+            />
+            <CheckBox
+              label="Company Project"
+              // checked={remember}
+              // onChange={handleRemember}
+              color="primary"
+              size="medium"
+              disabled={false}
+              labelPlacement='start'
+              sx={{ marginBottom: theme.spacing(3) }}
+            />
+            </Box>
 
             {/* Billable Dropdown */}
             <Box sx={{ mb: 1 }}>

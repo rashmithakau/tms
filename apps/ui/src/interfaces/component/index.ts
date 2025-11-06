@@ -3,6 +3,7 @@ export * from './IAppIconProps';
 export * from './IBaseBtnProps';
 export * from './IBaseTextFieldProps';
 export * from './IBillableSelectProps';
+export * from './ICheckboxProps';
 export * from './IDatePickerFieldProps';
 export * from './IDrawerListProps';
 export * from './IEmpTableToolbarProps';
