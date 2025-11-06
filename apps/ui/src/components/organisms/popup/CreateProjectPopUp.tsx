@@ -30,6 +30,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
   const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
     []
   );
+  const [isCompanyProject, setIsCompanyProject] = useState(false);
   const theme = useTheme();
   const toast = useToast();
 
@@ -38,6 +39,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
     handleSubmit,
     formState: { errors, isSubmitting, isValid },
     reset,
+    setValue,
   } = useForm<CreateProjectFormData>({
     resolver: yupResolver(CreateProjectFormSchema),
     mode: 'onChange',
@@ -48,6 +50,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
     try {
       await createProject({
         projectName: data.projectName,
+        clientName: data.clientName,
         billable: data.billable,
         employees: selectedEmployees.map((e) => e.id),
         supervisor: data.supervisor ?? null,
@@ -66,6 +69,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
     onClose();
     reset();
     setSelectedEmployees([]);
+    setIsCompanyProject(false);
   };
 
   const handleOpenEmployeeDialog = () => {
@@ -83,6 +87,21 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
 
   const handleRemoveEmployee = (employeeId: string) => {
     setSelectedEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
+  };
+
+  const handleCompanyProjectChange = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    setIsCompanyProject(checked);
+    if (checked) {
+      setValue('clientName', 'Allion Technologies', { 
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    } else {
+      setValue('clientName', '', { 
+        shouldValidate: true,
+        shouldDirty: true 
+      });
+    }
   };
 
   return (
@@ -128,13 +147,17 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
                   id="client-name"
                   error={!!errors.clientName}
                   helperText={errors.clientName?.message || ' '}
+                  disabled={isCompanyProject}
+                  InputLabelProps={{
+                    shrink: isCompanyProject || !!field.value,
+                  }}
                 />
               )}
             />
             <CheckBox
               label="Company Project"
-              // checked={remember}
-              // onChange={handleRemember}
+              checked={isCompanyProject}
+              onChange={handleCompanyProjectChange}
               color="primary"
               size="medium"
               disabled={false}

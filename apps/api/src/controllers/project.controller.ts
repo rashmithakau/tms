@@ -18,6 +18,7 @@ export const createHandler = catchErrors(async (req, res) => {
   const parsedUi = createProjectFromUiSchema.parse(req.body);
   const normalized = createProjectNormalizedSchema.parse({
     projectName: parsedUi.projectName,
+    clientName: parsedUi.clientName,
     billable: parsedUi.billable === 'yes',
     employees: parsedUi.employees,
     supervisor: parsedUi.supervisor ?? null,

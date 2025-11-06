@@ -10,6 +10,7 @@ export interface ProjectListItem {
 
 export interface CreateProjectPayload {
   projectName: string;
+  clientName: string;
   billable: 'yes' | 'no';
   employees: string[];
   supervisor?: string | null;

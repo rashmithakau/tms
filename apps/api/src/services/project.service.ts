@@ -19,6 +19,7 @@ export const createProject = async (data: CreateProjectParams, performedBy?: str
 
   const project = await ProjectModel.create({
     projectName: data.projectName,
+    clientName: data.clientName,
     billable: data.billable,
     employees: stringArrayToObjectIds(filterValidIds(data.employees ?? [])),
     supervisor: stringToObjectId(data.supervisor),

@@ -4,6 +4,7 @@ import { IProjectDocument } from '../interfaces';
 const projectSchema = new mongoose.Schema<IProjectDocument>(
   {
     projectName: { type: String, required: true },
+    clientName: { type: String, required: true },
     billable: { type: Boolean, required: true },
     employees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
     status: { type: Boolean, default: true },
