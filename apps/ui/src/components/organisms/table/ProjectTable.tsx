@@ -51,6 +51,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       key: 'projectName',
       render: (row) => row.projectName,
     },
+    { label: 'Client Name', key: 'clientName', 
+      render: (row) => row.clientName || (
+        <span style={{ color: theme.palette.text.secondary }}>No client assigned</span>
+      ),
+     },
     { label: 'Billable ', key: 'billable', render: (row) => row.billable },
     {
       label: 'Supervisor Name',

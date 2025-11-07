@@ -1,6 +1,7 @@
 export interface ProjectListItem {
   _id: string;
   projectName: string;
+  clientName: string;
   billable: boolean;
   employees: { _id: string; firstName: string; lastName: string; email: string; designation?: string }[];
   supervisor?: { _id: string; firstName: string; lastName: string; email: string; designation?: string } | null;
