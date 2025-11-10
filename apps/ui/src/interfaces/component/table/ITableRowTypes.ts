@@ -15,6 +15,7 @@ export interface EmployeeRow {
 export interface ProjectRow {
   id: string;
   projectName: string;
+  clientName: string;
   billable: 'Yes' | 'No';
   createdAt?: string;
   employees?: { id: string; name: string; designation?: string; email?: string }[];

@@ -4,6 +4,7 @@ import { projectNameSchema } from './main.schema';
 
 export const createProjectFromUiSchema = z.object({
   projectName: projectNameSchema,
+  clientName: z.string().min(1, 'Client name is required'),
   billable: z.enum(['yes', 'no']),
   employees: z.array(z.string()).default([]),
   supervisor: z.string().nullable().optional(),
@@ -12,6 +13,7 @@ export const createProjectFromUiSchema = z.object({
 // Internal normalized schema used by service
 export const createProjectNormalizedSchema = z.object({
   projectName: projectNameSchema,
+  clientName: z.string().min(1, 'Client name is required'),
   billable: z.boolean(),
   employees: z.array(z.string()).default([]),
   supervisor: z.string().nullable().optional(),

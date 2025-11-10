@@ -1,5 +1,6 @@
 export interface CreateProjectFormData {
   projectName: string;
+  clientName: string;
   billable: 'yes' | 'no';
   supervisor: string | null;
 }

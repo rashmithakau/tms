@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 
 export interface IProject extends Document {
   projectName: string;
+  clientName: string;
   billable: boolean;
   employees: mongoose.Types.ObjectId[];
   status: boolean;
@@ -14,6 +15,7 @@ export interface IProjectDocument extends mongoose.Document, IProject {}
 
 export interface ICreateProjectParams {
   projectName: string;
+  clientName: string;
   billable: boolean;
   employees?: mongoose.Types.ObjectId[];
   status?: boolean;
@@ -26,6 +28,7 @@ export interface IUpdateProjectParams extends Partial<ICreateProjectParams> {
 
 export interface CreateProjectParams {
   projectName: string;
+  clientName: string;
   billable: boolean;
   employees?: string[];
   supervisor?: string | null;

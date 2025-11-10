@@ -118,6 +118,7 @@ const AdminWindow: React.FC = () => {
 
   const dashboardProjectColumns: ITableColumn[] = [
     { field: 'projectName', headerName: 'Project Name', width: 200 },
+    { field: 'clientName', headerName: 'Client Name', width: 200 },
     { field: 'billable', headerName: 'Billable', width: 100 },
     { 
       field: 'status', 
@@ -247,6 +248,7 @@ const AdminWindow: React.FC = () => {
         id: p._id,
         projectName: p.projectName,
         billable: p.billable ? 'Yes' : 'No',
+        clientName: p.clientName,
         createdAt: p.createdAt,
         employees: (p.employees || []).map((e) => ({
           id: e._id,
