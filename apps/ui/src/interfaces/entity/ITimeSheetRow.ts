@@ -21,4 +21,9 @@ export interface ITimeSheetRow {
     contactNumber?: string;
     designation?: string;
   };
+  // Metadata for edit/delete operations
+  timesheetId?: string;
+  categoryIndex?: number;
+  itemIndex?: number;
+  dayIndex?: number;
 }

@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.route";
 import userRoutes from './routes/user.route';
 import projectRoutes from './routes/project.route';
 import timesheetRoutes from './routes/timesheet.route';
+import dailyTimesheetRoutes from './routes/dailyTimesheet.route';
 import notificationRoutes from './routes/notification.route';
 import teamRoutes from './routes/team.route';
 import reportRoutes from './routes/report.route';
@@ -37,6 +38,7 @@ app.use("/auth",authRoutes);
 app.use("/api/user",userRoutes);
 app.use("/api/project",projectRoutes)
 app.use("/api/timesheets", timesheetRoutes)
+app.use("/api/daily-timesheets", dailyTimesheetRoutes)
 app.use('/api/team', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);

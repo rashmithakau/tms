@@ -1,3 +1,4 @@
+export { default as AddTimesheetRow } from './AddTimesheetRow';
 export { default as TimesheetActionButtons } from './TimesheetActionButtons';
 export { default as TimesheetCell } from './TimesheetCell';
 export { default as TimesheetRow } from './TimesheetRow';
