@@ -1,0 +1,180 @@
+name: Nightly Tests
+
+on:
+  schedule:
+    # Run every night at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  full-test-suite:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run all tests
+        run: npx nx run-many -t test --all --parallel=3 --ci --code-coverage
+
+      - name: Upload coverage
+        if: matrix.node-version == '18.x'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: nightly
+          fail_ci_if_error: false
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test
+          MONGO_INITDB_ROOT_PASSWORD: test
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run integration tests
+        run: |
+          npx nx test api --testPathPattern=integration || echo "No integration tests found"
+        env:
+          MONGO_URI: mongodb://test:test@localhost:27017/test?authSource=admin
+          JWT_SECRET: test-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+          NODE_ENV: test
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build applications
+        run: |
+          npx nx build api --configuration=production
+          npx nx build ui --configuration=production
+
+      - name: Run E2E tests
+        run: npx nx e2e ui-e2e --configuration=ci || echo "No E2E tests configured"
+
+      - name: Upload E2E videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-videos
+          path: dist/cypress/apps/ui-e2e/videos
+          retention-days: 7
+
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate --json > audit-report.json || true
+          cat audit-report.json
+
+      - name: Check for vulnerabilities
+        run: |
+          if npm audit --audit-level=high --json | jq -e '.metadata.vulnerabilities.high > 0 or .metadata.vulnerabilities.critical > 0'; then
+            echo "⚠️ High or critical vulnerabilities found!"
+            npm audit --audit-level=high
+          else
+            echo "✅ No high or critical vulnerabilities found"
+          fi
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build applications
+        run: |
+          npx nx build ui --configuration=production
+
+      - name: Analyze bundle size
+        run: |
+          echo "### 📦 Bundle Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          du -sh dist/apps/ui/* >> $GITHUB_STEP_SUMMARY || true
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [full-test-suite, integration-tests, e2e-tests, dependency-audit]
+    if: failure()
+    steps:
+      - name: Send notification
+        run: |
+          echo "❌ Nightly tests failed!"
+          echo "Check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

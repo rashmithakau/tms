@@ -1,0 +1,72 @@
+# Labeler configuration for automatic PR labeling
+# See: https://github.com/actions/labeler
+
+# API changes
+'api':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/api/**/*'
+
+# UI changes
+'ui':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/ui/**/*'
+
+# Shared library changes
+'shared':
+  - changed-files:
+    - any-glob-to-any-file: 'libs/shared/**/*'
+
+# Documentation changes
+'documentation':
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**/*.md'
+      - 'docs/**/*'
+
+# Configuration changes
+'config':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '*.json'
+      - '*.yml'
+      - '*.yaml'
+      - '.github/**/*'
+      - '*config*'
+
+# Dependencies
+'dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'package.json'
+      - 'package-lock.json'
+      - '**/package.json'
+
+# Tests
+'tests':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.spec.ts'
+      - '**/*.spec.tsx'
+      - '**/*.test.ts'
+      - '**/*.test.tsx'
+      - '**/test/**/*'
+
+# CI/CD
+'ci/cd':
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'
+
+# Database/Models
+'database':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/models/**/*'
+      - '**/schemas/**/*'
+
+# Authentication/Security
+'security':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/auth*'
+      - '**/middleware/authenticate*'
+      - '**/security/**/*'
