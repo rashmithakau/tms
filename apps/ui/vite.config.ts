@@ -12,12 +12,12 @@ export default defineConfig({
     host: 'localhost',
     proxy: {
       '/auth': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:4004',
         changeOrigin: true,
         secure: false,
       },
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:4004',
         changeOrigin: true,
         secure: false,
       },

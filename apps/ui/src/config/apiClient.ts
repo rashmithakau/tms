@@ -3,9 +3,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-
+// Use empty string for baseURL when in development to use Vite proxy
 const apiClient = axios.create({
-  baseURL: API_BASE_URL, 
+  baseURL: import.meta.env.DEV ? '' : API_BASE_URL,
   withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
