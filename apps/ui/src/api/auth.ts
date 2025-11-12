@@ -2,18 +2,15 @@ import API  from "../config/apiClient";
 import { IChangePwdFirstLogin, ILoginDetails } from "../interfaces/auth";
 
 export const login = async (data: ILoginDetails) => {
-    try {
-      return await API.post("/auth/login", data);
-    } catch (error) {
-      throw error; 
-    }
-  };
+  return await API.post("/auth/login", data);
+};
 
 export const getCurrentUser = async () => {
   try {
     return await API.get("/auth/me");
   } catch (error: any) {
     if (error?.response?.status !== 401) {
+      console.error('Error fetching current user:', error);
     }
     throw error;
   }
@@ -21,11 +18,7 @@ export const getCurrentUser = async () => {
 
 
 export const changePwdFirstLogin = async (data:IChangePwdFirstLogin) => {
-  try {
-    return await API.post("/auth/change-password",data);
-  } catch (error) {
-    throw error; 
-  }
+  return await API.post("/auth/change-password",data);
 }
   
 

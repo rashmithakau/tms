@@ -56,8 +56,7 @@ const SelectedEmployeeChips: React.FC<ISelectedEmployeeChipsProps> = ({
                   </Typography>
 
                   {employee.designation && (
-                    <>
-                      <Box
+                    <Box
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
@@ -75,7 +74,6 @@ const SelectedEmployeeChips: React.FC<ISelectedEmployeeChipsProps> = ({
                           {employee.designation}
                         </Typography>
                       </Box>
-                    </>
                   )}
                 </Box>
               }

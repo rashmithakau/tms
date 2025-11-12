@@ -27,11 +27,11 @@ const ReportDashboard: React.FC = () => {
     generateTimesheetEntries,
     clearError,
   } = useReportGenerator({
-    onSuccess: (filename) => {
-   
+    onSuccess: (_filename) => {
+      // Success handling can be added here if needed
     },
-    onError: (error) => {
-      
+    onError: (_error) => {
+      // Error handling can be added here if needed
     },
   });
 

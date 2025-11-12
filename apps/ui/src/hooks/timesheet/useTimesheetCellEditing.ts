@@ -65,7 +65,7 @@ export const useTimesheetCellEditing = (
     const parts = cleanValue.split('.');
     
     if (parts.length === 2) {
-      let intPart = parseInt(parts[0]) || 0;
+      const intPart = parseInt(parts[0]) || 0;
       const decPart = parts[1];
       
       // If hours exceed 24, set to 00.00

@@ -198,7 +198,7 @@ const SuperAdminWindow: React.FC = () => {
       <>
         {usersError && (
           <Box sx={{ m: 2 }}>
-            <Alert severity="error" onClose={() => {}}>
+            <Alert severity="error" onClose={() => { /* Error dismissed */ }}>
               {usersError}
             </Alert>
           </Box>
@@ -214,9 +214,9 @@ const SuperAdminWindow: React.FC = () => {
                 <EmpTableToolbar
                   projectsOptions={[]}
                   selectedProjectIds={[]}
-                  onSelectedProjectIdsChange={() => {}}
+                  onSelectedProjectIdsChange={() => { /* No operation needed */ }}
                   statusFilter="all"
-                  onStatusFilterChange={() => {}}
+                  onStatusFilterChange={() => { /* No operation needed */ }}
                   roleFilter={roleFilter}
                   onRoleFilterChange={handleRoleFilterChange}
                   availableRoles={[

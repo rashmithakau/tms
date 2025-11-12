@@ -325,7 +325,9 @@ const AdminWindow: React.FC = () => {
       setProjects(Array.isArray(data) ? data : []);
      
       await refreshUsers();
-    } catch {}
+    } catch (error) {
+      console.error('Error refreshing projects:', error);
+    }
   };
 
   const handleProjectClose = async () => {
@@ -336,7 +338,9 @@ const AdminWindow: React.FC = () => {
       setProjects(Array.isArray(data) ? data : []);
       
       await refreshUsers();
-    } catch {}
+    } catch (error) {
+      console.error('Error closing project:', error);
+    }
   };
 
   return (

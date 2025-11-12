@@ -46,7 +46,9 @@ apiClient.interceptors.response.use(
         try {
        
           await apiClient.get('/auth/logout');
-        } catch {}
+        } catch (logoutError) {
+          console.error('Logout error:', logoutError);
+        }
       
         if (typeof window !== 'undefined') {
           window.location.assign('/');

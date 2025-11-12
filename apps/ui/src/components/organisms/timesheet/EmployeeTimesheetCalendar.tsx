@@ -13,7 +13,7 @@ import TimesheetTotalRow from '../../molecules/timesheet/TimesheetTotalRow';
 import StatusDot from '../../atoms/common/StatusDot';
 import { useEmployeeTimesheetCalendar } from '../../../hooks/timesheet/useEmployeeTimesheetCalendar';
 import { IEmployeeTimesheetCalendarProps } from '../../../interfaces/organisms/timesheet';
-import { DaySelection } from 'apps/ui/src/interfaces';
+import { DaySelection } from '../../../interfaces';
 
 const EmployeeTimesheetCalendar: React.FC<IEmployeeTimesheetCalendarProps> = ({
   employeeId,
