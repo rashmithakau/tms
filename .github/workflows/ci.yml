@@ -175,7 +175,7 @@ jobs:
         uses: nrwl/nx-set-shas@v4
 
       - name: Run tests for affected projects
-        run: npx nx affected -t test --parallel=3 --ci --code-coverage
+        run: npx nx affected -t test --parallel=3 --ci --coverage
 
       - name: Upload coverage reports
         if: always()
