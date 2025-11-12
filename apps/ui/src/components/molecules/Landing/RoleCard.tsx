@@ -1,7 +1,7 @@
 import React from 'react'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
-import AppIcon from '../../atoms/landing/AppIcon'
+import AppIcon from '../../atoms/Landing/AppIcon'
 import Box from '@mui/material/Box'
 import FeatureList from './FeatureList'
 import { useTheme } from '@mui/material/styles';

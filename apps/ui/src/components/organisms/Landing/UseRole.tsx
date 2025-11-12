@@ -3,10 +3,10 @@ import { Box, Grid } from '@mui/material';
 import { Person } from '@mui/icons-material';
 import { SupervisorAccount } from '@mui/icons-material';
 import { AdminPanelSettings } from '@mui/icons-material';
-import RoleCard from '../../molecules/landing/RoleCard';
-import SectionTitle from '../../atoms/landing/SectionTitle';
+import RoleCard from '../../molecules/Landing/RoleCard';
+import SectionTitle from '../../atoms/Landing/SectionTitle';
 import { useTheme } from '@mui/material/styles';
-import SectionContainer from '../../atoms/landing/SectionContainer';
+import SectionContainer from '../../atoms/Landing/SectionContainer';
 
 const UseRole: React.FC = () => {
   const userRoles = [

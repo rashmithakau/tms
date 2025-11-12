@@ -1,8 +1,8 @@
 import React from 'react';
-import LandingPageLayout from '../components/templates/landing/LandingPageLayout';
-import HeroSection from '../components/organisms/landing/HeroSection';
-import Features from '../components/organisms/landing/Features';
-import UseRole from '../components/organisms/landing/UseRole';
+import LandingPageLayout from '../components/templates/Landing/LandingPageLayout';
+import HeroSection from '../components/organisms/Landing/HeroSection';
+import Features from '../components/organisms/Landing/Features';
+import UseRole from '../components/organisms/Landing/UseRole';
 
 const LandingPage: React.FC = () => {
   return (

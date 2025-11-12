@@ -1,7 +1,7 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import Header from '../../organisms/landing/Header'
-import Footer from '../../organisms/landing/Footer'
+import Header from '../../organisms/Landing/Header'
+import Footer from '../../organisms/Landing/Footer'
 import { useTheme } from '@mui/material/styles'
 
 const LandingPageLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
