@@ -14,8 +14,8 @@ export * from './IReportPreviewContainerProps';
 export * from './IReportFilterContainerProps';
 export * from './IReportDashboardLayoutProps';
 export * from './IReportContentLayoutProps';
+export * from './IUseReportTypeProps';
 // Removed duplicate exports that are already in hook folder:
 // export * from './IReportFilter';
 // export * from './IReportPreviewProps';
-// export * from './IUseReportTypeProps';
 export * from './IReportPreview';

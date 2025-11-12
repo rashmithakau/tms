@@ -129,7 +129,7 @@ export const useTimesheetSubmission = (refresh: () => Promise<void>) => {
         } else {
           // Create new timesheet
           const response = await createMyTimesheet(payload);
-          timesheetId = response.data?.timesheet?._id;
+          timesheetId = response.data?._id;
           
           if (!timesheetId) {
             toast.error('Failed to create timesheet');

@@ -39,14 +39,14 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
       const isDisabled = dailyStatus === TimesheetStatus.Approved || dailyStatus === TimesheetStatus.Rejected;
       return { colIndex, hasHours, isDisabled, canSelect: hasHours && !isDisabled && canApproveRow };
     })
-    .filter(day => day.canSelect);
+    .filter((day: { colIndex: number; hasHours: boolean; isDisabled: boolean; canSelect: boolean }) => day.canSelect);
 
   // Check if all selectable days are selected
   const allSelectableDaysSelected = selectableDays.length > 0 && 
-    selectableDays.every(day => isDaySelected(catIndex, rowIndex, day.colIndex));
+    selectableDays.every((day: { colIndex: number; hasHours: boolean; isDisabled: boolean; canSelect: boolean }) => isDaySelected(catIndex, rowIndex, day.colIndex));
   
   // Check if some (but not all) selectable days are selected
-  const someSelectableDaysSelected = selectableDays.some(day => isDaySelected(catIndex, rowIndex, day.colIndex)) && 
+  const someSelectableDaysSelected = selectableDays.some((day: { colIndex: number; hasHours: boolean; isDisabled: boolean; canSelect: boolean }) => isDaySelected(catIndex, rowIndex, day.colIndex)) && 
     !allSelectableDaysSelected;
 
   // Handle select all checkbox change
@@ -55,11 +55,11 @@ const TimesheetRow: React.FC<ITimesheetRowProps> = ({
     
     // Use bulk handler if available, otherwise fall back to individual calls
     if (handleBulkDaySelectionChange) {
-      const dayIndices = selectableDays.map(day => day.colIndex);
+      const dayIndices = selectableDays.map((day: { colIndex: number; hasHours: boolean; isDisabled: boolean; canSelect: boolean }) => day.colIndex);
       handleBulkDaySelectionChange(catIndex, rowIndex, dayIndices, checked);
     } else {
       // Fallback to individual calls (will only apply the last one due to state management)
-      selectableDays.forEach((day) => {
+      selectableDays.forEach((day: { colIndex: number; hasHours: boolean; isDisabled: boolean; canSelect: boolean }) => {
         handleDaySelectionChange(catIndex, rowIndex, day.colIndex, checked);
       });
     }
