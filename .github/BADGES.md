@@ -1,14 +1,16 @@
-# GitHub Actions CI/CD Status Badges
+# Status Badges
 
-Add these badges to your README.md:
+Add these badges to your `README.md` to show build status:
+
+---
 
 ## CI Pipeline Status
 
 ```markdown
-[![CI Pipeline](https://github.com/rashmithakau/tms/actions/workflows/ci.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/ci.yml)
+[![CI](https://github.com/rashmithakau/tms/actions/workflows/ci.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/ci.yml)
 ```
 
-[![CI Pipeline](https://github.com/rashmithakau/tms/actions/workflows/ci.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/ci.yml)
+Preview: [![CI](https://github.com/rashmithakau/tms/actions/workflows/ci.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/ci.yml)
 
 ---
 
@@ -18,11 +20,13 @@ Add these badges to your README.md:
 [![Deploy](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml)
 ```
 
-[![Deploy](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml)
+Preview: [![Deploy](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml)
 
 ---
 
-## Code Coverage (after setting up Codecov)
+## Code Coverage (Optional)
+
+After setting up Codecov:
 
 ```markdown
 [![codecov](https://codecov.io/gh/rashmithakau/tms/branch/master/graph/badge.svg)](https://codecov.io/gh/rashmithakau/tms)
@@ -30,24 +34,16 @@ Add these badges to your README.md:
 
 ---
 
-## Code Quality (after setting up SonarCloud)
+## Complete Example
 
-```markdown
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rashmithakau_tms&metric=alert_status)](https://sonarcloud.io/dashboard?id=rashmithakau_tms)
-```
-
----
-
-## Complete Badge Section
-
-Copy this to the top of your README.md:
+Copy this to the top of your README:
 
 ```markdown
 # TMS - Time Management System
 
-[![CI Pipeline](https://github.com/rashmithakau/tms/actions/workflows/ci.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/ci.yml)
+[![CI](https://github.com/rashmithakau/tms/actions/workflows/ci.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/ci.yml)
 [![Deploy](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml/badge.svg)](https://github.com/rashmithakau/tms/actions/workflows/deploy.yml)
-[![codecov](https://codecov.io/gh/rashmithakau/tms/branch/master/graph/badge.svg)](https://codecov.io/gh/rashmithakau/tms)
+```
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rashmithakau_tms&metric=alert_status)](https://sonarcloud.io/dashboard?id=rashmithakau_tms)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

@@ -1,53 +1,38 @@
-# Quick Setup Guide for CI/CD
+# Quick Start Guide
 
-## 🚀 Getting Started
+## 🚀 How to Use CI/CD
 
-Your CI/CD pipeline is configured and ready! Follow these steps to activate it.
-
-## Step 1: Push to GitHub
+### Push Your Code
 
 ```bash
 git add .
-git commit -m "feat: add CI/CD pipeline"
-git push origin feat/ma/add-client-in-projects
+git commit -m "feat: your changes"
+git push
 ```
 
-## Step 2: Create Pull Request
+The CI pipeline runs automatically on every push!
 
-1. Go to your repository on GitHub
-2. Click **Pull requests** → **New pull request**
-3. Select your branch → **Create pull request**
-4. Watch the CI pipeline run automatically! ✨
+### Create a Pull Request
 
-## Step 3: Optional Integrations
+1. Go to GitHub → **Pull requests** → **New pull request**
+2. Select your branch
+3. Click **Create pull request**
+4. CI checks will run automatically ✨
 
-### Enable Code Coverage (Codecov)
+---
 
-1. Go to [codecov.io](https://codecov.io)
-2. Sign in with GitHub
-3. Enable for your repository
-4. Copy the token
-5. Add to GitHub Secrets as `CODECOV_TOKEN`
+## Optional: Enable Code Coverage
 
-### Enable Security Scanning (Snyk)
+1. Go to [codecov.io](https://codecov.io) and sign in with GitHub
+2. Enable your repository
+3. Copy the token
+4. Add to GitHub Secrets as `CODECOV_TOKEN`
 
-1. Go to [snyk.io](https://snyk.io)
-2. Sign in with GitHub
-3. Import your repository
-4. Get your token
-5. Add to GitHub Secrets as `SNYK_TOKEN`
+---
 
-### Enable Code Quality (SonarCloud)
+## Need Help?
 
-1. Go to [sonarcloud.io](https://sonarcloud.io)
-2. Sign in with GitHub
-3. Analyze your repository
-4. Get your token
-5. Add to GitHub Secrets as `SONAR_TOKEN`
-
-### Enable Nx Cloud (Optional - Faster Builds)
-
-1. Go to [nx.app](https://nx.app)
+Check the [CI/CD Documentation](./CI_CD_DOCUMENTATION.md) for more details
 2. Sign in and create workspace
 3. Get your access token
 4. Add to GitHub Secrets as `NX_CLOUD_ACCESS_TOKEN`

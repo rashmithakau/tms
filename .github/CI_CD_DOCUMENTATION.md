@@ -2,51 +2,81 @@
 
 ## Overview
 
-This repository uses GitHub Actions for continuous integration and deployment. The CI/CD pipeline ensures code quality, runs automated tests, and handles deployments.
+This repository uses GitHub Actions for automated testing and deployment.
+
+---
 
 ## Workflows
 
-### 1. **CI Pipeline** (`ci.yml`)
+### 1. CI Pipeline (`ci.yml`)
 
-Runs on every push and pull request to main branches.
+**What it does:**
+- ✅ Installs dependencies
+- 🔍 Lints code (ESLint)
+- 📝 Type checks (TypeScript)
+- 🧪 Runs unit tests with coverage
+- 🏗️ Builds API and UI
+- 🔒 Runs security audit
 
-**Jobs:**
-- ✅ **Setup** - Install dependencies with caching
-- 🔍 **Lint** - ESLint checks on affected projects
-- 📝 **Type Check** - TypeScript type validation
-- 🧪 **Test** - Unit tests with coverage
-- 🏗️ **Build API** - Production build of API
-- 🎨 **Build UI** - Production build of UI
-- 🔒 **Security** - npm audit and Snyk scan
-- 📊 **Code Quality** - SonarCloud analysis
-
-**Triggers:**
-- Push to `master`, `main`, `develop`, `feat/**`, `fix/**`, `hotfix/**`
-- Pull requests to `master`, `main`, `develop`
+**When it runs:**
+- On every push to `master`, `main`, `develop`, or feature branches
+- On pull requests
 
 **Duration:** ~5-10 minutes
 
 ---
 
-### 2. **PR Checks** (`pr-checks.yml`)
+### 2. Deployment (`deploy.yml`)
 
-Enhanced validation for pull requests.
+**What it does:**
+- 🚀 Deploys to staging or production
+- 🗄️ Runs database migrations
+- ✅ Runs smoke tests after deployment
+- 🔄 Rollback on failure
 
-**Features:**
-- 📋 PR title validation (conventional commits)
-- 📏 PR size check (warns if >1000 changes)
-- 🔀 Merge conflict detection
-- 📊 Affected projects visualization
-- 🏷️ Automatic labeling based on changed files
-- 💬 Bot comments with status updates
+**When it runs:**
+- Automatically on push to `main` (staging)
+- Manually triggered for production
 
-**Special Handling:**
-- Draft PRs: Quick validation only
-- Ready PRs: Full CI pipeline
+**Duration:** ~10-15 minutes
 
 ---
 
-### 3. **Nightly Tests** (`nightly.yml`)
+## Required Secrets
+
+Add these in GitHub Settings → Secrets → Actions:
+
+### For CI:
+- `CODECOV_TOKEN` - Code coverage reporting (optional)
+- `SONAR_TOKEN` - Code quality analysis (optional)
+- `SNYK_TOKEN` - Security scanning (optional)
+
+### For Deployment:
+- `DEPLOY_HOST` - Server hostname
+- `DEPLOY_USER` - SSH username
+- `DEPLOY_KEY` - SSH private key
+- `MONGODB_URI` - Database connection string
+
+---
+
+## How Nx Affected Works
+
+The pipeline only tests/builds projects that changed:
+
+```bash
+npx nx affected -t test    # Only test changed projects
+npx nx affected -t build   # Only build changed projects
+```
+
+This saves time on large monorepos! ⚡
+
+---
+
+## Need Help?
+
+- Check workflow runs: GitHub → **Actions** tab
+- View logs: Click on any workflow run
+- Re-run failed jobs: Click **Re-run jobs** button
 
 Comprehensive testing suite that runs every night.
 
