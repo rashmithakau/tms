@@ -31,7 +31,7 @@ export const createTimesheet = async (params: ICreateTimesheetParams) => {
     })),
   }));
 
-  let weekStartDate = new Date(params.weekStartDate);
+  const weekStartDate = new Date(params.weekStartDate);
   weekStartDate.setUTCHours(0, 0, 0, 0);
 
   const doc = await Timesheet.create({
@@ -504,14 +504,13 @@ export const batchUpdateDailyTimesheetStatus = async (
   );
 
   for (const [timesheetId, timesheetUpdates] of groupedUpdates) {
-    try {
-      if (!timesheetId || timesheetId.length !== 24) {
-        const error = `Invalid timesheet ID format: ${timesheetId}`;
-        console.error(error);
-        throw new Error(error);
-      }
+    if (!timesheetId || timesheetId.length !== 24) {
+      const error = `Invalid timesheet ID format: ${timesheetId}`;
+      console.error(error);
+      throw new Error(error);
+    }
 
-      const timesheet = await Timesheet.findById(timesheetId).populate(
+    const timesheet = await Timesheet.findById(timesheetId).populate(
         'userId',
         'firstName lastName email'
       );
@@ -890,10 +889,7 @@ export const batchUpdateDailyTimesheetStatus = async (
           console.error('Failed to create/emit rejection notification', e);
         }
       }
-    } catch (error: any) {
-      throw error;
     }
-  }
 
   return results;
 };
@@ -1103,7 +1099,7 @@ export const getOrCreateTimesheetForWeek = async (
   userId: string,
   weekStartDateRaw?: string
 ) => {
-  let weekStartDate = getMondayUTC(
+  const weekStartDate = getMondayUTC(
     weekStartDateRaw ? weekStartDateRaw : new Date()
   );
 

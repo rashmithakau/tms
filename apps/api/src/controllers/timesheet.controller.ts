@@ -24,7 +24,8 @@ import { getMondayUTC } from '../utils/data';
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = createTimesheetSchema.parse(req.body);
-  let { weekStartDate, data } = parsed;
+  const { data } = parsed;
+  let { weekStartDate } = parsed;
   weekStartDate = getMondayUTC(weekStartDate);
   
   const result = await createTimesheetWithBusinessLogic(userId, weekStartDate, data);

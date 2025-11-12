@@ -65,7 +65,7 @@ export const createTeam = async (data: CreateTeamParams, performedBy?: string) =
       await updateUserTeamMemberships(team._id.toString(), validMemberIds);
     }
   } catch (error) {
-    
+    console.error('Error updating team memberships:', error);
   }
 
   return { team };

@@ -263,7 +263,7 @@ export class ProfessionalPDFComponents {
   //summary section 
   addProfessionalSummary(
     summaryData: { label: string; value: number | string; type?: 'success' | 'warning' | 'danger' | 'info' }[],
-    title: string = 'Summary'
+    title = 'Summary'
   ): void {
     this.checkPageBreak(summaryData.length * 30 + 60);
     
