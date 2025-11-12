@@ -15,7 +15,7 @@ import EmployeeSection from '../user/EmployeeSection';
 import { useState } from 'react';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
 import { useTheme } from '@mui/material/styles';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, ControllerRenderProps } from 'react-hook-form';
 import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
 import { UserRole } from '@tms/shared';
@@ -112,7 +112,7 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
             <Controller
               name="teamName"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<any, 'teamName'> }) => (
                 <BaseTextField
                   {...field}
                   variant="outlined"
@@ -128,7 +128,7 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
               <Controller
                 name="isDepartment"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<any, 'isDepartment'> }) => (
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -157,7 +157,7 @@ function CreateDeptPopUp({ open, onClose }: CreateTeamPopupProps) {
               <Controller
                 name="supervisor"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<any, 'supervisor'> }) => (
                   <FormControl fullWidth size="small">
                     <InputLabel id="supervisor-select">Supervisor</InputLabel>
                     <Select

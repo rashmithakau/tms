@@ -3,7 +3,7 @@ import BaseTextField from '../../../atoms/common/inputField/BaseTextField';
 import NumberField from '../../../atoms/common/inputField/NumberField';
 import BaseBtn from '../../../atoms/common/button/BaseBtn';
 import { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, ControllerRenderProps } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -107,7 +107,7 @@ export default function EditAccountPopup({
           <Controller
             name="status"
             control={control}
-            render={({ field }) => (
+            render={({ field }: { field: ControllerRenderProps<any, 'status'> }) => (
               <FormControl fullWidth size="small" error={!!errors.status}>
                 <InputLabel id="status-label">Status</InputLabel>
                 <Select

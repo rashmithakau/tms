@@ -5,7 +5,7 @@ import BaseBtn from '../../atoms/common/button/BaseBtn';
 import AddEmployeePopup from './AddEmployeePopup';
 import EmployeeSection from '../user/EmployeeSection';
 import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, ControllerRenderProps } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import CreateProjectFormSchema from '../../../validations/project/CreateProjectFormSchema';
 import { useTheme } from '@mui/material/styles';
@@ -120,7 +120,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
             <Controller
               name="projectName"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<any, 'projectName'> }) => (
                 <BaseTextField
                   {...field}
                   label="Project Name"
@@ -138,7 +138,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
             <Controller
               name="clientName"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<any, 'clientName'> }) => (
                 <BaseTextField
                   {...field}
                   label="Client Name"
@@ -171,7 +171,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
               <Controller
                 name="billable"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<any, 'billable'> }) => (
                   <BillableSelect
                     value={field.value}
                     onChange={field.onChange}
@@ -193,7 +193,7 @@ const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
               <Controller
                 name="supervisor"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<any, 'supervisor'> }) => (
                   <SupervisorSelect
                     employees={selectedEmployees}
                     value={field.value}
