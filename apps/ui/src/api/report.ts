@@ -3,6 +3,9 @@ import { ReportFilter, Employee, SubmissionStatusPreviewRow, ApprovalStatusPrevi
 import { ReportMetadata } from '@tms/shared';
 import { buildQueryParams, transformDetailedTimesheetData } from '../utils';
 
+// Re-export ReportFilter for convenience
+export type { ReportFilter } from '../interfaces/api';
+
 export const generateSubmissionStatusReport = async (
   filter: ReportFilter,
   format: 'pdf' | 'excel' = 'excel'
