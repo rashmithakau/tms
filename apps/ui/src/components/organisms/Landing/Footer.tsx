@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import SectionContainer from '../../atoms/landing/SectionContainer';
+import SectionContainer from '../../atoms/Landing/SectionContainer';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 

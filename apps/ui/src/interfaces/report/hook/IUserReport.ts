@@ -1,4 +1,4 @@
-import { ReportFilter } from '../../../api/report';
+import { ReportFilter } from '../../api/IReport';
 
 export interface UseReportFiltersOptions {
   initialFilter?: Partial<ReportFilter>;

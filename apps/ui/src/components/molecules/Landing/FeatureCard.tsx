@@ -3,7 +3,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
-import AppIcon from '../../atoms/landing/AppIcon';
+import AppIcon from '../../atoms/Landing/AppIcon';
 import { FeatureCardProps } from '../../../interfaces/landing';
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => {

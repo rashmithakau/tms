@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import {UseReportTypeOptions, UseReportTypeReturn} from '../../interfaces/report/reportpreview';
+import {UseReportTypeOptions, UseReportTypeReturn} from '../../interfaces/report/hook/IUseReportType';
 
 export const useReportType = ({ 
   initialType = '' 

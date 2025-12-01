@@ -1,11 +1,11 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import { AccessTime, Assessment, Group, Dashboard } from '@mui/icons-material';
-import SectionTitle from '../../atoms/landing/SectionTitle';
-import ScrollingCards from '../../molecules/landing/ScrollingCards';
+import SectionTitle from '../../atoms/Landing/SectionTitle';
+import ScrollingCards from '../../molecules/Landing/ScrollingCards';
 import { FeatureCardProps } from '../../../interfaces/landing/IFeatureCardProps';
 import { useTheme } from '@mui/material/styles';
-import SectionContainer from '../../atoms/landing/SectionContainer';
+import SectionContainer from '../../atoms/Landing/SectionContainer';
 
 const Features: React.FC = () => {
   const features: FeatureCardProps[] = [
