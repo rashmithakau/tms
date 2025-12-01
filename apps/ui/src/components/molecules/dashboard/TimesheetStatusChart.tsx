@@ -22,6 +22,45 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
 }) => {
   const chartTitle = title || `Timesheet Status - ${month} ${year}`;
 
+  // Calculate data using hooks BEFORE any early returns
+  const chartData: IPieChartData[] = useMemo(() => {
+    const data = [
+      {
+        label: 'Submitted',
+        value: submittedCount,
+        color: '#2196F3', // Blue
+      },
+      {
+        label: 'Pending Review',
+        value: pendingCount,
+        color: '#FF9800', // Orange
+      },
+      {
+        label: 'Late Submission',
+        value: lateCount,
+        color: '#9C27B0', // Purple
+      },
+      {
+        label: 'Approved',
+        value: approvedCount,
+        color: '#4CAF50', // Green
+      },
+      {
+        label: 'Rejected',
+        value: rejectedCount,
+        color: '#F44336', // Red
+      },
+    ];
+
+    return data.filter((item) => item.value > 0);
+  }, [submittedCount, pendingCount, lateCount, approvedCount, rejectedCount]);
+
+  const totalTimesheets = useMemo(() => {
+    return (
+      submittedCount + pendingCount + lateCount + approvedCount + rejectedCount
+    );
+  }, [submittedCount, pendingCount, lateCount, approvedCount, rejectedCount]);
+
   if (loading) {
     return (
       <Paper
@@ -82,44 +121,7 @@ const TimesheetStatusChart: React.FC<ITimesheetStatusChartProps> = ({
     );
   }
 
-  const chartData: IPieChartData[] = useMemo(() => {
-    const data = [
-      {
-        label: 'Submitted',
-        value: submittedCount,
-        color: '#2196F3', // Blue
-      },
-      {
-        label: 'Pending Review',
-        value: pendingCount,
-        color: '#FF9800', // Orange
-      },
-      {
-        label: 'Late Submission',
-        value: lateCount,
-        color: '#9C27B0', // Purple
-      },
-      {
-        label: 'Approved',
-        value: approvedCount,
-        color: '#4CAF50', // Green
-      },
-      {
-        label: 'Rejected',
-        value: rejectedCount,
-        color: '#F44336', // Red
-      },
-    ];
-
-    return data.filter((item) => item.value > 0);
-  }, [submittedCount, pendingCount, lateCount, approvedCount, rejectedCount]);
-
-  const totalTimesheets = useMemo(() => {
-    return (
-      submittedCount + pendingCount + lateCount + approvedCount + rejectedCount
-    );
-  }, [submittedCount, pendingCount, lateCount, approvedCount, rejectedCount]);
-
+  // No timesheet data
   if (totalTimesheets === 0) {
     return (
       <Paper

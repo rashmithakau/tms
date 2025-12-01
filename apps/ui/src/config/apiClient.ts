@@ -46,7 +46,10 @@ apiClient.interceptors.response.use(
         try {
        
           await apiClient.get('/auth/logout');
-        } catch {}
+        } catch (logoutError) {
+          // Ignore logout errors during session cleanup
+          console.debug('Logout request failed during refresh error handling');
+        }
       
         if (typeof window !== 'undefined') {
           window.location.assign('/');

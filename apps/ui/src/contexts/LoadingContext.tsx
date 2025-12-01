@@ -18,7 +18,7 @@ export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) =>
     variant: 'fullscreen',
   });
 
-  const showLoading = (message: string = 'Loading...', variant: 'fullscreen' | 'inline' | 'overlay' = 'fullscreen') => {
+  const showLoading = (message = 'Loading...', variant: 'fullscreen' | 'inline' | 'overlay' = 'fullscreen') => {
     setLoadingState({
       isLoading: true,
       message,

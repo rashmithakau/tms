@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { ReportLayoutProps } from 'apps/ui/src/interfaces/report/layout/IReportLayout';
+import { ReportLayoutProps } from '../../../interfaces/report/layout/IReportLayout';
  
 const ReportLayout: React.FC<ReportLayoutProps> = ({
   title,

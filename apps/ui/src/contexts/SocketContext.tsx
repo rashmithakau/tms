@@ -6,7 +6,15 @@ import { useAuth } from './AuthContext';
 import { AppNotification, SocketContextValue } from '../interfaces';
 import { listMyNotifications } from '../api/notification';
 
-const SocketContext = createContext<SocketContextValue>({ socket: null, notifications: [], unreadCount: 0, markAllRead: () => {}, clearNotifications: () => {}, setNotificationsFromServer: () => {}, addNotificationSilent: () => {} });
+const SocketContext = createContext<SocketContextValue>({ 
+  socket: null, 
+  notifications: [], 
+  unreadCount: 0, 
+  markAllRead: () => { /* No-op */ }, 
+  clearNotifications: () => { /* No-op */ }, 
+  setNotificationsFromServer: () => { /* No-op */ }, 
+  addNotificationSilent: () => { /* No-op */ } 
+});
 
 export const useSocket = () => useContext(SocketContext);
 
@@ -101,7 +109,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     socketRef.current = socket;
 
     socket.on('connect', () => {
-   
+      // Socket connected successfully
     });
 
     socket.on('notification', (payload: any) => {

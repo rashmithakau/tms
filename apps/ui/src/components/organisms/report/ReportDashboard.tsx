@@ -28,10 +28,10 @@ const ReportDashboard: React.FC = () => {
     clearError,
   } = useReportGenerator({
     onSuccess: (filename) => {
-   
+      // Report generated successfully - filename available for use
     },
     onError: (error) => {
-      
+      // Error handled by generator hook
     },
   });
 
