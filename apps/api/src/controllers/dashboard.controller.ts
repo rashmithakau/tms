@@ -19,12 +19,12 @@ export const getAdminDashboardStats = async (req: Request, res: Response) => {
 
     const totalTeams = await Team.countDocuments();
 
-    const currentDate = new Date();
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    // const currentDate = new Date();
+    // const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    // const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-    const allTimesheets = await Timesheet.find({}, 'status createdAt').limit(10);
-    const totalTimesheets = await Timesheet.countDocuments();
+    // const allTimesheets = await Timesheet.find({}, 'status createdAt').limit(10);
+    // const totalTimesheets = await Timesheet.countDocuments();
 
     const draftTimesheets = await Timesheet.countDocuments({
       status: TimesheetStatus.Draft

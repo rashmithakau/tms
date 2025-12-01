@@ -24,7 +24,8 @@ import { getMondayUTC } from '../utils/data';
 export const createMyTimesheetHandler = catchErrors(async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const parsed = createTimesheetSchema.parse(req.body);
-  let { weekStartDate, data } = parsed;
+  let weekStartDate = parsed.weekStartDate;
+  const { data } = parsed;
   weekStartDate = getMondayUTC(weekStartDate);
   
   const result = await createTimesheetWithBusinessLogic(userId, weekStartDate, data);
@@ -54,8 +55,9 @@ export const updateSupervisedTimesheetsStatusHandler = catchErrors(async (req: R
   try {
     const result = await updateSupervisedTimesheetsStatus(supervisorId, ids, status);
     return res.status(OK).json(result);
-  } catch (error: any) {
-    return res.status(FORBIDDEN).json({ message: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+    return res.status(FORBIDDEN).json({ message });
   }
 });
 

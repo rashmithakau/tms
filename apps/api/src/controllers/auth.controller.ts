@@ -15,6 +15,27 @@ import VerificationCodeType from '../constants/verificationCodeType';
 import mongoose from 'mongoose';
 import UserModel  from '../models/user.model';
 
+// Add type definition for password reset token payload
+interface PasswordResetTokenPayload {
+  type: 'password-reset';
+  userId: string;
+  verificationCodeId: string;
+  iat?: number;
+  exp?: number;
+}
+
+// Type guard function to check if payload is PasswordResetTokenPayload
+function isPasswordResetPayload(payload: unknown): payload is PasswordResetTokenPayload {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'type' in payload &&
+    (payload as PasswordResetTokenPayload).type === 'password-reset' &&
+    'userId' in payload &&
+    'verificationCodeId' in payload
+  );
+}
+
 export const loginHandler = catchErrors(async (req, res) => {
   const request = loginSchema.parse({
     ...req.body,
@@ -138,10 +159,11 @@ export const verifyPasswordResetTokenHandler = catchErrors(async (req, res) => {
   const { payload } = verifyToken(token);
   appAssert(payload, UNAUTHORIZED, 'Invalid or expired reset token');
   
-  appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
+  // Use type guard for safer type checking
+  appAssert(isPasswordResetPayload(payload), UNAUTHORIZED, 'Invalid token type');
 
-  const userId = (payload as any).userId;
-  const verificationCodeId = (payload as any).verificationCodeId;
+  const userId = payload.userId;
+  const verificationCodeId = payload.verificationCodeId;
 
   const validCode = await VerificationCodeModel.findOne({
     _id: verificationCodeId,
@@ -174,9 +196,10 @@ export const verifyPasswordResetLinkHandler = catchErrors(async (req, res) => {
   const { payload } = verifyToken(token as string);
   appAssert(payload, UNAUTHORIZED, 'Invalid or expired reset token');
   
-  appAssert((payload as any).type === 'password-reset', UNAUTHORIZED, 'Invalid token type');
+  // Use type guard for safer type checking
+  appAssert(isPasswordResetPayload(payload), UNAUTHORIZED, 'Invalid token type');
 
-  const userId = (payload as any).userId;
+  const userId = payload.userId;
 
   const validCode = await VerificationCodeModel.findOne({
     _id: verificationCode,

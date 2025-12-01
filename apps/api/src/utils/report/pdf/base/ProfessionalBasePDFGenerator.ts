@@ -2,11 +2,11 @@ import PDFDocument from 'pdfkit';
 
 export abstract class ProfessionalBasePDFGenerator {
     protected doc: PDFDocument;
-    protected currentY: number = 0;
+    protected currentY = 0;
     protected readonly pageWidth: number = 612; 
     protected readonly pageHeight: number = 792;
     protected readonly margin: number = 40;
-    protected isFirstPage: boolean = true;
+    protected isFirstPage = true;
 
     //color scheme
     protected readonly colors = {

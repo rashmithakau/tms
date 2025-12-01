@@ -3,9 +3,19 @@ import History from '../models/history.model';
 import { HistoryActionType } from '../constants/historyActionType';
 import { UserRole } from '@tms/shared';
 
+// Define type for history query filter
+interface HistoryQueryFilter {
+  actionType?: { $in: string[] };
+  'targetEntity.type'?: { $in: string[] };
+  performedBy?: string;
+  timestamp?: {
+    $gte?: Date;
+    $lte?: Date;
+  };
+}
+
 export const getHistoryHandler = async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
     const userRole = req.userRole as UserRole;
 
     if (
@@ -27,20 +37,20 @@ export const getHistoryHandler = async (req: Request, res: Response) => {
       endDate,
     } = req.query;
 
-    const query: any = {};
+    const query: HistoryQueryFilter = {};
 
     if (actionType) {
       const types = Array.isArray(actionType) ? actionType : [actionType];
-      query.actionType = { $in: types };
+      query.actionType = { $in: types as string[] };
     }
 
     if (entityType) {
       const types = Array.isArray(entityType) ? entityType : [entityType];
-      query['targetEntity.type'] = { $in: types };
+      query['targetEntity.type'] = { $in: types as string[] };
     }
 
     if (performedBy) {
-      query.performedBy = performedBy;
+      query.performedBy = performedBy as string;
     }
 
     if (startDate || endDate) {
@@ -86,7 +96,7 @@ export const logHistory = async (data: {
     name: string;
   };
   description: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }) => {
   try {
     await History.create({
