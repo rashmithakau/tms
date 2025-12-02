@@ -1,0 +1,469 @@
+import { ProfessionalBasePDFGenerator } from '../base/ProfessionalBasePDFGenerator';
+import { ProfessionalPDFComponents } from '../component/ProfessionalPDFComponents';
+import PDFDocument from 'pdfkit';
+import { IDetailedTimesheetReport } from '../../../../interfaces';
+
+export class DetailedTimesheetPdf extends ProfessionalBasePDFGenerator {
+  private components: ProfessionalPDFComponents;
+
+  constructor() {
+    super();
+    this.components = new ProfessionalPDFComponents(
+      this.doc,
+      this.margin,
+      () => this.currentY,
+      (y) => this.currentY = y,
+      (space) => this.checkPageBreak(space),
+      this.pageWidth,
+      () => this.isFirstPage
+    );
+  }
+
+  generate(
+    data: IDetailedTimesheetReport[],
+    filters: { startDate?: string; endDate?: string }
+  ): PDFDocument {
+    // Header 
+    this.components.addProfessionalHeader(
+      'Detailed Timesheet Report',
+      filters,
+      'Comprehensive breakdown of employee work hours and project allocations'
+    );
+
+    // Group data by employee
+    const groupedData = this.groupDataByEmployee(data);
+
+    // Add separate table for each employee
+    this.addEmployeeTables(groupedData);
+
+    // Add summary statistics
+    this.addSummaryStatistics(data);
+
+    return this.doc;
+  }
+
+  private groupDataByEmployee(data: IDetailedTimesheetReport[]): Map<string, IDetailedTimesheetReport[]> {
+    const groupedData = new Map<string, IDetailedTimesheetReport[]>();
+    
+    data.forEach(timesheetWeek => {
+      const employeeKey = `${timesheetWeek.employeeId}-${timesheetWeek.employeeName}`;
+      
+      if (!groupedData.has(employeeKey)) {
+        groupedData.set(employeeKey, []);
+      }
+      
+      groupedData.get(employeeKey)!.push(timesheetWeek);
+    });
+    
+    return groupedData;
+  }
+
+  private addEmployeeTables(groupedData: Map<string, IDetailedTimesheetReport[]>): void {
+    if (groupedData.size === 0) {
+      this.doc.fontSize(10)
+        .fillColor(this.colors.text.secondary)
+        .font('Helvetica')
+        .text('No data available for the selected period.', this.margin, this.currentY);
+      
+      this.currentY += 40;
+      return;
+    }
+
+    // Sort employees by name for consistent ordering
+    const sortedEmployees = Array.from(groupedData.entries()).sort(([keyA], [keyB]) => {
+      const nameA = keyA.split('-')[1] || '';
+      const nameB = keyB.split('-')[1] || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    sortedEmployees.forEach(([employeeKey, employeeData], index) => {
+      if (index > 0) {
+        // Add page break before each new employee 
+        this.checkPageBreak(200);
+        this.currentY += 20;
+      }
+
+      this.addEmployeeTable(employeeData);
+    });
+  }
+
+  private addEmployeeTable(employeeData: IDetailedTimesheetReport[]): void {
+    if (employeeData.length === 0) return;
+
+    const employee = employeeData[0];
+    
+    // Employee section header
+    this.components.addSectionDivider(`${employee.employeeName} - ${employee.employeeEmail}`);
+    // Group data into separate sub-tables similar to the preview 
+    type SubRow = { sortDate: Date; cells: string[] };
+    type SubTable = { title: string; includeWork: boolean; rows: SubRow[] };
+    const tablesByTitle = new Map<string, SubTable>();
+
+    // Calculate totals for this employee
+    const employeeDailyTotals = [0, 0, 0, 0, 0];
+    let employeeGrandTotal = 0;
+    let hasProject = false;
+    let hasTeam = false;
+    let hasLeave = false;
+
+    employeeData.forEach((timesheetWeek) => {
+      timesheetWeek.categories.forEach((category) => {
+        category.items.forEach((item) => {
+          const dailyHours = item.dailyHours || [];
+
+          // Totals
+          dailyHours.forEach((hours, index) => {
+            if (index < 5 && hours) {
+              employeeDailyTotals[index] += parseFloat(hours.toString()) || 0;
+            }
+          });
+          const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => sum + (parseFloat(hours?.toString()) || 0), 0);
+          employeeGrandTotal += rowTotal;
+
+         
+          let title: string | null = null;
+          let includeWork = false;
+          if (item.projectName) {
+            title = `Project: ${item.projectName}`;
+            hasProject = true;
+          } else if (item.teamName) {
+            title = `Team: ${item.teamName}`;
+            hasTeam = true;
+          } else if (category.category === 'Other') {
+            title = 'Leave';
+            includeWork = true;
+            hasLeave = true;
+          }
+
+          // Skip items that don't belong to any specific category
+          if (!title) return;
+
+          // Ensure table container
+          if (!tablesByTitle.has(title)) {
+            tablesByTitle.set(title, { title, includeWork, rows: [] });
+          }
+          const table = tablesByTitle.get(title)!;
+
+          // Build row
+          const weekStartRaw = new Date(timesheetWeek.weekStartDate);
+          const weekStart = this.formatDate(weekStartRaw);
+          const weekEnd = this.formatDate(this.addDays(timesheetWeek.weekStartDate, 6));
+          // Use the computed week-level status from the timesheet data
+          const baseCells = [
+            weekStart,
+            weekEnd,
+            timesheetWeek.status,
+          ]
+          const workCells = includeWork ? [item.work || ''] : [];
+          const dayCells = [
+            this.formatHoursForDisplay(dailyHours[0]),
+            this.formatHoursForDisplay(dailyHours[1]),
+            this.formatHoursForDisplay(dailyHours[2]),
+            this.formatHoursForDisplay(dailyHours[3]),
+            this.formatHoursForDisplay(dailyHours[4]),
+            this.formatHoursForDisplay(rowTotal),
+          ];
+          table.rows.push({ sortDate: weekStartRaw, cells: [...baseCells, ...workCells, ...dayCells] });
+        });
+      });
+    });
+
+    // Sort tables
+    const tableOrder = Array.from(tablesByTitle.values()).sort((a, b) => {
+      const rank = (t: string) => (t.startsWith('Project:') ? 0 : t.startsWith('Team:') ? 1 : t === 'Leave' ? 2 : 3);
+      const rA = rank(a.title);
+      const rB = rank(b.title);
+      if (rA !== rB) return rA - rB;
+      return a.title.localeCompare(b.title);
+    });
+
+    // Render each sub-table with consistent styling
+    tableOrder.forEach((sub) => {
+      
+      this.doc.fontSize(11)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica-Bold')
+        .text(sub.title, this.margin, this.currentY);
+      this.currentY += 18;
+
+      const headers = sub.includeWork
+        ? ['Week Start', 'Week End', 'Status', 'Work', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total']
+        : ['Week Start', 'Week End', 'Status', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Total'];
+      const columnWidths = sub.includeWork
+
+        ? [65, 65, 50, 70, 45, 45, 45, 45, 45, 50]
+        : [85, 85, 70, 45, 45, 45, 45, 45, 50];
+
+      const sortedRows = sub.rows
+        .slice()
+        .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime())
+        .map((r) => r.cells);
+
+      this.components.addProfessionalTable(headers, sortedRows, columnWidths, {
+        alternateRows: true,
+        fontSize: 8,
+      });
+
+      this.currentY += 10;
+    });
+
+    
+    if (hasProject && hasTeam && hasLeave) {
+      this.doc.addPage();
+      this.currentY = this.margin + 20;
+    }
+
+    const metricsHeaders = ['Day', 'Hours']; 
+    const metricsData: string[][] = [
+      ['Monday', `${employeeDailyTotals[0].toFixed(2)} h`],
+      ['Tuesday',`${employeeDailyTotals[1].toFixed(2)} h`],
+      ['Wednesday', `${employeeDailyTotals[2].toFixed(2)} h`],
+      ['Thursday', `${employeeDailyTotals[3].toFixed(2)} h`],
+      ['Friday', `${employeeDailyTotals[4].toFixed(2)} h`],
+      ['Total', `${employeeGrandTotal.toFixed(2)} h`],
+    ];
+    this.doc.fontSize(11)
+      .fillColor(this.colors.text.primary)
+      .font('Helvetica-Bold')
+      .text('Working Hours', this.margin, this.currentY);
+    this.currentY += 18;
+    this.components.addProfessionalTable(metricsHeaders, metricsData, [255, 255], {
+      alternateRows: true,
+      fontSize: 9,
+      rowHeight: 20,
+    });
+  }
+
+  
+  
+  private addSummaryStatistics(data: IDetailedTimesheetReport[]): void {
+   
+    this.checkPageBreak(200);
+    
+    this.components.addSectionDivider('Overall Summary');
+
+    const stats = this.calculateDetailedStatistics(data);
+    
+    const summaryData = [
+      { 
+        label: 'Total Employees', 
+        value: stats.totalEmployees,
+        type: 'info' as const
+      },
+      { 
+        label: 'Total Teams', 
+        value: stats.totalTeams,
+        type: 'info' as const
+      },
+      { 
+        label: 'Total Projects', 
+        value: stats.totalProjects,
+        type: 'info' as const
+      },
+      { 
+        label: 'Absence Days', 
+        value: stats.otherDays,
+        type: 'warning' as const
+      },
+      { 
+        label: 'Grand Total Hours', 
+        value: `${stats.grandTotal} h`,
+        type: 'success' as const
+      },
+      
+    ];
+
+    // Add summary cards with proper spacing
+    this.addSummaryCards(summaryData);
+
+    // Add employee breakdown if multiple employees
+    if (stats.totalEmployees > 1) {
+      this.addEmployeeBreakdown(data);
+    }
+  }
+
+  private addEmployeeBreakdown(data: IDetailedTimesheetReport[]): void {
+    this.currentY += 20;
+    this.checkPageBreak(150);
+    
+    // Group data by employee to get individual totals
+    const employeeStats = new Map<string, { name: string; email: string; totalHours: number; weeks: number }>();
+    
+    data.forEach(timesheetWeek => {
+      const key = timesheetWeek.employeeId;
+      
+      if (!employeeStats.has(key)) {
+        employeeStats.set(key, {
+          name: timesheetWeek.employeeName,
+          email: timesheetWeek.employeeEmail,
+          totalHours: 0,
+          weeks: 0
+        });
+      }
+      
+      const employeeStat = employeeStats.get(key)!;
+      employeeStat.weeks++;
+      
+      // Calculate total hours from categories
+      timesheetWeek.categories.forEach(category => {
+        category.items.forEach(item => {
+          const dailyHours = item.dailyHours || [];
+          const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => {
+            return sum + (parseFloat(hours?.toString()) || 0);
+          }, 0);
+          employeeStat.totalHours += rowTotal;
+        });
+      });
+    });
+
+  }
+
+  private addSummaryCards(summaryData: { label: string; value: number | string; type: 'success' | 'warning' | 'danger' | 'info' }[]): void {
+    this.checkPageBreak(150);
+    
+    // Create a metrics table format
+    const tableWidth = this.pageWidth - (this.margin * 2);
+    const rowHeight = 25;
+    
+    // Table header
+    this.doc.rect(this.margin, this.currentY, tableWidth, 30)
+      .fill(this.colors.primary);
+    
+    this.doc.fontSize(11)
+      .fillColor('white')
+      .font('Helvetica-Bold')
+      .text('Category', this.margin + 10, this.currentY + 10)
+      .text('Result', this.margin + tableWidth - 100, this.currentY + 10);
+    
+    this.currentY += 35;
+
+    // Add metrics rows
+    summaryData.forEach((item, index) => {
+      const rowY = this.currentY;
+      const bgColor = index % 2 === 0 ? '#F8FAFC' : 'white';
+      
+      // Row background
+      this.doc.rect(this.margin, rowY, tableWidth, rowHeight)
+        .fill(bgColor)
+        .stroke(this.colors.border);
+      
+      // Status indicator 
+      const indicatorColor = this.getSummaryColor(item.type);
+      this.doc.circle(this.margin + 15, rowY + 12, 4)
+        .fill(indicatorColor);
+      
+      // Metric label
+      this.doc.fontSize(10)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica')
+        .text(item.label, this.margin + 30, rowY + 8);
+      
+      // Metric value
+      this.doc.fontSize(12)
+        .fillColor(this.colors.text.primary)
+        .font('Helvetica-Bold')
+        .text(String(item.value), this.margin + tableWidth - 90, rowY + 8, {
+          align: 'left',
+          width: 80
+        });
+      
+      this.currentY += rowHeight;
+    });
+    
+    this.currentY += 15;
+  }
+
+  private getSummaryColor(type: string): string {
+    switch (type) {
+      case 'success': return this.colors.accent;
+      case 'warning': return this.colors.warning;
+      case 'danger': return this.colors.danger;
+      case 'info': return this.colors.primary;
+      default: return this.colors.secondary;
+    }
+  }
+
+  private formatHoursForDisplay(hours: number | undefined | null | string): string {
+    if (!hours || hours === 0 || hours === '0') return '';
+    
+    // Convert to number 
+    const numHours = typeof hours === 'string' ? parseFloat(hours) : hours;
+    
+    // Check if it's a valid number
+    if (isNaN(numHours) || numHours === 0) return '';
+    
+    return numHours.toFixed(2);
+  }
+
+  private addDays(dateInput: string | Date, days: number): string {
+    const d = new Date(dateInput);
+    d.setDate(d.getDate() + days);
+    return this.formatDate(d);
+  }
+
+  private calculateDetailedStatistics(data: IDetailedTimesheetReport[]) {
+    const totalEmployees = new Set(data.map(d => d.employeeId)).size;
+    let totalHours = 0;
+    let grandTotal = 0;
+    let otherDays = 0;
+    
+    const allProjects = new Set<string>();
+    const allTeams = new Set<string>();
+    let totalTasks = 0;
+    
+  
+    data.forEach(d => {
+     
+      const weeklyLeaveHours: number[] = [0, 0, 0, 0, 0];
+
+      d.categories.forEach(cat => {
+        cat.items.forEach(item => {
+          if (item.projectName) allProjects.add(item.projectName);
+          if (item.teamName) allTeams.add(item.teamName);
+          totalTasks++;
+          totalHours += item.totalHours || 0;
+
+          // Calculate from daily hours
+          const dailyHours = item.dailyHours || [];
+          const rowTotal = dailyHours.slice(0, 5).reduce((sum, hours) => {
+            return sum + (parseFloat(hours?.toString()) || 0);
+          }, 0);
+          grandTotal += rowTotal;
+
+          // Aggregate leave hours per day for this week
+          if (cat.category === 'Other') {
+            for (let i = 0; i < 5; i++) {
+              const h = dailyHours[i];
+              const n = typeof h === 'string' ? parseFloat(h) : (typeof h === 'number' ? h : 0);
+              if (!isNaN(n) && n > 0) weeklyLeaveHours[i] += n;
+            }
+          }
+        });
+      });
+
+      // Convert weekly aggregated leave hours to other day fractions 
+      for (let i = 0; i < 5; i++) {
+        const fraction = weeklyLeaveHours[i] / 8;
+        if (fraction > 0) otherDays += Math.min(fraction, 1);
+      }
+    });
+
+    const totalProjects = allProjects.size;
+    const totalTeams = allTeams.size;
+    const totalWeeks = data.length;
+    const avgHoursPerWeek = totalWeeks > 0 ? (totalHours / totalWeeks).toFixed(1) : '0';
+    const utilizationRate = totalWeeks > 0 ? Math.round((totalHours / (totalWeeks * 40)) * 100) : 0;
+
+    return {
+      totalEmployees,
+      totalHours: Math.round(totalHours * 100) / 100,
+      grandTotal: Math.round(grandTotal * 100) / 100, 
+      totalProjects,
+      totalTeams,
+      totalTasks,
+      otherDays: Math.round(otherDays * 100) / 100,
+      avgHoursPerWeek,
+      utilizationRate
+    };
+  }
+}

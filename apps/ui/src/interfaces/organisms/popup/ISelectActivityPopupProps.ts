@@ -1,0 +1,7 @@
+import { otherActivity } from '@tms/shared';
+
+export interface SelectActivityPopupProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: (customActivity?: string | null) => void;
+}

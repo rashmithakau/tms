@@ -1,0 +1,250 @@
+import React, { useState } from 'react';
+import { Box, FormControlLabel, Radio } from '@mui/material';
+import BaseTextField from '../../atoms/common/inputField/BaseTextField';
+import BaseBtn from '../../atoms/common/button/BaseBtn';
+import AddEmployeePopup from './AddEmployeePopup';
+import EmployeeSection from '../user/EmployeeSection';
+import { IEmployeeProps } from '../../../interfaces/entity/IEmployeeProps';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import CreateProjectFormSchema from '../../../validations/project/CreateProjectFormSchema';
+import { useTheme } from '@mui/material/styles';
+import PopupLayout from '../../templates/popup/PopUpLayout';
+import { createProject } from '../../../api/project';
+import { useToast } from '../../../contexts/ToastContext';
+import Divider from '@mui/material/Divider';
+import { UserRole } from '@tms/shared';
+import SupervisorSelect from '../../molecules/employee/supervisor/SupervisorSelect';
+import BillableSelect from '../../molecules/common/other/BillableSelect';
+import {
+  CreateProjectFormData,
+  CreateProjectPopupProps,
+} from '../../../interfaces/organisms/popup';
+import { CheckBox } from '../../atoms/common/checkBox';
+
+const CreateProjectPopUp: React.FC<CreateProjectPopupProps> = ({
+  open,
+  onClose,
+}) => {
+  const [openEmployeeDialog, setOpenEmployeeDialog] = useState(false);
+  const [selectedEmployees, setSelectedEmployees] = useState<IEmployeeProps[]>(
+    []
+  );
+  const [isCompanyProject, setIsCompanyProject] = useState(false);
+  const theme = useTheme();
+  const toast = useToast();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+    reset,
+    setValue,
+  } = useForm<CreateProjectFormData>({
+    resolver: yupResolver(CreateProjectFormSchema),
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+  });
+
+  const onSubmit = async (data: CreateProjectFormData) => {
+    try {
+      await createProject({
+        projectName: data.projectName,
+        clientName: data.clientName,
+        billable: data.billable,
+        employees: selectedEmployees.map((e) => e.id),
+        supervisor: data.supervisor ?? null,
+      });
+      toast.success('Project created');
+      onClose();
+      reset();
+      setSelectedEmployees([]);
+    } catch (error) {
+      toast.error('Failed to create project');
+      setSelectedEmployees([]);
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
+    reset();
+    setSelectedEmployees([]);
+    setIsCompanyProject(false);
+  };
+
+  const handleOpenEmployeeDialog = () => {
+    setOpenEmployeeDialog(true);
+  };
+
+  const handleCloseEmployeeDialog = () => {
+    setOpenEmployeeDialog(false);
+  };
+
+  const handleSaveEmployees = (employees: IEmployeeProps[]) => {
+    setSelectedEmployees(employees);
+    setOpenEmployeeDialog(false);
+  };
+
+  const handleRemoveEmployee = (employeeId: string) => {
+    setSelectedEmployees((prev) => prev.filter((emp) => emp.id !== employeeId));
+  };
+
+  const handleCompanyProjectChange = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    setIsCompanyProject(checked);
+    if (checked) {
+      setValue('clientName', 'Allion Technologies', { 
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    } else {
+      setValue('clientName', '', { 
+        shouldValidate: true,
+        shouldDirty: true 
+      });
+    }
+  };
+
+  return (
+    <>
+      <PopupLayout open={open} title="Create Project" onClose={handleCancel}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              padding: 5,
+              gap: 5,
+            }}
+          >
+            {/* Project Name Field */}
+            <Controller
+              name="projectName"
+              control={control}
+              render={({ field }) => (
+                <BaseTextField
+                  {...field}
+                  label="Project Name"
+                  placeholder="Enter Project Name"
+                  variant="outlined"
+                  id="project-name"
+                  error={!!errors.projectName}
+                  helperText={errors.projectName?.message || ' '}
+                />
+              )}
+            />
+
+            {/* Client Name Field */}
+            <Box sx={{ mb: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Controller
+              name="clientName"
+              control={control}
+              render={({ field }) => (
+                <BaseTextField
+                  {...field}
+                  label="Client Name"
+                  placeholder="Enter Client Name"
+                  variant="outlined"
+                  id="client-name"
+                  error={!!errors.clientName}
+                  helperText={errors.clientName?.message || ' '}
+                  disabled={isCompanyProject}
+                  InputLabelProps={{
+                    shrink: isCompanyProject || !!field.value,
+                  }}
+                />
+              )}
+            />
+            <CheckBox
+              label="Company Project"
+              checked={isCompanyProject}
+              onChange={handleCompanyProjectChange}
+              color="primary"
+              size="medium"
+              disabled={false}
+              labelPlacement='start'
+              sx={{ marginBottom: theme.spacing(3) }}
+            />
+            </Box>
+
+            {/* Billable Dropdown */}
+            <Box sx={{ mb: 1 }}>
+              <Controller
+                name="billable"
+                control={control}
+                render={({ field }) => (
+                  <BillableSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={!!errors.billable}
+                    helperText={errors.billable?.message}
+                  />
+                )}
+              />
+            </Box>
+
+            {/* Employee Section */}
+            <EmployeeSection
+              selectedEmployees={selectedEmployees}
+              onAddEmployeesClick={handleOpenEmployeeDialog}
+              onRemoveEmployee={handleRemoveEmployee}
+            />
+            {/* Supervisor Dropdown */}
+            <Box sx={{ mb: 1 }}>
+              <Controller
+                name="supervisor"
+                control={control}
+                render={({ field }) => (
+                  <SupervisorSelect
+                    employees={selectedEmployees}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={selectedEmployees.length === 0}
+                  />
+                )}
+              />
+            </Box>
+
+            <Box>
+              <Divider />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 2,
+                justifyContent: 'flex-end',
+              }}
+            >
+              <BaseBtn
+                type="button"
+                sx={{ mt: 2 }}
+                variant="outlined"
+                onClick={handleCancel}
+              >
+                Cancel
+              </BaseBtn>
+              <BaseBtn
+                type="submit"
+                sx={{ mt: 2 }}
+                disabled={!isValid || isSubmitting}
+              >
+                Create
+              </BaseBtn>
+            </Box>
+          </Box>
+        </form>
+      </PopupLayout>
+
+      {/* Add Employee Popup */}
+      <AddEmployeePopup
+        open={openEmployeeDialog}
+        onClose={handleCloseEmployeeDialog}
+        onSave={handleSaveEmployees}
+        initialSelectedEmployees={selectedEmployees}
+        roles={[UserRole.Emp, UserRole.Supervisor]}
+      />
+    </>
+  );
+};
+
+export default CreateProjectPopUp;
