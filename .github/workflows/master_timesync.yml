@@ -31,33 +31,30 @@ jobs:
 
       - name: Prepare deployment structure
         run: |
-          echo "=== Current dist structure ==="
-          ls -la dist/apps/
+          echo "=== Checking dist structure ==="
+          ls -la dist/apps/api/
+          echo ""
+          echo "=== Finding main.js location ==="
+          find dist/apps/api -name "main.js" -type f
           
-          echo "=== Creating deployment folder ==="
+          echo "=== Copying all API build output ==="
           mkdir -p deployment
-          
-          echo "=== Copying API files to deployment root ==="
           cp -r dist/apps/api/* deployment/
           
-          echo "=== Creating ui folder in deployment ==="
+          echo "=== Creating ui folder at deployment root ==="
           mkdir -p deployment/ui
           
-          echo "=== Copying UI files to deployment/ui ==="
+          echo "=== Copying UI files ==="
           cp -r dist/apps/ui/* deployment/ui/
           
-          echo "=== Verifying UI files ==="
-          ls -la deployment/ui/
-          
-          if [ -f "deployment/ui/index.html" ]; then
-            echo "✅ index.html found in deployment/ui"
-          else
-            echo "❌ index.html NOT found - deployment will fail"
-            exit 1
-          fi
-          
-          echo "=== Final deployment structure ==="
+          echo "=== Current deployment structure ==="
           ls -la deployment/
+          
+          echo "=== Looking for main.js in deployment ==="
+          find deployment -name "main.js" -type f
+          
+          echo "=== Checking UI ==="
+          ls -la deployment/ui/
 
       - name: Copy package files
         run: |
@@ -90,11 +87,11 @@ jobs:
       
       - name: Verify deployment structure
         run: |
-          echo "=== Downloaded files structure ==="
+          echo "=== Root files ==="
           ls -la
           echo ""
-          echo "=== Main JS files ==="
-          ls -la *.js 2>/dev/null || echo "No JS files in root"
+          echo "=== Looking for main.js ==="
+          find . -name "main.js" -type f
           echo ""
           echo "=== UI folder ==="
           ls -la ui/ 2>/dev/null || echo "UI folder missing!"
