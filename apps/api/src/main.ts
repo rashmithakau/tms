@@ -39,24 +39,28 @@ app.use(
 app.use(cookieParser());
 
 // Serve static files from UI build (React app)
-// In production: __dirname is where main.js is located
-// UI files should be in 'ui' folder at same level
-const uiBuildPath = path.join(__dirname, 'ui');
+// In Azure: __dirname is /home/site/wwwroot/apps/api/src
+// UI folder is at /home/site/wwwroot/ui (3 levels up)
+const uiBuildPath = path.join(__dirname, '..', '..', '..', 'ui');
 
 console.log('📂 Application directory:', __dirname);
 console.log('🔍 Looking for UI at:', uiBuildPath);
-
-if (existsSync(__dirname)) {
-  console.log('📁 Files in app directory:', readdirSync(__dirname));
-}
+console.log('📁 Files in app directory:', readdirSync(__dirname));
 
 if (existsSync(uiBuildPath)) {
   console.log('✅ UI folder found!');
-  console.log('📁 UI files:', readdirSync(uiBuildPath).slice(0, 10)); // Show first 10 files
+  console.log('📁 UI files:', readdirSync(uiBuildPath).slice(0, 10));
   app.use(express.static(uiBuildPath));
 } else {
   console.error('❌ UI folder NOT found at:', uiBuildPath);
-  console.error('📁 Available in __dirname:', readdirSync(__dirname));
+  console.error('📁 Checking parent directories:');
+  try {
+    console.error('  Parent 1:', readdirSync(path.join(__dirname, '..')));
+    console.error('  Parent 2:', readdirSync(path.join(__dirname, '..', '..')));
+    console.error('  Parent 3 (should have ui):', readdirSync(path.join(__dirname, '..', '..', '..')));
+  } catch (e) {
+    console.error('  Could not read parent directories');
+  }
 }
 
 // Health check endpoint for Azure
@@ -70,7 +74,12 @@ app.get('/health', (req, res) => {
     appDir: __dirname,
     uiPath: uiBuildPath,
     uiExists: existsSync(uiBuildPath),
-    filesInAppDir: existsSync(__dirname) ? readdirSync(__dirname) : []
+    filesInAppDir: readdirSync(__dirname),
+    parentDirs: {
+      parent1: readdirSync(path.join(__dirname, '..')),
+      parent2: readdirSync(path.join(__dirname, '..', '..')),
+      parent3: readdirSync(path.join(__dirname, '..', '..', '..'))
+    }
   });
 });
 

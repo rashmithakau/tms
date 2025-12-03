@@ -31,30 +31,62 @@ jobs:
 
       - name: Prepare deployment structure
         run: |
-          echo "=== Checking dist structure ==="
-          ls -la dist/apps/api/
-          echo ""
-          echo "=== Finding main.js location ==="
-          find dist/apps/api -name "main.js" -type f
-          
-          echo "=== Copying all API build output ==="
+          echo "=== Creating deployment folder ==="
           mkdir -p deployment
+          
+          echo "=== Copying entire API dist ==="
           cp -r dist/apps/api/* deployment/
           
-          echo "=== Creating ui folder at deployment root ==="
+          echo "=== Creating UI folder at deployment root ==="
           mkdir -p deployment/ui
           
           echo "=== Copying UI files ==="
           cp -r dist/apps/ui/* deployment/ui/
           
-          echo "=== Current deployment structure ==="
+          echo "=== Creating startup script at root ==="
+          cat > deployment/server.js << 'EOF'
+          // Startup script - finds and runs main.js
+          const path = require('path');
+          const fs = require('fs');
+          
+          // Find main.js
+          const possiblePaths = [
+            path.join(__dirname, 'main.js'),
+            path.join(__dirname, 'src', 'main.js'),
+            path.join(__dirname, 'apps', 'api', 'src', 'main.js'),
+          ];
+          
+          let mainPath = null;
+          for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+              mainPath = p;
+              console.log('✅ Found main.js at:', p);
+              break;
+            }
+          }
+          
+          if (!mainPath) {
+            console.error('❌ Could not find main.js in any of:', possiblePaths);
+            process.exit(1);
+          }
+          
+          // Update __dirname for main.js to find UI files correctly
+          const mainDir = path.dirname(mainPath);
+          process.chdir(mainDir);
+          console.log('📂 Changed working directory to:', mainDir);
+          
+          // Run main.js
+          require(mainPath);
+          EOF
+          
+          echo "=== Deployment structure ==="
           ls -la deployment/
-          
-          echo "=== Looking for main.js in deployment ==="
-          find deployment -name "main.js" -type f
-          
-          echo "=== Checking UI ==="
-          ls -la deployment/ui/
+          echo ""
+          echo "=== Looking for main.js ==="
+          find deployment -name "main.js"
+          echo ""
+          echo "=== UI folder ==="
+          ls -la deployment/ui/ | head -5
 
       - name: Copy package files
         run: |
@@ -90,11 +122,11 @@ jobs:
           echo "=== Root files ==="
           ls -la
           echo ""
-          echo "=== Looking for main.js ==="
-          find . -name "main.js" -type f
+          echo "=== Checking server.js ==="
+          [ -f server.js ] && echo "✅ server.js exists" || echo "❌ server.js missing"
           echo ""
-          echo "=== UI folder ==="
-          ls -la ui/ 2>/dev/null || echo "UI folder missing!"
+          echo "=== Checking UI ==="
+          [ -d ui ] && echo "✅ ui folder exists" || echo "❌ ui missing"
       
       - name: Login to Azure
         uses: azure/login@v2
