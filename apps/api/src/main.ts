@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import { existsSync, readdirSync } from 'fs';
 import connectDB from './config/db';
 import { APP_ORIGIN, NODE_ENV, PORT } from './constants/env';
 import cors from 'cors';
@@ -38,8 +39,25 @@ app.use(
 app.use(cookieParser());
 
 // Serve static files from UI build (React app)
+// In production: __dirname is where main.js is located
+// UI files should be in 'ui' folder at same level
 const uiBuildPath = path.join(__dirname, 'ui');
-app.use(express.static(uiBuildPath));
+
+console.log('📂 Application directory:', __dirname);
+console.log('🔍 Looking for UI at:', uiBuildPath);
+
+if (existsSync(__dirname)) {
+  console.log('📁 Files in app directory:', readdirSync(__dirname));
+}
+
+if (existsSync(uiBuildPath)) {
+  console.log('✅ UI folder found!');
+  console.log('📁 UI files:', readdirSync(uiBuildPath).slice(0, 10)); // Show first 10 files
+  app.use(express.static(uiBuildPath));
+} else {
+  console.error('❌ UI folder NOT found at:', uiBuildPath);
+  console.error('📁 Available in __dirname:', readdirSync(__dirname));
+}
 
 // Health check endpoint for Azure
 app.get('/health', (req, res) => {
@@ -48,7 +66,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: NODE_ENV,
-    port: port
+    port: port,
+    appDir: __dirname,
+    uiPath: uiBuildPath,
+    uiExists: existsSync(uiBuildPath),
+    filesInAppDir: existsSync(__dirname) ? readdirSync(__dirname) : []
   });
 });
 
