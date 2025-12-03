@@ -1,23 +1,34 @@
 #!/bin/bash
 # Azure Deployment Script for TMS API
 
-echo "🚀 Starting Azure deployment..."
+set -e
+
+echo "🚀 Starting API deployment..."
+echo "📦 Node version: $(node --version)"
+echo "📦 NPM version: $(npm --version)"
 
 # Install dependencies
-echo "📦 Installing dependencies..."
-npm ci
+echo "📥 Installing dependencies..."
+npm ci --legacy-peer-deps || npm ci
 
-# Build the API project
+# Build API
 echo "🔨 Building API..."
 npm run build:api
 
-# Create output directory if it doesn't exist
-mkdir -p $DEPLOYMENT_TARGET
+# Copy necessary files to dist
+echo "📋 Copying configuration files..."
+cp package.json dist/apps/api/
+cp package-lock.json dist/apps/api/
 
-# Copy built files to deployment target
-echo "📋 Copying files to deployment target..."
-cp -r dist/apps/api/* $DEPLOYMENT_TARGET/
-cp package.json $DEPLOYMENT_TARGET/
-cp package-lock.json $DEPLOYMENT_TARGET/
+# Install production dependencies in dist folder
+echo "📥 Installing production dependencies..."
+cd dist/apps/api
+npm ci --production --legacy-peer-deps || npm ci --production
+cd ../../..
 
-echo "✅ Deployment complete!"
+echo "✅ API deployment complete!"
+echo "📁 API build output: dist/apps/api"
+
+# List contents for debugging
+echo "📂 Build directory contents:"
+ls -la dist/apps/api/

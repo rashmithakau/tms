@@ -1,0 +1,17 @@
+{
+  "name": "tms-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build handled by root package.json'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "compression": "^1.7.4"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": ">=10.0.0"
+  }
+}
