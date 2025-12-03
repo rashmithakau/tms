@@ -31,9 +31,9 @@ jobs:
 
       - name: Copy UI to API dist
         run: |
-          mkdir -p dist/apps/api/../ui
-          cp -r dist/apps/ui/* dist/apps/api/../ui/
-          ls -la dist/apps/api/../ui
+          mkdir -p dist/apps/api/ui
+          cp -r dist/apps/ui/* dist/apps/api/ui/
+          ls -la dist/apps/api/ui
 
       - name: Copy package files to dist
         run: |

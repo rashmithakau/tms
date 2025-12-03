@@ -38,7 +38,7 @@ app.use(
 app.use(cookieParser());
 
 // Serve static files from UI build (React app)
-const uiBuildPath = path.join(__dirname, '..', 'ui');
+const uiBuildPath = path.join(__dirname, 'ui');
 app.use(express.static(uiBuildPath));
 
 // Health check endpoint for Azure
