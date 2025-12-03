@@ -17,21 +17,41 @@ import historyRoutes from './routes/history.route';
 import { socketService } from './config/socket';
 import { CronJobService } from './services/cronJob.service';
 
-const port = Number(PORT);
+// Use PORT from environment (Azure sets this) or fallback to 5000
+const port = Number(process.env.PORT || PORT || 5000);
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Configure CORS for Azure deployment
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : NODE_ENV === 'development' 
+    ? [APP_ORIGIN, 'http://localhost:4200', 'http://localhost:3000'] 
+    : [APP_ORIGIN];
+
 app.use(
   cors({
-    origin: NODE_ENV === 'development' ? [APP_ORIGIN, 'http://localhost:4200'] : APP_ORIGIN,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
 
 app.use(cookieParser());
+
+// Health check endpoint for Azure
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: NODE_ENV,
+    port: port
+  });
+});
 
 app.use("/auth",authRoutes);
 app.use("/api/user",userRoutes);

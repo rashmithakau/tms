@@ -2,7 +2,18 @@
   "name": "@tms/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build": "nx run-many --target=build --all --prod",
+    "build:api": "nx build api --prod",
+    "build:ui": "nx build ui --prod",
+    "start": "node dist/apps/api/main.js",
+    "start:api": "node dist/apps/api/main.js",
+    "start:ui": "serve -s dist/apps/ui"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": ">=10.0.0"
+  },
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",
