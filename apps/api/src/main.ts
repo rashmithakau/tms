@@ -1,5 +1,6 @@
 import express from 'express';
 import http from 'http';
+import path from 'path';
 import connectDB from './config/db';
 import { APP_ORIGIN, NODE_ENV, PORT } from './constants/env';
 import cors from 'cors';
@@ -18,7 +19,7 @@ import { socketService } from './config/socket';
 import { CronJobService } from './services/cronJob.service';
 
 // Use PORT from environment (Azure sets this) or fallback to 5000
-const port = Number(process.env.PORT || PORT || 5000);
+const port = Number(process.env.PORT || PORT || 8080);
 
 const app = express();
 const server = http.createServer(app);
@@ -26,21 +27,19 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configure CORS for Azure deployment
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : NODE_ENV === 'development' 
-    ? [APP_ORIGIN, 'http://localhost:4200', 'http://localhost:3000'] 
-    : [APP_ORIGIN];
-
+// Configure CORS - allow same origin since UI and API are together
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: '*',
     credentials: true,
   })
 );
 
 app.use(cookieParser());
+
+// Serve static files from UI build (React app)
+const uiBuildPath = path.join(__dirname, '..', 'ui');
+app.use(express.static(uiBuildPath));
 
 // Health check endpoint for Azure
 app.get('/health', (req, res) => {
@@ -53,9 +52,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.use("/auth",authRoutes);
-app.use("/api/user",userRoutes);
-app.use("/api/project",projectRoutes)
+// API Routes - all prefixed with /api
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/project", projectRoutes)
 app.use("/api/timesheets", timesheetRoutes)
 app.use('/api/team', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -66,6 +66,11 @@ app.use('/api/history', historyRoutes);
 
 app.use(errorHandler);
 
+// Serve React app for all other routes (must be after API routes)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(uiBuildPath, 'index.html'));
+});
+
 server.listen(port, async () => {
   try {
     await connectDB();
@@ -75,7 +80,9 @@ server.listen(port, async () => {
     const cronJobService = new CronJobService();
     cronJobService.startScheduledJobs();
     
-    console.log(`Server is running on port ${PORT} in ${NODE_ENV} environment`);
+    console.log(`🚀 Server running on port ${port} in ${NODE_ENV} environment`);
+    console.log(`📍 API available at: http://localhost:${port}/api`);
+    console.log(`🎨 UI available at: http://localhost:${port}`);
   } catch (error) {
     console.error('Error during server startup:', error);
     // Don't exit the process, just log the error

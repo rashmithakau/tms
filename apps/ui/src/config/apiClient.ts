@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// Use relative path /api for single Azure Web App deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 
 const apiClient = axios.create({

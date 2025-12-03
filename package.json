@@ -3,12 +3,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "nx run-many --target=build --all --prod",
+    "build": "npm run build:api && npm run build:ui && npm run copy:ui",
     "build:api": "nx build api --prod",
     "build:ui": "nx build ui --prod",
+    "copy:ui": "node -e \"const fs = require('fs'); const path = require('path'); fs.cpSync('dist/apps/ui', 'dist/apps/ui-copy', {recursive: true}); fs.renameSync('dist/apps/ui-copy', 'dist/apps/ui');\"",
     "start": "node dist/apps/api/main.js",
-    "start:api": "node dist/apps/api/main.js",
-    "start:ui": "serve -s dist/apps/ui"
+    "start:api": "node dist/apps/api/main.js"
   },
   "engines": {
     "node": "20.x",
