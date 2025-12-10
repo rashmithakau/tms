@@ -51,6 +51,9 @@ const SuperAdminWindow: React.FC = () => {
   const [editingUser, setEditingUser] = useState<EmployeeRow | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileUser, setProfileUser] = useState<EmployeeRow | null>(null);
+  const [statusFilter, setStatusFilter] = useState<
+      'all' | 'Active' | 'Inactive'
+    >('all');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'supervisorAdmin'>('all');
 
   // Transform dashboard stats for the component
@@ -215,8 +218,8 @@ const SuperAdminWindow: React.FC = () => {
                   projectsOptions={[]}
                   selectedProjectIds={[]}
                   onSelectedProjectIdsChange={() => { /* Not used in accounts view */ }}
-                  statusFilter="all"
-                  onStatusFilterChange={() => { /* Not used in accounts view */ }}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={(value) => setStatusFilter(value as 'all' | 'Active' | 'Inactive')}
                   roleFilter={roleFilter}
                   onRoleFilterChange={handleRoleFilterChange}
                   availableRoles={[
@@ -236,6 +239,7 @@ const SuperAdminWindow: React.FC = () => {
               rows={rows} 
               onRefresh={refreshUsers} 
               roleFilter={roleFilter}
+              statusFilter={statusFilter}
               onEditRow={(row) => { setProfileUser(row); setIsProfileOpen(true); }}
             />}
           />
