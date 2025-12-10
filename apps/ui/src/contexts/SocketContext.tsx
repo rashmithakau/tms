@@ -98,13 +98,15 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     const userId = authState.user._id;
-    const baseURL = getApiBaseURL();
 
-    const socket = io(baseURL, {
+    const socket = io(window.location.origin, {
       withCredentials: true,
       transports: ['polling', 'websocket'],
       path: '/socket.io',
       query: { userId },
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
     });
     socketRef.current = socket;
 

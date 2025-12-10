@@ -11,9 +11,11 @@ class SocketService {
   init(server: http.Server) {
     this.io = new Server(server, {
       cors: {
-        origin: APP_ORIGIN,
+        origin: '*',
         credentials: true,
       },
+      transports: ['polling', 'websocket'],
+      allowEIO3: true,
     });
 
     this.io.on('connection', (socket) => {
