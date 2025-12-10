@@ -21,11 +21,11 @@ export const updateProjectStaff = async (
   projectId: string,
   data: { employees?: string[]; supervisor?: string | null }
 ) => {
-  return API.put(`/api/project/${projectId}/staff`, data);
+  return API.put(`/project/${projectId}/staff`, data);
 };
 
 export const deleteProject = async (projectId: string) => {
-  return API.delete(`/api/project/${projectId}`);
+  return API.delete(`/project/${projectId}`);
 };
 
 

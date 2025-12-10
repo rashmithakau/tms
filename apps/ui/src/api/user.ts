@@ -3,19 +3,19 @@ import { UserRole } from "@tms/shared";
   
   export const registerUser = async (data:unknown,role:UserRole) => {
   switch(role){
-    case UserRole.Admin:return await API.post("/api/user/admin", data);
-    case UserRole.Emp:return await API.post("/api/user/emp", data);
+    case UserRole.Admin:return await API.post("/user/admin", data);
+    case UserRole.Emp:return await API.post("/user/emp", data);
   }
 };
 
   export const getUsers = async (role:UserRole) => {
   switch(role){
-    case UserRole.Admin:return await API.get(`/api/user/all?roles=${UserRole.Admin}`);
-    case UserRole.Emp:return await API.get("/api/user/emp");
+    case UserRole.Admin:return await API.get(`/user/all?roles=${UserRole.Admin}`);
+    case UserRole.Emp:return await API.get("/user/emp");
     case UserRole.Supervisor:
-      return await API.get(`/api/user/all?roles=${UserRole.Supervisor}`);
+      return await API.get(`/user/all?roles=${UserRole.Supervisor}`);
     case UserRole.SupervisorAdmin:
-      return await API.get(`/api/user/all?roles=${UserRole.SupervisorAdmin}`);
+      return await API.get(`/user/all?roles=${UserRole.SupervisorAdmin}`);
   }
 };
 
@@ -28,23 +28,23 @@ import { UserRole } from "@tms/shared";
   };
 
   export const listProjects = async () => {
-  return await API.get("/api/project");
+  return await API.get("/project");
 };
 
   export const getAllActiveUsers = async () => {
-  const response = await API.get("/api/user/active");
+  const response = await API.get("/user/active");
   return response;
 };
 
   export const getAllUsersIncludingInactive = async (roles: string[]) => {
   const queryParams = roles.map(role => `roles=${role}`).join('&');
-  const response = await API.get(`/api/user/all?${queryParams}`);
+  const response = await API.get(`/user/all?${queryParams}`);
   return response;
 };
 
 
 export const deleteUser = async (userId: string) => {
-  const response = await API.delete(`/api/user/${userId}`);
+  const response = await API.delete(`/user/${userId}`);
   return response;
 };
 
@@ -52,6 +52,6 @@ export const updateUser = async (
   userId: string,
   data: Partial<{ designation: string; contactNumber: string; status: boolean }>
 ) => {
-  const response = await API.patch(`/api/user/${userId}` , data);
+  const response = await API.patch(`/user/${userId}` , data);
   return response;
 };

@@ -23,11 +23,11 @@ export const createMyTimesheet = async (data: CreateTimesheetPayload) => {
 };
 
 export const updateMyTimesheet = async (id: string, data: Partial<CreateTimesheetPayload & { status?: TimesheetStatus }>) => {
-  return API.patch<Timesheet>(`/api/timesheets/${id}`, data);
+  return API.patch<Timesheet>(`/timesheets/${id}`, data);
 };
 
 export const deleteMyTimesheet = async (id: string) => {
-  return API.delete(`/api/timesheets/${id}`);
+  return API.delete(`/timesheets/${id}`);
 };
 
 export const submitMyDraftTimesheets = async (ids: string[]) => {

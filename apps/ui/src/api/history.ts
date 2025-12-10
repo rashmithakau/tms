@@ -32,6 +32,6 @@ export const getHistory = async (filter: HistoryFilter = {}): Promise<HistoryRes
     params.append('limit', filter.limit.toString());
   }
   
-  const response = await API.get(`/api/history?${params.toString()}`);
+  const response = await API.get(`/history?${params.toString()}`);
   return response.data;
 };

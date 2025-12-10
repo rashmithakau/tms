@@ -45,7 +45,7 @@ const getActionTypeLabel = (actionType: HistoryActionType): string => {
 };
 
 const HistoryTable: React.FC<HistoryTableProps> = ({
-  rows,
+  rows = [],
   loading = false,
 }) => {
   const formatDate = (dateString: string) => {

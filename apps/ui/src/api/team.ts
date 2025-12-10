@@ -33,11 +33,11 @@ export const updateTeamStaff = async (
   teamId: string,
   data: { members?: string[]; supervisor?: string | null }
 ) => {
-  return API.put(`/api/team/${teamId}/staff`, data);
+  return API.put(`/team/${teamId}/staff`, data);
 };
 
 export const deleteTeam = async (teamId: string) => {
-  return API.delete(`/api/team/${teamId}`);
+  return API.delete(`/team/${teamId}`);
 };
 
 

@@ -10,7 +10,7 @@ export const generateSubmissionStatusReport = async (
   const params = buildQueryParams(filter);
   params.set('format', format);
 
-  const response = await API.get(`/api/reports/submission-status?${params.toString()}`, {
+  const response = await API.get(`/reports/submission-status?${params.toString()}`, {
     responseType: 'blob'
   });
 
@@ -23,7 +23,7 @@ export const generateApprovalStatusReport = async (
   const params = buildQueryParams(filter);
   params.set('format', format);
 
-  const response = await API.get(`/api/reports/approval-status?${params.toString()}`, {
+  const response = await API.get(`/reports/approval-status?${params.toString()}`, {
     responseType: 'blob'
   });
 
@@ -37,7 +37,7 @@ export const generateDetailedTimesheetReport = async (
   const params = buildQueryParams(filter);
   params.set('format', format);
 
-  const response = await API.get(`/api/reports/detailed-timesheet?${params.toString()}`, {
+  const response = await API.get(`/reports/detailed-timesheet?${params.toString()}`, {
     responseType: 'blob'
   });
 
@@ -50,7 +50,7 @@ export const generateTimesheetEntriesReport = async (
 ): Promise<Blob> => {
   const params = buildQueryParams(filter);
   params.set('format', format);
-  const response = await API.get(`/api/reports/timesheet-entries?${params.toString()}`, {
+  const response = await API.get(`/reports/timesheet-entries?${params.toString()}`, {
     responseType: 'blob'
   });
   return response.data;
@@ -60,7 +60,7 @@ export const generateTimesheetEntriesReport = async (
 export const previewSubmissionStatus = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
   params.set('format', 'json');
-  const res = await API.get<{ data: SubmissionStatusPreviewRow[] }>(`/api/reports/submission-status?${params.toString()}`);
+  const res = await API.get<{ data: SubmissionStatusPreviewRow[] }>(`/reports/submission-status?${params.toString()}`);
   return res.data.data;
 };
 
@@ -68,7 +68,7 @@ export const previewSubmissionStatus = async (filter: ReportFilter) => {
 export const previewApprovalStatus = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
   params.set('format', 'json');
-  const res = await API.get<{ data: ApprovalStatusPreviewRow[] }>(`/api/reports/approval-status?${params.toString()}`);
+  const res = await API.get<{ data: ApprovalStatusPreviewRow[] }>(`/reports/approval-status?${params.toString()}`);
   return res.data.data;
 };
 
@@ -76,7 +76,7 @@ export const previewApprovalStatus = async (filter: ReportFilter) => {
 export const previewDetailedTimesheet = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
   params.set('format', 'json');
-  const res = await API.get<{ data: any[] }>(`/api/reports/detailed-timesheet?${params.toString()}`);
+  const res = await API.get<{ data: any[] }>(`/reports/detailed-timesheet?${params.toString()}`);
   return transformDetailedTimesheetData(res.data.data);
 };
 
@@ -84,7 +84,7 @@ export const previewDetailedTimesheet = async (filter: ReportFilter) => {
 export const previewDetailedTimesheetRaw = async (filter: ReportFilter) => {
   const params = buildQueryParams(filter);
   params.set('format', 'json');
-  const res = await API.get<{ data: any[] }>(`/api/reports/timesheet-entries?${params.toString()}`);
+  const res = await API.get<{ data: any[] }>(`/reports/timesheet-entries?${params.toString()}`);
   return res.data.data;
 };
 
