@@ -2,19 +2,19 @@ import API from '../config/apiClient';
 import { CreateProjectPayload } from '../interfaces';
 
 export const listProjects = async () => {
-  return API.get('/api/project');
+  return API.get('/project');
 };
 
 export const listMyProjects = async () => {
-  return API.get('/api/project/my-projects');
+  return API.get('/project/my-projects');
 };
 
 export const listSupervisedProjects = async () => {
-  return API.get('/api/project/supervised');
+  return API.get('/project/supervised');
 };
 
 export const createProject = async (data: CreateProjectPayload) => {
-  return API.post('/api/project', data);
+  return API.post('/project', data);
 };
 
 export const updateProjectStaff = async (

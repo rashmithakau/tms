@@ -90,12 +90,12 @@ export const previewDetailedTimesheetRaw = async (filter: ReportFilter) => {
 
 
 export const getSupervisedEmployees = async () => {
-  return API.get<{ employees: Employee[] }>('/api/reports/supervised-employees');
+  return API.get<{ employees: Employee[] }>('/reports/supervised-employees');
 };
 
 
 export const getReportMetadata = async () => {
-  return API.get<ReportMetadata>('/api/reports/metadata');
+  return API.get<ReportMetadata>('/reports/metadata');
 };
 
 

@@ -3,23 +3,23 @@ import { TimesheetStatus } from '@tms/shared';
 import { Timesheet, CreateTimesheetPayload } from '../interfaces/api/ITimesheet';
 
 export const listMyTimesheets = async () => {
-  return API.get<{ timesheets: Timesheet[] }>('/api/timesheets');
+  return API.get<{ timesheets: Timesheet[] }>('/timesheets');
 };
 
 export const listSupervisedTimesheets = async () => {
-  return API.get<{ timesheets: Timesheet[] }>('/api/timesheets/supervised');
+  return API.get<{ timesheets: Timesheet[] }>('/timesheets/supervised');
 };
 
 export const getSupervisedProjects = async () => {
-  return API.get<{ projects: Array<{ _id: string; projectName: string }> }>('/api/project/supervised');
+  return API.get<{ projects: Array<{ _id: string; projectName: string }> }>('/project/supervised');
 };
 
 export const getSupervisedTeams = async () => {
-  return API.get<{ teams: Array<{ _id: string; teamName: string }> }>('/api/team/supervised');
+  return API.get<{ teams: Array<{ _id: string; teamName: string }> }>('/team/supervised');
 };
 
 export const createMyTimesheet = async (data: CreateTimesheetPayload) => {
-  return API.post<Timesheet>('/api/timesheets', data);
+  return API.post<Timesheet>('/timesheets', data);
 };
 
 export const updateMyTimesheet = async (id: string, data: Partial<CreateTimesheetPayload & { status?: TimesheetStatus }>) => {
@@ -31,19 +31,19 @@ export const deleteMyTimesheet = async (id: string) => {
 };
 
 export const submitMyDraftTimesheets = async (ids: string[]) => {
-  return API.post('/api/timesheets/submit', { ids });
+  return API.post('/timesheets/submit', { ids });
 };
 
 export const updateSupervisedTimesheetsStatusApi = async (
   ids: string[],
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected
 ) => {
-  return API.post('/api/timesheets/supervised/status', { ids, status });
+  return API.post('/timesheets/supervised/status', { ids, status });
 };
 
 export const getOrCreateMyTimesheetForWeek = async (weekStartDateIso?: string) => {
   const params = weekStartDateIso ? { params: { weekStartDate: weekStartDateIso } } : undefined;
-  return API.get<{ timesheet?: Timesheet; timesheetId?: string; timesheets?: Timesheet[] }>('/api/timesheets/week', params as any);
+  return API.get<{ timesheet?: Timesheet; timesheetId?: string; timesheets?: Timesheet[] }>('/timesheets/week', params as any);
 };
 
 export const updateDailyTimesheetStatusApi = async ({
@@ -61,7 +61,7 @@ export const updateDailyTimesheetStatusApi = async ({
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
   rejectionReason?: string;
 }) => {
-  return API.post('/api/timesheets/supervised/daily-status', {
+  return API.post('/timesheets/supervised/daily-status', {
     timesheetId,
     categoryIndex,
     itemIndex,
@@ -79,22 +79,22 @@ export const batchUpdateDailyTimesheetStatusApi = async (updates: Array<{
   status: TimesheetStatus.Approved | TimesheetStatus.Rejected;
   rejectionReason?: string;
 }>) => {
-  return API.post('/api/timesheets/supervised/daily-status-batch', { updates });
+  return API.post('/timesheets/supervised/daily-status-batch', { updates });
 };
 
 export const requestTimesheetEdit = async (timesheetId: string) => {
-  return API.post('/api/timesheets/request-edit', { timesheetId });
+  return API.post('/timesheets/request-edit', { timesheetId });
 };
 
 export const approveTimesheetEditRequest = async (timesheetId: string) => {
-  return API.post('/api/timesheets/approve-edit-request', { timesheetId });
+  return API.post('/timesheets/approve-edit-request', { timesheetId });
 };
 
 export const rejectTimesheetEditRequest = async (timesheetId: string) => {
-  return API.post('/api/timesheets/reject-edit-request', { timesheetId });
+  return API.post('/timesheets/reject-edit-request', { timesheetId });
 };
 
 export const getPendingEditRequests = async () => {
-  return API.get<{ editRequests: any[] }>('/api/timesheets/pending-edit-requests');
+  return API.get<{ editRequests: any[] }>('/timesheets/pending-edit-requests');
 };
 

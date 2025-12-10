@@ -6,7 +6,7 @@ import {
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   
-    const response = await API.get('/api/dashboard/stats');
+    const response = await API.get('/dashboard/stats');
     return response.data.data;
   
 };
@@ -14,7 +14,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
 export const getRejectedTimesheets = async (limit?: number): Promise<RejectedTimesheet[]> => {
   
     const params = limit ? { limit } : {};
-    const response = await API.get('/api/dashboard/rejected-timesheets', { params });
+    const response = await API.get('/dashboard/rejected-timesheets', { params });
     return response.data.data;
   
 };
@@ -22,7 +22,7 @@ export const getRejectedTimesheets = async (limit?: number): Promise<RejectedTim
 export const getTimesheetRejectionReasons = async (limit?: number): Promise<string[]> => {
   
     const params = limit ? { limit } : {};
-    const response = await API.get('/api/dashboard/rejected-timesheets', { params });
+    const response = await API.get('/dashboard/rejected-timesheets', { params });
     return response.data.data; 
  
 };
