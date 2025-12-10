@@ -14,7 +14,7 @@ import { UserRole } from '@tms/shared';
 import EditAccountPopup from '../auth/popup/EditAccountPopup';
 import { useSelector } from 'react-redux';
 
-const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all' }) => {
+const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleFilter = 'all', statusFilter = 'all' }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPopup, setEditPopup] = useState<{ open: boolean; user: EmployeeRow | null }>({
     open: false,
@@ -96,6 +96,14 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
       });
     }
     
+    // Filter by status
+    if (statusFilter !== 'all') {
+      result = result.filter((row) => {
+        const rowStatus = String(row.status);
+        return rowStatus === statusFilter;
+      });
+    }
+    
     // Filter by search text 
     if (searchText && searchText.trim()) {
       const searchLower = searchText.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -111,7 +119,7 @@ const   EmpTable: React.FC<EmpTableProps> = ({ rows, onRefresh, onEditRow, roleF
     }
     
     return result;
-  }, [rows, roleFilter, searchText]);
+  }, [rows, roleFilter, statusFilter, searchText]);
 
   const columns: DataTableColumn<EmployeeRow>[] = [
     { label: '', key: 'empty', render: () => null },
