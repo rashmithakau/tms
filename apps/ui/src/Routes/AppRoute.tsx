@@ -12,6 +12,7 @@ import EmployeePage from '../pages/EmployeePage';
 import LandingPage from '../pages/LandingPage';
 import SupervisorReportsPage from '../pages/SupervisorReportsPage';
 import { useAuth } from '../contexts/AuthContext';
+import NotFoundPage from '../pages/NotFoundPage';
 
 const AppRoute: React.FC = () => {
   const { authState } = useAuth();
@@ -107,6 +108,7 @@ const AppRoute: React.FC = () => {
         }
       />
       <Route path="/password/reset" element={<ResetChangePasswordPage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
